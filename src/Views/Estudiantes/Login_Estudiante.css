@@ -1,0 +1,118 @@
+.login-estudiante-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+    padding: 20px;
+}
+
+.v-login-estudiante {
+    max-width: 450px;
+    width: 100%;
+    padding: 35px 30px;
+    background: #b4e9fb;
+    border-radius: 18px;
+    box-shadow: 0 20px 35px rgba(0, 0, 0, 0.2);
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.etq-login {
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: black;
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.qr-info {
+    text-align: center;
+    font-size: 1.7rem;
+    margin-bottom: 25px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+}
+
+.qr-placeholder {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+.v-login-estudiante label {
+    display: block;
+    font-weight: 600;
+    color: #000000;
+    margin-top: 15px;
+    margin-bottom: 6px;
+    font-size: 1.3rem;
+}
+
+.v-login-estudiante input {
+    width: 95%;
+    padding: 14px 18px 10px 5px;
+    font-size: 1rem;
+    border-radius: 10px;
+    background: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    justify-content: center;
+    align-items: center;
+}
+
+.v-login-estudiante input:focus {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
+}
+
+.error-message {
+    background: rgba(255, 24, 24, 0.6);
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 15px;
+    text-align: center;
+}
+
+.action-buttons-login {
+    margin-top: 30px;
+}
+
+.btn-ingresar {
+    width: 100%;
+    padding: 12px 25px;
+    font-family: inherit;
+    font-size: 1.5rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: white;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
+
+.btn-ingresar:hover {
+    background: rgba(38, 255, 29, 0.4);
+    transform: translateY(-3px);
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 650px) {
+    .v-login-estudiante {
+        padding: 25px 20px;
+    }
+    .etq-login {
+        font-size: 1.4rem;
+    }
+}

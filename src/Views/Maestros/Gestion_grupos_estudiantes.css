@@ -1,0 +1,613 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.bebras-dashboard {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 20px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    background: #f0f9ff;
+    min-height: 100vh;
+}
+
+/* Encabezado */
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 20px;
+    background: #b4e9fb;
+    border-radius: 18px;
+    box-shadow: 0 20px 35px rgba(0, 0, 0, 0.2);
+}
+
+.dashboard-header h1 {
+    font-size: 2.5rem;
+    color: #1a1a2e;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: #2d3748;
+    font-weight: 500;
+}
+
+/* Sección de grupos */
+.groups-section {
+    background: white;
+    border-radius: 18px;
+    padding: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #b4e9fb;
+}
+
+.section-header h2 {
+    font-size: 1.8rem;
+    color: #1a1a2e;
+}
+
+.btn-create-group, .btn-add-student {
+    background: #b4e9fb;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    color: #1a1a2e;
+}
+
+.btn-create-group:hover, .btn-add-student:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
+    filter: brightness(1.05);
+}
+
+/* Estado vacío */
+.empty-groups {
+    text-align: center;
+    padding: 60px 20px;
+    background: #f0f9ff;
+    border-radius: 12px;
+}
+
+.empty-groups p {
+    color: #64748b;
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+}
+
+.btn-create-empty {
+    background: #b4e9fb;
+    border: none;
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #1a1a2e;
+}
+
+.btn-create-empty:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
+}
+
+/* Selector de grupo */
+.group-selector {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f0f9ff;
+    border-radius: 12px;
+}
+
+.group-selector label {
+    font-weight: 700;
+    margin-right: 15px;
+    color: #1a1a2e;
+}
+
+.group-selector select {
+    padding: 10px 18px;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    background: white;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Información del grupo */
+.group-info {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, #b4e9fb 0%, #d0f0fe 100%);
+    border-radius: 12px;
+}
+
+.group-details h3 {
+    font-size: 1.5rem;
+    color: #1a1a2e;
+    margin-bottom: 10px;
+}
+
+.group-meta {
+    display: inline-block;
+    margin-right: 20px;
+    padding: 5px 12px;
+    background: white;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #2d3748;
+}
+
+/* Formulario agregar estudiante */
+.add-student-form {
+    background: #f0f9ff;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.add-student-form input[type="text"] {
+    flex: 1;
+    min-width: 150px;
+    padding: 10px 15px;
+    font-size: 0.95rem;
+    border: none;
+    border-radius: 8px;
+    background: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    outline: none;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-cancel-small, .btn-save-small {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-cancel-small {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.btn-save-small {
+    background: #b4e9fb;
+    color: #1a1a2e;
+}
+
+.btn-cancel-small:hover, .btn-save-small:hover {
+    transform: translateY(-2px);
+}
+
+/* Tabla de estudiantes */
+.table-container {
+    overflow-x: auto;
+}
+
+.students-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.students-table th {
+    background: #b4e9fb;
+    padding: 12px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #1a1a2e;
+}
+
+.students-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 0.9rem;
+}
+
+.students-table tr:hover {
+    background: #f0f9ff;
+}
+
+.students-table input[type="text"] {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    width: 100%;
+}
+
+.students-table input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.actions-cell {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.actions-cell button {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #f0f9ff;
+}
+
+.actions-cell button:hover {
+    transform: translateY(-1px);
+}
+
+.edit-student:hover {
+    background: #b4e9fb;
+}
+
+.delete-student:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.save-edit:hover {
+    background: #a5f3c3;
+}
+
+.cancel-edit:hover {
+    background: #fee2e2;
+}
+
+/* Status badges */
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-badge.finished {
+    background: #a5f3c3;
+    color: #166534;
+}
+
+.status-badge.in-progress {
+    background: #fed7aa;
+    color: #92400e;
+}
+
+.status-badge.not-started {
+    background: #e2e8f0;
+    color: #475569;
+}
+
+.empty-row {
+    text-align: center;
+    padding: 30px;
+    color: #94a3b8;
+    font-style: italic;
+}
+
+/* Descripción del profesor */
+.teacher-description {
+    background: #fef3c7;
+    border-left: 5px solid #f59e0b;
+    padding: 20px 25px;
+    border-radius: 12px;
+    margin-top: 20px;
+}
+
+.teacher-description h3 {
+    color: #92400e;
+    margin-bottom: 12px;
+    font-size: 1.3rem;
+}
+
+.teacher-description p {
+    color: #78350f;
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
+.teacher-description p:last-child {
+    margin-bottom: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .bebras-dashboard {
+        padding: 15px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .section-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+
+    .group-meta {
+        display: inline-block;
+        margin-bottom: 8px;
+    }
+
+    .add-student-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .checkbox-label {
+        white-space: normal;
+    }
+
+    .actions-cell {
+        flex-direction: column;
+    }
+
+    .students-table th,
+    .students-table td {
+        padding: 8px;
+        font-size: 0.8rem;
+    }
+
+}
+/* NUEVOS ESTILOS */
+
+.language-selector {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.language-selector button {
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.language-selector button.lang-active {
+    background: #2c3e50;
+    color: white;
+    border-color: #2c3e50;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin: 1rem 0;
+    flex-wrap: wrap;
+}
+
+.btn-gestionar {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.btn-publish-scores {
+    background-color: #e67e22;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.btn-diplomas {
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.btn-ranking {
+    background-color: #9b59b6;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.btn-remove-permissions {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    margin-left: 0.5rem;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.score-cell {
+    font-weight: 600;
+    text-align: center;
+}
+
+.permission-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.permission-label {
+    font-size: 0.8rem;
+}
+
+.challenge-closed {
+    background-color: #27ae60;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.important-note {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 0.75rem;
+    border-radius: 6px;
+    margin-top: 1rem;
+    border-left: 4px solid #e74c3c;
+}
+
+/* Estilos para el ranking */
+.ranking-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.ranking-modal {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.ranking-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background: #9b59b6;
+    color: white;
+}
+
+.ranking-header h2 {
+    margin: 0;
+}
+
+.close-ranking {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.ranking-body {
+    padding: 1.5rem;
+}
+
+.ranking-subtitle {
+    margin-bottom: 1rem;
+    color: #666;
+}
+
+.ranking-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ranking-table th,
+.ranking-table td {
+    padding: 0.5rem;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+.ranking-table th {
+    background-color: #f5f5f5;
+}
+
+.rank {
+    font-weight: bold;
+    color: #9b59b6;
+}
+
+.score {
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.empty-ranking {
+    text-align: center;
+    color: #999;
+    padding: 2rem;
+}
+.pic-bebras-cuba{
+    height: 150px;
+    width: 150px;
+    object-fit: contain;
+    border-radius: 10px;
+}

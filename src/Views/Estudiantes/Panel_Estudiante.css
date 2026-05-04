@@ -1,0 +1,97 @@
+.panel-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+    padding: 20px;
+}
+
+.v-panel {
+    max-width: 1200px;
+    width: 100%;
+    padding: 35px 30px;
+    background: #b4e9fb;
+    border-radius: 18px;
+    box-shadow: 0 20px 35px rgba(0, 0, 0, 0.2);
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.etq-panel {
+    font-size: 2.0rem;
+    font-weight: 700;
+    color: black;
+    margin: 0;
+}
+
+.timer-box {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 1.8rem;
+}
+
+.info-desafio {
+    background: rgba(255, 255, 255, 0.3);
+    padding: 20px;
+    border-radius: 12px;
+    margin: 20px 0;
+    font-size: 1.4rem;
+    text-align: justify;
+}
+
+.start-section {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.btn-iniciar {
+    padding: 15px 40px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: white;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-right: 20px;
+}
+
+.btn-cerrar{
+    padding: 15px 40px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border-radius: 10px;
+    cursor: pointer;
+    background: white;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-iniciar:hover {
+    background: rgba(38, 255, 29, 0.4);
+    transform: translateY(-3px);
+}
+
+.btn-cerrar:hover {
+    background: rgba(255, 24, 24, 0.6);
+    transform: translateY(-3px);
+}
+
+.desafio-content {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 20px;
+    margin: 20px 0;
+}
