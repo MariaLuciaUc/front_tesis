@@ -1,216 +1,347 @@
 import React, {useState} from 'react';
-import './Activacion.css';
 import Gestion_grupos_estudiantes from './Gestion_grupos_estudiantes';
+import {AlertCircle, ArrowLeft, ArrowRight, Check, KeyRound, Loader2, Lock, Mail} from "lucide-react";
 import {toast} from "sonner";
 
+// 1. Diccionario de traducciones
+const translations = {
+  es: {
+    title: "Activación de Cuenta",
+    codeLabel: "Código de activación",
+    codePlaceholder: "Ingrese su código",
+    verify: "Verificar código",
+    forgotPass: "¿Olvidó su contraseña?",
+    newAct: "Nueva activación",
+    infoText: "El desafío Bebras es un concurso internacional de pensamiento computacional diseñado para promover la informática entre los estudiantes...",
+    back: "Volver",
+    next: "Siguiente",
+    accountData: "Datos de cuenta",
+    emailPlaceholder: "Correo electrónico",
+    passPlaceholder: "Contraseña",
+    termsTitle: "Términos y Condiciones",
+    termsText: "Por favor, lea atentamente los términos de servicio antes de continuar con la activación de su cuenta en la plataforma...",
+    acceptTerms: "Acepto los términos y condiciones",
+    confirmTitle: "Confirmación final",
+    acceptEmails: "Acepto recibir correos informativos",
+    activate: "Activar cuenta",
+    successVerify: "Código verificado correctamente",
+    errorVerify: "Código de activación incorrecto",
+    errorFields: "Complete todos los campos requeridos",
+    errorTerms: "Debe aceptar los términos para continuar",
+    successAct: "¡Cuenta activada con éxito!",
+    successReset: "Enlace de recuperación enviado al correo",
+    promptEmail: "Por favor, ingrese su correo electrónico para recuperar la contraseña:"
+  },
+  en: {
+    title: "Account Activation",
+    codeLabel: "Activation code",
+    codePlaceholder: "Enter your code",
+    verify: "Verify code",
+    forgotPass: "Forgot your password?",
+    newAct: "New activation",
+    infoText: "The Bebras challenge is an international computational thinking contest designed to promote computer science among students...",
+    back: "Back",
+    next: "Next",
+    accountData: "Account details",
+    emailPlaceholder: "Email address",
+    passPlaceholder: "Password",
+    termsTitle: "Terms and Conditions",
+    termsText: "Please read the terms of service carefully before proceeding with the activation of your account on the platform...",
+    acceptTerms: "I accept the terms and conditions",
+    confirmTitle: "Final confirmation",
+    acceptEmails: "I agree to receive informational emails",
+    activate: "Activate account",
+    successVerify: "Code verified successfully",
+    errorVerify: "Invalid activation code",
+    errorFields: "Please fill in all required fields",
+    errorTerms: "You must accept the terms to continue",
+    successAct: "Account activated successfully!",
+    successReset: "Recovery link sent to email",
+    promptEmail: "Please enter your email to recover your password:"
+  }
+};
+
 const Activacion = ({onActivate, onResetPassword, onSuccess}) => {
-  const [activationCode, setActivationCode] = useState('');
   const [language, setLanguage] = useState('es');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const t = translations[language]; // Hook de traducción manual
+
   const [step, setStep] = useState(1);
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [acceptedEmails, setAcceptedEmails] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
 
-  const handleVerifyCode = () => {
-    if (activationCode === 'BEBRASCUBA112025') {
-      toast.success("Código verificado correctamente",);
-      setStep(2);
-    } else {
-      toast.error("Código de activación incorrecto");
-    }
+  // Form State
+  const [formData, setFormData] = useState({
+    activationCode: '',
+    email: '',
+    password: '',
+    acceptedTerms: false,
+    acceptedEmails: false,
+  });
+
+  const updateForm = (field, value) => {
+    setFormData(prev => ({...prev, [field]: value}));
   };
 
-  const handleNextStep = () => {
-    if (step === 3 && (!email || !password)) {
-      toast.error("Complete su correo y contraseña",);
+  const handleVerifyCode = async () => {
+    if (!formData.activationCode.trim()) return;
+
+    setIsLoading(true);
+    // Simulamos una llamada a la API
+    setTimeout(() => {
+      setIsLoading(false);
+      if (formData.activationCode === 'BEBRASCUBA112025') {
+        toast.success(t.successVerify);
+        setStep(2);
+      } else {
+        toast.error(t.errorVerify);
+      }
+    }, 800);
+  };
+
+  const handleNextStep = async () => {
+    if (step === 3 && (!formData.email || !formData.password)) {
+      toast.error(t.errorFields);
       return;
     }
-    if (step === 4 && !acceptedTerms) {
-      toast.warning("Debe aceptar los términos",);
-      return;
-    }
-    if (step === 4) {
-      setStep(5);
+    if (step === 4 && !formData.acceptedTerms) {
+      toast.warning(t.errorTerms);
       return;
     }
     if (step === 5) {
-      if (onActivate) {
-        onActivate({email, password, activationCode});
-      }
-      toast.success("Cuenta activada correctamente");
-      if (onSuccess) onSuccess();
-      setShowDashboard(true);
+      setIsLoading(true);
+      // Simulamos la activación final
+      setTimeout(() => {
+        setIsLoading(false);
+        if (onActivate) onActivate(formData);
+        toast.success(t.successAct);
+        if (onSuccess) onSuccess();
+        setShowDashboard(true);
+      }, 1000);
       return;
     }
-    setStep(step + 1);
+    setStep(prev => prev + 1);
   };
 
   const handlePrevStep = () => {
-    if (step > 2) setStep(step - 1);
+    if (step > 1) setStep(prev => prev - 1);
   };
 
-  const handleResetPassword = () => {
-    if (email) {
-      if (onResetPassword) onResetPassword(email);
-
-      toast.success("Se envió el enlace de recuperación",);
-    } else {
-      toast.error("Primero ingrese su correo",);
+  const handleForgotPassword = () => {
+    const userEmail = window.prompt(t.promptEmail);
+    if (userEmail) {
+      if (onResetPassword) onResetPassword(userEmail);
+      toast.success(t.successReset);
     }
   };
 
-  // Si showDashboard es true, mostrar Gestion_grupos_estudiantes
   if (showDashboard) {
     return <Gestion_grupos_estudiantes/>;
   }
 
+  // Componente visual de pasos (Stepper)
+  const renderStepper = () => (
+    <div className="flex items-center justify-center mb-8 space-x-2">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <React.Fragment key={i}>
+          <div className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold transition-colors ${
+            step === i ? 'bg-blue-600 text-white shadow-md' :
+              step > i ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-400'
+          }`}>
+            {step > i ? <Check size={16}/> : i}
+          </div>
+          {i < 5 && (
+            <div className={`w-8 h-1 rounded ${step > i ? 'bg-green-500' : 'bg-slate-200'}`}/>
+          )}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+
   return (
-    <div className="activacion-container">
-      <div className="v-activacion">
-        {/* Selector de idioma */}
-        <div className="language-selector-activacion">
+    <div
+      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-sky-100 p-4 font-sans">
+      <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl p-8 relative animate-[fadeInUp_.4s_ease-out]">
+
+        {/* Selector de Idioma */}
+        <div className="absolute top-4 right-4 flex gap-1 bg-slate-100 p-1 rounded-full border border-slate-200">
           <button
-            className={language === 'es' ? 'lang-active' : ''}
-            onClick={() => setLanguage('es')}
+            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+              language === "es" ? "bg-white text-blue-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
+            }`}
+            onClick={() => setLanguage("es")}
           >
-            🇪🇸 Español
+            ES
           </button>
           <button
-            className={language === 'en' ? 'lang-active' : ''}
-            onClick={() => setLanguage('en')}
+            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+              language === "en" ? "bg-white text-blue-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
+            }`}
+            onClick={() => setLanguage("en")}
           >
-            🇬🇧 English
+            EN
           </button>
         </div>
 
-        {/* Paso 1: Ingresar código */}
-        {step === 1 && (
-          <>
-            <h2 className="etq-activacion">Activación</h2>
-            <label>Código de activación</label>
-            <input
-              type="text"
-              value={activationCode}
-              onChange={(e) => setActivationCode(e.target.value)}
-              placeholder="Ingrese el código"
-            />
-            <div className="action-buttons-activacion">
-              <button className="btn-confirmar" onClick={handleVerifyCode}>
-                Confirmar
-              </button>
-            </div>
-            <div className="opciones-adicionales">
-              <button className="btn-link" onClick={() => setStep(3)}>
-                ¿Olvidó su contraseña? Restablecer
-              </button>
-            </div>
-          </>
-        )}
+        <h2 className="text-2xl font-extrabold text-slate-800 text-center mt-4 mb-6">
+          {t.title}
+        </h2>
 
+        {renderStepper()}
 
-        {/* Paso 2: Nueva activación */}
-        {step === 2 && (
-          <>
-            <h2 className="etq-activacion">Nueva activación</h2>
-            <div className="descripcion-texto">
-              <p>Descripción (1/4): El desafío Bebras es un concurso internacional de pensamiento computacional...</p>
-            </div>
-            <div className="action-buttons-activacion">
-              <button className="btn-siguiente" onClick={handleNextStep}>
-                Siguiente página →
+        <div className="min-h-[220px]">
+          {/* PASO 1: Código */}
+          {step === 1 && (
+            <div className="space-y-4">
+              <label className="block text-sm font-semibold text-slate-700">
+                {t.codeLabel}
+              </label>
+              <div className="relative">
+                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20}/>
+                <input
+                  type="text"
+                  value={formData.activationCode}
+                  onChange={(e) => updateForm('activationCode', e.target.value.toUpperCase())}
+                  placeholder={t.codePlaceholder}
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  onKeyDown={(e) => e.key === 'Enter' && handleVerifyCode()}
+                />
+              </div>
+              <button
+                onClick={handleVerifyCode}
+                disabled={!formData.activationCode || isLoading}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg"
+              >
+                {isLoading ? <Loader2 className="animate-spin" size={20}/> : <Check size={20}/>}
+                {t.verify}
               </button>
+              <div className="text-center pt-2">
+                <button
+                  onClick={handleForgotPassword}
+                  className="text-sm text-blue-600 hover:text-blue-800 hover:underline font-medium transition-colors"
+                >
+                  {t.forgotPass}
+                </button>
+              </div>
             </div>
-            <div className="opciones-adicionales">
-              <button className="btn-link" onClick={() => setStep(1)}>
-                ← Volver
-              </button>
-            </div>
-          </>
-        )}
+          )}
 
-        {/* Paso 3: Email y contraseña */}
-        {step === 3 && (
-          <>
-            <h2 className="etq-activacion">Datos de cuenta (2/4)</h2>
-            <label>Correo electrónico</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="suemail@ejemplo.com"
-            />
-            <label>Contraseña</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Cree una contraseña"
-            />
-            <div className="action-buttons-activacion">
-              <button className="btn-atras" onClick={handlePrevStep}>
-                ← Atrás
-              </button>
-              <button className="btn-siguiente" onClick={handleNextStep}>
-                Siguiente página →
-              </button>
+          {/* PASO 2: Información */}
+          {step === 2 && (
+            <div className="space-y-4 animate-[fadeIn_.3s_ease-out]">
+              <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <AlertCircle className="text-blue-500" size={20}/>
+                {t.newAct}
+              </h3>
+              <p className="text-slate-600 text-sm leading-relaxed bg-blue-50 p-4 rounded-xl border border-blue-100">
+                {t.infoText}
+              </p>
             </div>
-          </>
-        )}
+          )}
 
-        {/* Paso 4: Términos de servicio */}
-        {step === 4 && (
-          <>
-            <h2 className="etq-activacion">Términos de servicio (3/4)</h2>
-            <div className="terminos-container">
-              <p>Lea los términos de servicio...</p>
-              <label className="checkbox-label">
+          {/* PASO 3: Credenciales */}
+          {step === 3 && (
+            <div className="space-y-4 animate-[fadeIn_.3s_ease-out]">
+              <h3 className="text-lg font-bold text-slate-800">{t.accountData}</h3>
+              <div className="space-y-3">
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20}/>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => updateForm('email', e.target.value)}
+                    placeholder={t.emailPlaceholder}
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                  />
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20}/>
+                  <input
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => updateForm('password', e.target.value)}
+                    placeholder={t.passPlaceholder}
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* PASO 4: Términos */}
+          {step === 4 && (
+            <div className="space-y-4 animate-[fadeIn_.3s_ease-out]">
+              <h3 className="text-lg font-bold text-slate-800">{t.termsTitle}</h3>
+              <div
+                className="bg-slate-50 p-4 rounded-xl border border-slate-200 h-32 overflow-y-auto text-sm text-slate-600">
+                {t.termsText}
+              </div>
+              <label
+                className="flex items-center gap-3 mt-4 p-2 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
                 <input
                   type="checkbox"
-                  checked={acceptedTerms}
-                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  checked={formData.acceptedTerms}
+                  onChange={(e) => updateForm('acceptedTerms', e.target.checked)}
                 />
-                Acepto los términos de servicio
+                <span className="text-sm font-medium text-slate-700">{t.acceptTerms}</span>
               </label>
             </div>
-            <div className="action-buttons-activacion">
-              <button className="btn-atras" onClick={handlePrevStep}>
-                ← Atrás
-              </button>
-              <button className="btn-siguiente" onClick={handleNextStep}>
-                Siguiente página →
-              </button>
-            </div>
-          </>
-        )}
+          )}
 
-        {/* Paso 5: Confirmación */}
-        {step === 5 && (
-          <>
-            <h2 className="etq-activacion">Confirmar datos (4/4)</h2>
-            <div className="confirmacion-datos">
-              <p><strong>Correo:</strong> {email}</p>
-              <p><strong>Contraseña:</strong> ••••••••</p>
-              <label className="checkbox-label">
+          {/* PASO 5: Confirmación */}
+          {step === 5 && (
+            <div className="space-y-4 animate-[fadeIn_.3s_ease-out]">
+              <h3 className="text-lg font-bold text-slate-800">{t.confirmTitle}</h3>
+              <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-2">
+                <p className="text-sm text-slate-600">
+                  <strong className="text-slate-800">Email:</strong> {formData.email}
+                </p>
+                <p className="text-sm text-slate-600">
+                  <strong className="text-slate-800">Password:</strong> ••••••••
+                </p>
+              </div>
+              <label
+                className="flex items-center gap-3 mt-4 p-2 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
                 <input
                   type="checkbox"
-                  checked={acceptedEmails}
-                  onChange={(e) => setAcceptedEmails(e.target.checked)}
+                  className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  checked={formData.acceptedEmails}
+                  onChange={(e) => updateForm('acceptedEmails', e.target.checked)}
                 />
-                Acepto recibir correos de activación e información de cuentas
+                <span className="text-sm font-medium text-slate-700">{t.acceptEmails}</span>
               </label>
             </div>
-            <div className="action-buttons-activacion">
-              <button className="btn-atras" onClick={handlePrevStep}>
-                ← Atrás
-              </button>
-              <button className="btn-activar" onClick={handleNextStep}>
-                Activar
-              </button>
-            </div>
-          </>
+          )}
+        </div>
+
+        {/* Botones de navegación (Ocultos en el paso 1) */}
+        {step > 1 && (
+          <div className="flex justify-between mt-8 pt-4 border-t border-slate-100">
+            <button
+              onClick={handlePrevStep}
+              disabled={isLoading}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors disabled:opacity-50"
+            >
+              <ArrowLeft size={18}/> {t.back}
+            </button>
+
+            <button
+              onClick={handleNextStep}
+              disabled={isLoading || (step === 4 && !formData.acceptedTerms)}
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? (
+                <Loader2 className="animate-spin" size={18}/>
+              ) : step === 5 ? (
+                <Check size={18}/>
+              ) : (
+                <ArrowRight size={18}/>
+              )}
+              {step === 5 ? t.activate : t.next}
+            </button>
+          </div>
         )}
+
       </div>
     </div>
   );
