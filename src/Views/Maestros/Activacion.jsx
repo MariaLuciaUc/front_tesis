@@ -159,7 +159,7 @@ const Activacion = ({onActivate, onResetPassword, onSuccess}) => {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-sky-100 p-4 font-sans">
+      className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-100 to-sky-100 p-4 font-sans">
       <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl p-8 relative animate-[fadeInUp_.4s_ease-out]">
 
         {/* Selector de Idioma */}
