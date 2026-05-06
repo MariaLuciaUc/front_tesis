@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './Crear_Grupo.css';
+import { Save, X, Globe, BookOpen, Users } from 'lucide-react';
 
 export default function Crear_Grupo({ onGroupCreated }) {
     const [groupName, setGroupName] = useState('');
@@ -9,18 +9,15 @@ export default function Crear_Grupo({ onGroupCreated }) {
     const courses = ['Super peque', 'Peque', 'Benjamin', 'Cadete', 'Junior', 'Senior'];
 
     const handleCreate = () => {
-        // Validaciones
         if (!groupName.trim()) {
             alert('Por favor ingresa un nombre para el grupo');
             return;
         }
-
         if (!selectedCourse) {
             alert('Por favor selecciona un Nivel Bebras');
             return;
         }
 
-        // Crear objeto del nuevo grupo
         const newGroup = {
             id: Date.now().toString(),
             name: groupName,
@@ -34,60 +31,91 @@ export default function Crear_Grupo({ onGroupCreated }) {
         };
 
         onGroupCreated(newGroup);
+        setGroupName('');
+        setLanguage('español');
+        setSelectedCourse('');
     };
 
     const handleCancel = () => {
-        // Limpiar el formulario
         setGroupName('');
         setLanguage('español');
         setSelectedCourse('');
     };
 
     return (
-        <div className="crear-grupo-container">
-            <div className="v-create-group">
-                <label className="etq-new-group">Nuevo Grupo</label>
-
-                <h3>Nombre del grupo</h3>
-                <input
-                    type="text"
-                    placeholder=""
-                    value={groupName}
-                    onChange={(e) => setGroupName(e.target.value)}
-                />
-
-                <br />
-
-                <label className="etq-new-group">Idioma</label>
-                <select value={language} onChange={(e) => setLanguage(e.target.value)}>
-                    <option value="español">Español</option>
-                    <option value="english">English</option>
-                    <option value="frances">Français</option>
-                    <option value="aleman">Deutsch</option>
-                    <option value="portugues">Português</option>
-                </select>
-
-                <br />
-
-                <h3>Curso</h3>
-                <br />
-
-                <div className="course-buttons">
-                    {courses.map((course) => (
-                        <button
-                            key={course}
-                            className={`btn-course ${selectedCourse === course ? 'active' : ''}`}
-                            onClick={() => setSelectedCourse(course)}
-                            style={selectedCourse === course ? { background: 'rgba(38, 255, 29, 0.4)', transform: 'translateY(-2px)' } : {}}
-                        >
-                            {course}
-                        </button>
-                    ))}
+        <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-100 to-sky-100 p-4 font-sans">
+            <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl p-8 relative animate-[fadeInUp_.4s_ease-out]">
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200">
+                    <Users className="text-blue-600" size={24} />
+                    <h2 className="text-2xl font-extrabold text-slate-800">Nuevo Grupo</h2>
                 </div>
 
-                <div className="create-and-cancel-group">
-                    <button className="btn-create" onClick={handleCreate}> 💾 Crear</button>
-                    <button className="btn-cancel" onClick={handleCancel}> ❌ Cancelar</button>
+                {/* Nombre del grupo */}
+                <div className="mb-6">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Nombre del grupo</label>
+                    <input
+                        type="text"
+                        value={groupName}
+                        onChange={(e) => setGroupName(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                        placeholder="Ej: 5to Grado - Sección A"
+                    />
+                </div>
+
+                {/* Idioma */}
+                <div className="mb-6">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                        <Globe size={16} /> Idioma
+                    </label>
+                    <select
+                        value={language}
+                        onChange={(e) => setLanguage(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                    >
+                        <option value="español">Español</option>
+                        <option value="english">English</option>
+                        <option value="frances">Français</option>
+                        <option value="aleman">Deutsch</option>
+                        <option value="portugues">Português</option>
+                    </select>
+                </div>
+
+                {/* Curso / Nivel Bebras */}
+                <div className="mb-8">
+                    <label className="block text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                        <BookOpen size={16} /> Nivel Bebras
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                        {courses.map((course) => (
+                            <button
+                                key={course}
+                                onClick={() => setSelectedCourse(course)}
+                                className={`px-4 py-2 rounded-xl font-medium transition-all ${
+                                    selectedCourse === course
+                                        ? 'bg-blue-600 text-white shadow-md'
+                                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                                }`}
+                            >
+                                {course}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Botones */}
+                <div className="flex gap-4 pt-4 border-t border-slate-100">
+                    <button
+                        onClick={handleCreate}
+                        className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 shadow-md hover:shadow-lg transition-all"
+                    >
+                        <Save size={18} /> Crear
+                    </button>
+                    <button
+                        onClick={handleCancel}
+                        className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-slate-200 text-slate-700 font-medium hover:bg-slate-300 transition-all"
+                    >
+                        <X size={18} /> Cancelar
+                    </button>
                 </div>
             </div>
         </div>

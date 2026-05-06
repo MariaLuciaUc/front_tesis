@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import './Crear_cuentas_alumnos.css'
+import React, { useState } from 'react';
+import { X, UserPlus, Send, Trash2, Users, Mail, CheckCircle, AlertCircle } from 'lucide-react';
 
 export default function Crear_cuentas_alumnos({ onStudentsCreated, onCancel }) {
     const [nombres, setNombres] = useState('');
@@ -9,7 +9,6 @@ export default function Crear_cuentas_alumnos({ onStudentsCreated, onCancel }) {
     const [mensaje, setMensaje] = useState('');
     const [mostrarVistaPrevia, setMostrarVistaPrevia] = useState(false);
 
-    // Procesar los nombres del textarea
     const procesarNombres = () => {
         const nombresArray = nombres
             .split('\n')
@@ -26,14 +25,12 @@ export default function Crear_cuentas_alumnos({ onStudentsCreated, onCancel }) {
         setMensaje(`✅ ${nombresArray.length} nombre(s) procesado(s) correctamente`);
     };
 
-    // Guardar y enviar los estudiantes al componente padre
     const guardarYEnviar = () => {
         if (listaNombres.length === 0) {
             setMensaje('⚠️ No hay nombres para guardar. Use "Procesar Nombres" primero');
             return;
         }
 
-        // Enviar los estudiantes creados al componente padre
         if (onStudentsCreated) {
             onStudentsCreated(listaNombres, genero, enviarCorreo);
         }
@@ -48,78 +45,118 @@ export default function Crear_cuentas_alumnos({ onStudentsCreated, onCancel }) {
 
     const cerrarModal = () => {
         limpiarTodo();
-        if (onCancel) {
-            onCancel();
-        }
+        if (onCancel) onCancel();
     };
 
     return (
-        <div className="crear-cuentas-container">
-            <div className="header">
-                <label className="titulo">Crear cuentas nuevas</label>
-                <button className="btn-cerrar" onClick={cerrarModal}>Cerrar</button>
-            </div>
-
-            <div className="nombres-section">
-                <label className="subtitulo">Ingrese los nombres (uno por línea):</label>
-                <textarea
-                    className="textarea-nombres"
-                    value={nombres}
-                    onChange={(e) => setNombres(e.target.value)}
-                    placeholder="Ejemplo:&#10;Ana García&#10;María López&#10;Carmen Rodríguez"
-                    rows={8}
-                />
-                <button className="btn-procesar" onClick={procesarNombres}>
-                    Procesar Nombres
-                </button>
-            </div>
-
-            <div className="genero-section">
-                <label>Género:</label>
-                <select value={genero} onChange={(e) => setGenero(e.target.value)}>
-                    <option value="Femenino">Femenino</option>
-                    <option value="Masculino">Masculino</option>
-                </select>
-            </div>
-
-            <div className="correo-section">
-                <input
-                    type="checkbox"
-                    id="correoCheckbox"
-                    checked={enviarCorreo}
-                    onChange={(e) => setEnviarCorreo(e.target.checked)}
-                />
-                <label htmlFor="correoCheckbox">
-                    Enviar nuevas cuentas al correo electrónico dgalvezlio@outlook.com
-                </label>
-            </div>
-            <div className="acciones-section">
-                <button className="btn-guardar" onClick={guardarYEnviar}>
-                    Guardar y Agregar Estudiantes
-                </button>
-                <button className="btn-limpiar" onClick={limpiarTodo}>
-                    Limpiar todo
-                </button>
-            </div>
-
-            {mensaje && (
-                <div className="mensaje">
-                    {mensaje}
+        <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-100 to-sky-100 p-4 font-sans">
+            <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-8 relative animate-[fadeInUp_.4s_ease-out]">
+                {/* Header */}
+                <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-200">
+                    <div className="flex items-center gap-3">
+                        <UserPlus className="text-blue-600" size={24} />
+                        <h2 className="text-2xl font-extrabold text-slate-800">Crear cuentas nuevas</h2>
+                    </div>
+                    <button
+                        onClick={cerrarModal}
+                        className="p-2 rounded-full hover:bg-slate-100 transition-colors text-slate-500 hover:text-slate-700"
+                    >
+                        <X size={20} />
+                    </button>
                 </div>
-            )}
 
-            {mostrarVistaPrevia && listaNombres.length > 0 && (
-                <div className="vista-previa">
-                    <h4>📋 Vista Previa ({listaNombres.length} nombre(s)):</h4>
-                    <div className="lista-nombres">
-                        {listaNombres.map((nombre, index) => (
-                            <div key={index} className="nombre-item">
-                                {index + 1}. {nombre}
-                            </div>
-                        ))}
+                {/* Textarea nombres */}
+                <div className="mb-6">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Ingrese los nombres (uno por línea):
+                    </label>
+                    <textarea
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all font-sans"
+                        value={nombres}
+                        onChange={(e) => setNombres(e.target.value)}
+                        placeholder="Ejemplo:&#10;Ana García&#10;María López&#10;Carmen Rodríguez"
+                        rows={6}
+                    />
+                    <button
+                        onClick={procesarNombres}
+                        className="mt-3 flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all shadow-md hover:shadow-lg"
+                    >
+                        <Users size={18} />
+                        Procesar Nombres
+                    </button>
+                </div>
+
+                {/* Género y correo */}
+                <div className="grid md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-2">Género:</label>
+                        <select
+                            value={genero}
+                            onChange={(e) => setGenero(e.target.value)}
+                            className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                        >
+                            <option value="Femenino">Femenino</option>
+                            <option value="Masculino">Masculino</option>
+                        </select>
+                    </div>
+
+                    <div className="flex items-center gap-3 mt-6">
+                        <input
+                            type="checkbox"
+                            id="correoCheckbox"
+                            checked={enviarCorreo}
+                            onChange={(e) => setEnviarCorreo(e.target.checked)}
+                            className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <label htmlFor="correoCheckbox" className="text-sm text-slate-700">
+                            Enviar nuevas cuentas al correo electrónico dgalvezlio@outlook.com
+                        </label>
                     </div>
                 </div>
-            )}
+
+                {/* Botones de acción */}
+                <div className="flex flex-wrap gap-4 mb-6">
+                    <button
+                        onClick={guardarYEnviar}
+                        className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 shadow-md hover:shadow-lg transition-all"
+                    >
+                        <Send size={18} />
+                        Guardar y Agregar Estudiantes
+                    </button>
+                    <button
+                        onClick={limpiarTodo}
+                        className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-slate-200 text-slate-700 font-medium hover:bg-slate-300 transition-all"
+                    >
+                        <Trash2 size={18} />
+                        Limpiar todo
+                    </button>
+                </div>
+
+                {/* Mensaje */}
+                {mensaje && (
+                    <div className={`mb-4 p-3 rounded-xl text-sm flex items-center gap-2 ${mensaje.includes('✅') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                        {mensaje.includes('✅') ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+                        {mensaje}
+                    </div>
+                )}
+
+                {/* Vista previa */}
+                {mostrarVistaPrevia && listaNombres.length > 0 && (
+                    <div className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        <h4 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                            <Users size={18} className="text-blue-600" />
+                            📋 Vista Previa ({listaNombres.length} nombre(s)):
+                        </h4>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto">
+                            {listaNombres.map((nombre, index) => (
+                                <div key={index} className="text-sm text-slate-600 py-1 px-2 bg-white rounded border border-slate-100">
+                                    {index + 1}. {nombre}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
-    )
+    );
 }
