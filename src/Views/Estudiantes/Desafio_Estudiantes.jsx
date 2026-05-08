@@ -16,7 +16,7 @@ const Desafio_Estudiantes = (props) => {
     const [finished, setFinished] = useState(false);
     const [finalScore, setFinalScore] = useState(null);
     const [showExitModal, setShowExitModal] = useState(false);
-
+//aca estan algunas preguntas de prueba para ver como se veria esta vista de los estudiantes
     const questions = [
         { id: 1, text: "Los castores construyen un puente con 3 troncos rojos y 2 azules. ¿Cuántos troncos usan en total?", type: "number", answer: "5" },
         { id: 2, text: "Un castor puede transportar 2 ramas por viaje. Si necesita mover 9 ramas, ¿cuántos viajes debe hacer?", type: "number", answer: "5" },
