@@ -9,11 +9,13 @@ function App() {
   return (
     <div>
       <Toaster richColors/>
-        <Login_Estudiante/>
-        {/*<Activacion/>*/}
+        <Activacion/>
+
+        {/*<Login_Estudiante/>*/}
     </div>
   );
 }
 
 export default App;
 
+//para las vistas de los estudiantes componente <Login_Estudiante/> y para la de los maestros <Activacion/>
