@@ -5,6 +5,7 @@ import { Send, CheckCircle, Edit3, ChevronLeft, ChevronRight } from 'lucide-reac
 const Pregunta = ({
                       question,
                       questionNumber,
+                      totalQuestions,
                       answer,
                       isSubmitted,
                       onAnswerChange,
@@ -43,12 +44,13 @@ const Pregunta = ({
                     </button>
                     {isSubmitted && (
                         <span className="flex items-center gap-1 text-sm text-green-600">
-              <CheckCircle size={14} /> Respuesta guardada
-            </span>
+                            <CheckCircle size={14} /> Respuesta guardada
+                        </span>
                     )}
                 </div>
             </div>
 
+            {/* Navegación */}
             <div className="flex justify-between items-center pt-4 border-t border-slate-200">
                 <button
                     disabled={isFirst}
@@ -58,8 +60,8 @@ const Pregunta = ({
                     <ChevronLeft size={18} /> Anterior
                 </button>
                 <span className="text-sm text-slate-500">
-          {questionNumber} / {questionNumber + (isLast ? 0 : 1)}
-        </span>
+                    {questionNumber} / {totalQuestions}
+                </span>
                 <button
                     disabled={isLast}
                     onClick={onNext}
