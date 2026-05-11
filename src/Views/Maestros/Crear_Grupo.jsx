@@ -11,11 +11,11 @@ export default function Crear_Grupo({ onGroupCreated }) {
 
     const handleCreate = () => {
         if (!groupName.trim()) {
-            toast.message('Por favor ingresa un nombre para el grupo');
+            toast.info('Por favor ingresa un nombre para el grupo');
             return;
         }
         if (!selectedCourse) {
-            toast.message('Por favor selecciona un Nivel Bebras');
+            toast.info('Por favor selecciona un Nivel Bebras');
             return;
         }
 

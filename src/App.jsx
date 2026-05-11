@@ -10,7 +10,7 @@ function App() {
   return (
     <div>
       <Toaster richColors/>
-        <Login_Estudiante/>
+        <Activacion/>
 
         {/*<Login_Estudiante/>*/}
     </div>
