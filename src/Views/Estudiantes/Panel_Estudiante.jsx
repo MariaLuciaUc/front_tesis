@@ -51,7 +51,7 @@ const Panel_Estudiante = ({ student, onLogout }) => {
 
                 <div className="mt-6 pt-4 border-t border-slate-200 text-center">
                     <p className="text-xs text-slate-400 flex items-center justify-center gap-1">
-                        <BookOpen size={12} /> Desafío Internacional de Pensamiento Computacional - Bebras
+                        <BookOpen size={12} /> Desafío Internacional de Pensamiento Computacional - BebrasCuba - Edicion 2026
                     </p>
                 </div>
             </div>

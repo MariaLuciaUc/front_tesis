@@ -1,14 +1,13 @@
+// Desafio_Estudiantes.jsx
 import React, { useState, useEffect } from 'react';
-import { Clock, User, LogOut, Flag, CheckCircle, Send, ChevronLeft, ChevronRight, X, AlertCircle, Trophy, Award, ThumbsUp, Target, BookOpen, List, Edit3, Star } from 'lucide-react';
+import { Clock, User, LogOut, Flag, CheckCircle, AlertCircle, Trophy, ThumbsUp, Target, List, Star, Menu, ArrowLeft } from 'lucide-react';
+import Pregunta from './Pregunta';
 
 const Desafio_Estudiantes = (props) => {
     const { studentData, onBackToPanel } = props;
     const [name] = useState(studentData?.name || 'Estudiante');
     const [code] = useState(studentData?.code || '');
-    const [error, setError] = useState('');
-    const [isLoggedIn, setIsLoggedIn] = useState(true);
     const [timeLeft, setTimeLeft] = useState(45 * 60);
-    const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState({});
     const [submitted, setSubmitted] = useState({});
     const [evaluated, setEvaluated] = useState({});
@@ -16,13 +15,45 @@ const Desafio_Estudiantes = (props) => {
     const [finished, setFinished] = useState(false);
     const [finalScore, setFinalScore] = useState(null);
     const [showExitModal, setShowExitModal] = useState(false);
-//aca estan algunas preguntas de prueba para ver como se veria esta vista de los estudiantes
+    const [selectedQuestion, setSelectedQuestion] = useState(null);
+
+    // Preguntas del desafío con nombres graciosos
     const questions = [
-        { id: 1, text: "Los castores construyen un puente con 3 troncos rojos y 2 azules. ¿Cuántos troncos usan en total?", type: "number", answer: "5" },
-        { id: 2, text: "Un castor puede transportar 2 ramas por viaje. Si necesita mover 9 ramas, ¿cuántos viajes debe hacer?", type: "number", answer: "5" },
-        { id: 3, text: "Observa la secuencia: rojo, amarillo, rojo, amarillo, rojo... ¿De qué color es la posición 10?", type: "text", answer: "amarillo" },
-        { id: 4, text: "En el mapa del bosque, cada camino tiene 3 intersecciones. Si hay 4 caminos, ¿cuántas intersecciones hay en total?", type: "number", answer: "12" },
-        { id: 5, text: "Si un castor tarda 5 minutos en talar un árbol, ¿cuántos minutos tardará en talar 4 árboles?", type: "number", answer: "20" }
+        {
+            id: 1,
+            name: "El puente loco de los castores",
+            text: "Los castores construyen un puente con 3 troncos rojos y 2 azules. ¿Cuántos troncos usan en total?",
+            type: "number",
+            answer: "5"
+        },
+        {
+            id: 2,
+            name: "Castor repartidor",
+            text: "Un castor puede transportar 2 ramas por viaje. Si necesita mover 9 ramas, ¿cuántos viajes debe hacer?",
+            type: "number",
+            answer: "5"
+        },
+        {
+            id: 3,
+            name: "La secuencia arcoiris del castor",
+            text: "Observa la secuencia: rojo, amarillo, rojo, amarillo, rojo... ¿De qué color es la posición 10?",
+            type: "text",
+            answer: "amarillo"
+        },
+        {
+            id: 4,
+            name: "El bosque de las intersecciones",
+            text: "En el mapa del bosque, cada camino tiene 3 intersecciones. Si hay 4 caminos, ¿cuántas intersecciones hay en total?",
+            type: "number",
+            answer: "12"
+        },
+        {
+            id: 5,
+            name: "El castor talador experto",
+            text: "Si un castor tarda 5 minutos en talar un árbol, ¿cuántos minutos tardará en talar 4 árboles?",
+            type: "number",
+            answer: "20"
+        }
     ];
 
     useEffect(() => {
@@ -41,15 +72,19 @@ const Desafio_Estudiantes = (props) => {
     };
 
     const handleAnswerChange = (value) => {
-        setAnswers({ ...answers, [currentQuestion]: value });
+        if (selectedQuestion !== null) {
+            setAnswers({ ...answers, [selectedQuestion]: value });
+        }
     };
 
     const handleSubmitQuestion = () => {
-        if (!answers[currentQuestion]) {
+        if (selectedQuestion !== null && !answers[selectedQuestion]) {
             alert('Escribe tu respuesta antes de enviar');
             return;
         }
-        setSubmitted({ ...submitted, [currentQuestion]: true });
+        if (selectedQuestion !== null) {
+            setSubmitted({ ...submitted, [selectedQuestion]: true });
+        }
     };
 
     const toggleEvaluate = (qIndex) => {
@@ -72,6 +107,17 @@ const Desafio_Estudiantes = (props) => {
 
     const handleExit = () => setShowExitModal(true);
     const confirmExit = () => onBackToPanel && onBackToPanel();
+
+    const handleSelectQuestion = (index) => {
+        setSelectedQuestion(index);
+    };
+
+    const handleBackToList = () => {
+        setSelectedQuestion(null);
+    };
+
+    const answeredCount = Object.keys(submitted).filter(key => submitted[key]).length;
+    const progressPercentage = (answeredCount / questions.length) * 100;
 
     if (finished) {
         return (
@@ -102,27 +148,184 @@ const Desafio_Estudiantes = (props) => {
         );
     }
 
+    // Vista de lista de preguntas
+    if (selectedQuestion === null) {
+        return (
+            <div className="min-h-screen bg-linear-to-br from-slate-100 to-sky-100 font-sans">
+                {/* Header */}
+                <div className="bg-white shadow-md sticky top-0 z-10">
+                    <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                            <div className="bg-blue-600 text-white p-1.5 rounded-lg">
+                                <Target size={18} />
+                            </div>
+                            <span className="font-bold text-slate-800">Desafío BebrasCuba</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2 bg-orange-100 px-3 py-1.5 rounded-full">
+                                <Clock size={16} className="text-orange-600" />
+                                <span className="font-mono font-bold text-orange-700">{formatTime(timeLeft)}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-slate-600">
+                                <User size={16} />
+                                <span className="text-sm">{name}</span>
+                            </div>
+                            <button onClick={handleExit} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-all text-sm font-medium">
+                                <LogOut size={14} /> Salir
+                            </button>
+                            <button onClick={() => setShowFinishModal(true)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-all text-sm font-medium shadow-md">
+                                <Flag size={14} /> Finalizar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Barra de progreso */}
+                <div className="bg-white border-b border-slate-200 px-4 py-2">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="flex justify-between items-center mb-1">
+                            <span className="text-sm font-medium text-slate-600">Progreso del desafío</span>
+                            <span className="text-sm font-bold text-green-600">{answeredCount} de {questions.length} preguntas respondidas</span>
+                        </div>
+                        <div className="w-full bg-slate-200 rounded-full h-2.5">
+                            <div
+                                className="bg-green-500 rounded-full h-2.5 transition-all duration-500"
+                                style={{ width: `${progressPercentage}%` }}
+                            ></div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Lista de preguntas */}
+                <div className="max-w-7xl mx-auto p-6">
+                    <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+                        <div className="bg-slate-50 px-5 py-3 border-b border-slate-200">
+                            <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                                <List size={18} className="text-blue-600" />
+                                Preguntas del desafío
+                            </h3>
+                            <p className="text-xs text-slate-500 mt-1">Haz clic en cualquier pregunta para resolverla</p>
+                        </div>
+                        <div className="divide-y divide-slate-100 max-h-[500px] overflow-y-auto">
+                            {questions.map((q, idx) => {
+                                const isAnswered = submitted[idx];
+                                const isEvaluated = evaluated[idx];
+
+                                return (
+                                    <div
+                                        key={q.id}
+                                        onClick={() => handleSelectQuestion(idx)}
+                                        className={`group flex items-center justify-between p-4 cursor-pointer transition-all hover:bg-slate-50`}
+                                    >
+                                        <div className="flex items-center gap-3 flex-1">
+                                            <div className={`
+                                                w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all flex-shrink-0
+                                                ${isAnswered
+                                                ? 'bg-green-100 text-green-700'
+                                                : 'bg-slate-100 text-slate-500'
+                                            }
+                                            `}>
+                                                {isAnswered ? '✓' : idx + 1}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium text-slate-700 group-hover:text-blue-600 transition-colors">
+                                                    {q.name}
+                                                </p>
+                                                {isAnswered && (
+                                                    <span className="text-xs text-green-600 flex items-center gap-1 mt-0.5">
+                                                        <CheckCircle size={10} /> Respondida
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 flex-shrink-0">
+                                            <label
+                                                className="flex items-center gap-1.5 text-xs cursor-pointer px-2 py-1 rounded-lg hover:bg-slate-100"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={!!evaluated[idx]}
+                                                    onChange={() => toggleEvaluate(idx)}
+                                                    className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                                />
+                                                <span className="text-slate-500">Evaluar</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <div className="p-4 bg-blue-50 border-t border-blue-100">
+                            <div className="flex items-start gap-2 text-xs text-blue-700">
+                                <AlertCircle size={14} className="flex-shrink-0 mt-0.5" />
+                                <span>Marca "Evaluar" solo las preguntas que quieras que cuenten para tu puntaje final</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Modales */}
+                {showFinishModal && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowFinishModal(false)}>
+                        <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-[fadeInUp_.3s_ease-out]" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                                    <Flag size={20} className="text-orange-500" />
+                                </div>
+                                <h3 className="text-xl font-bold text-slate-800">¿Finalizar desafío?</h3>
+                            </div>
+                            <p className="text-slate-600 mb-2">Antes de finalizar, verifica que:</p>
+                            <ul className="text-sm text-slate-500 mb-6 ml-5 space-y-1 list-disc">
+                                <li>Haz respondido todas las preguntas que deseas</li>
+                                <li>Marca con ✓ las preguntas que quieres evaluar</li>
+                                <li>Las preguntas no evaluadas no sumarán puntos</li>
+                            </ul>
+                            <div className="flex gap-3">
+                                <button onClick={() => setShowFinishModal(false)} className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-medium hover:bg-slate-200 transition-all">Cancelar</button>
+                                <button onClick={handleFinalizar} className="flex-1 py-2.5 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 transition-all shadow-md">Sí, finalizar</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {showExitModal && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowExitModal(false)}>
+                        <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-[fadeInUp_.3s_ease-out]" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                                    <LogOut size={20} className="text-red-500" />
+                                </div>
+                                <h3 className="text-xl font-bold text-slate-800">¿Salir del desafío?</h3>
+                            </div>
+                            <p className="text-slate-600 mb-6">Si sales ahora, perderás todo tu progreso. ¿Estás seguro?</p>
+                            <div className="flex gap-3">
+                                <button onClick={() => setShowExitModal(false)} className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-medium hover:bg-slate-200 transition-all">Cancelar</button>
+                                <button onClick={confirmExit} className="flex-1 py-2.5 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition-all shadow-md">Sí, salir</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    // Vista de pregunta individual
     return (
         <div className="min-h-screen bg-linear-to-br from-slate-100 to-sky-100 font-sans">
-            {/* Header */}
             <div className="bg-white shadow-md sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                        <Target size={24} className="text-blue-600" />
-                        <span className="font-bold text-slate-800">Desafío Bebras</span>
-                    </div>
-                    <div className="flex items-center gap-4">
+                    <button
+                        onClick={handleBackToList}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all font-medium"
+                    >
+                        <ArrowLeft size={18} /> Volver a la lista
+                    </button>
+                    <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2 bg-orange-100 px-3 py-1.5 rounded-full">
                             <Clock size={16} className="text-orange-600" />
                             <span className="font-mono font-bold text-orange-700">{formatTime(timeLeft)}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-slate-600">
-                            <User size={16} />
-                            <span className="text-sm">{name}</span>
-                        </div>
-                        <button onClick={handleExit} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-all text-sm font-medium">
-                            <LogOut size={14} /> Salir
-                        </button>
                         <button onClick={() => setShowFinishModal(true)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-all text-sm font-medium shadow-md">
                             <Flag size={14} /> Finalizar
                         </button>
@@ -130,95 +333,55 @@ const Desafio_Estudiantes = (props) => {
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto p-4">
-                <div className="grid lg:grid-cols-3 gap-6">
-                    {/* Lista de preguntas */}
-                    <div className="lg:col-span-1 bg-white rounded-2xl shadow-xl p-4 h-fit">
-                        <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><List size={18} className="text-blue-600" /> Preguntas</h3>
-                        <div className="space-y-2">
-                            {questions.map((q, idx) => (
-                                <div
-                                    key={q.id}
-                                    onClick={() => setCurrentQuestion(idx)}
-                                    className={`p-3 rounded-xl cursor-pointer transition-all ${currentQuestion === idx ? 'bg-blue-50 border-2 border-blue-500 shadow-md' : 'bg-slate-50 border border-slate-200 hover:bg-slate-100'}`}
-                                >
-                                    <div className="flex justify-between items-center">
-                                        <span className={`font-medium ${currentQuestion === idx ? 'text-blue-700' : 'text-slate-700'}`}>Pregunta {idx + 1}</span>
-                                        <div className="flex items-center gap-2">
-                                            {submitted[idx] && <CheckCircle size={14} className="text-green-500" />}
-                                            <label className="flex items-center gap-1 text-xs cursor-pointer" onClick={(e) => e.stopPropagation()}>
-                                                <input type="checkbox" checked={!!evaluated[idx]} onChange={() => toggleEvaluate(idx)} className="w-3.5 h-3.5" />
-                                                <span className="text-slate-500">Evaluar</span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="mt-4 p-3 bg-blue-50 rounded-xl text-xs text-blue-700 flex items-center gap-2">
-                            <AlertCircle size={14} /> Marca "Evaluar" solo las preguntas que quieras que cuenten para tu puntaje
-                        </div>
+            <div className="bg-white border-b border-slate-200 px-4 py-2">
+                <div className="max-w-7xl mx-auto">
+                    <div className="flex justify-between items-center mb-1">
+                        <span className="text-sm font-medium text-slate-600">Progreso del desafío</span>
+                        <span className="text-sm font-bold text-green-600">{answeredCount} de {questions.length} preguntas respondidas</span>
                     </div>
-
-                    {/* Área de pregunta actual */}
-                    <div className="lg:col-span-2 bg-white rounded-2xl shadow-xl p-6">
-                        <div className="mb-6 pb-4 border-b border-slate-200">
-                            <h2 className="text-lg font-semibold text-blue-600 mb-2">Pregunta {questions[currentQuestion].id}</h2>
-                            <p className="text-slate-700 text-lg">{questions[currentQuestion].text}</p>
-                        </div>
-
-                        <div className="mb-6">
-                            <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
-                                <Edit3 size={16} /> Tu respuesta:
-                            </label>
-                            <input
-                                type="text"
-                                value={answers[currentQuestion] || ''}
-                                onChange={(e) => handleAnswerChange(e.target.value)}
-                                placeholder="Escribe aquí tu respuesta..."
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                            />
-                            <div className="flex items-center gap-3 mt-3">
-                                <button onClick={handleSubmitQuestion} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all shadow-md">
-                                    <Send size={16} /> Enviar respuesta
-                                </button>
-                                {submitted[currentQuestion] && (
-                                    <span className="flex items-center gap-1 text-sm text-green-600"><CheckCircle size={14} /> Respuesta guardada</span>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Navegación */}
-                        <div className="flex justify-between items-center pt-4 border-t border-slate-200">
-                            <button
-                                disabled={currentQuestion === 0}
-                                onClick={() => setCurrentQuestion(prev => prev - 1)}
-                                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                            >
-                                <ChevronLeft size={18} /> Anterior
-                            </button>
-                            <span className="text-sm text-slate-500">{currentQuestion + 1} / {questions.length}</span>
-                            <button
-                                disabled={currentQuestion === questions.length - 1}
-                                onClick={() => setCurrentQuestion(prev => prev + 1)}
-                                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                            >
-                                Siguiente <ChevronRight size={18} />
-                            </button>
-                        </div>
+                    <div className="w-full bg-slate-200 rounded-full h-2.5">
+                        <div
+                            className="bg-green-500 rounded-full h-2.5 transition-all duration-500"
+                            style={{ width: `${progressPercentage}%` }}
+                        ></div>
                     </div>
                 </div>
             </div>
 
-            {/* Modal finalizar */}
+            <div className="max-w-7xl mx-auto p-6">
+                <div className="w-full">
+                    <Pregunta
+                        question={questions[selectedQuestion]}
+                        questionNumber={selectedQuestion + 1}
+                        totalQuestions={questions.length}
+                        answer={answers[selectedQuestion]}
+                        isSubmitted={submitted[selectedQuestion]}
+                        onAnswerChange={handleAnswerChange}
+                        onSubmit={handleSubmitQuestion}
+                        onPrevious={() => setSelectedQuestion(prev => prev - 1)}
+                        onNext={() => setSelectedQuestion(prev => prev + 1)}
+                        isFirst={selectedQuestion === 0}
+                        isLast={selectedQuestion === questions.length - 1}
+                    />
+                </div>
+            </div>
+
+            {/* Modales */}
             {showFinishModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowFinishModal(false)}>
                     <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-[fadeInUp_.3s_ease-out]" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center gap-2 mb-4">
-                            <Flag size={24} className="text-orange-500" />
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                                <Flag size={20} className="text-orange-500" />
+                            </div>
                             <h3 className="text-xl font-bold text-slate-800">¿Finalizar desafío?</h3>
                         </div>
-                        <p className="text-slate-600 mb-6">Recuerda marcar con ✓ las preguntas que quieres evaluar. Las no evaluadas no sumarán puntos.</p>
+                        <p className="text-slate-600 mb-2">Antes de finalizar, verifica que:</p>
+                        <ul className="text-sm text-slate-500 mb-6 ml-5 space-y-1 list-disc">
+                            <li>Haz respondido todas las preguntas que deseas</li>
+                            <li>Marca con ✓ las preguntas que quieres evaluar</li>
+                            <li>Las preguntas no evaluadas no sumarán puntos</li>
+                        </ul>
                         <div className="flex gap-3">
                             <button onClick={() => setShowFinishModal(false)} className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-medium hover:bg-slate-200 transition-all">Cancelar</button>
                             <button onClick={handleFinalizar} className="flex-1 py-2.5 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 transition-all shadow-md">Sí, finalizar</button>
@@ -227,17 +390,18 @@ const Desafio_Estudiantes = (props) => {
                 </div>
             )}
 
-            {/* Modal salir */}
             {showExitModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowExitModal(false)}>
                     <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-[fadeInUp_.3s_ease-out]" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center gap-2 mb-4">
-                            <LogOut size={24} className="text-red-500" />
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                                <LogOut size={20} className="text-red-500" />
+                            </div>
                             <h3 className="text-xl font-bold text-slate-800">¿Salir del desafío?</h3>
                         </div>
                         <p className="text-slate-600 mb-6">Si sales ahora, perderás todo tu progreso. ¿Estás seguro?</p>
                         <div className="flex gap-3">
-                            <button onClick={() => setShowExitModal(false)} className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-medium hover:bg-slate-200 transition-all">Seguir</button>
+                            <button onClick={() => setShowExitModal(false)} className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-medium hover:bg-slate-200 transition-all">Cancelar</button>
                             <button onClick={confirmExit} className="flex-1 py-2.5 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition-all shadow-md">Sí, salir</button>
                         </div>
                     </div>
