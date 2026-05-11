@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, User, LogOut, Flag, CheckCircle, AlertCircle, Trophy, ThumbsUp, Target, List, Star, Menu, ArrowLeft } from 'lucide-react';
 import Pregunta from './Pregunta';
+import {toast} from "sonner";
 
 const Desafio_Estudiantes = (props) => {
     const { studentData, onBackToPanel } = props;
@@ -79,7 +80,7 @@ const Desafio_Estudiantes = (props) => {
 
     const handleSubmitQuestion = () => {
         if (selectedQuestion !== null && !answers[selectedQuestion]) {
-            alert('Escribe tu respuesta antes de enviar');
+            toast.error("Debes responder la pregunta antes de enviar");
             return;
         }
         if (selectedQuestion !== null) {

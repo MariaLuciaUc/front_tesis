@@ -8,6 +8,7 @@ import {
     CheckCircle, UserPlus, Clock, Award, BarChart3, Mail, KeyRound, AlertCircle,
     Printer, TrendingUp, ShieldOff, Play, RotateCcw
 } from 'lucide-react';
+import {toast} from "sonner";
 
 const Gestion_grupos_estudiantes = () => {
     const [groups, setGroups] = useState([]);
@@ -80,7 +81,7 @@ const Gestion_grupos_estudiantes = () => {
     const printDiplomas = () => {
         if (!selectedGroup) return;
         if (!selectedGroup.challengeClosed) {
-            alert('Primero debe cerrar el desafío y publicar las puntuaciones');
+            toast.warning('Primero debe cerrar el desafío y publicar las puntuaciones');
             return;
         }
         const diplomasContent = selectedGroup.students.map(student =>
@@ -93,7 +94,7 @@ const Gestion_grupos_estudiantes = () => {
         a.download = `diplomas_${selectedGroup.name}.pdf`;
         a.click();
         URL.revokeObjectURL(url);
-        alert('Diplomas descargados en formato PDF');
+        toast.success('Diplomas descargados en formato PDF');
     };
 
     const showRankingTable = () => {
@@ -182,7 +183,7 @@ const Gestion_grupos_estudiantes = () => {
     const handleGestionarParticipantes = () => {
         if (!selectedGroup) return;
         if (selectedGroup.students.length === 0) {
-            alert('No hay estudiantes en este grupo. Primero debe agregar estudiantes usando el botón "Crear cuentas".');
+            toast.warning('No hay estudiantes en este grupo. Primero debe agregar estudiantes usando el botón "Crear cuentas".');
             return;
         }
         setShowGestionParticipantes(true);

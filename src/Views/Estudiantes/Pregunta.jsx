@@ -15,6 +15,7 @@ const Pregunta = ({
                       isFirst,
                       isLast
                   }) => {
+
     return (
         <div className="bg-white rounded-2xl shadow-xl p-6">
             <div className="mb-6 pb-4 border-b border-slate-200">

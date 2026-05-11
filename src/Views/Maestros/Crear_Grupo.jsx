@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Save, X, Globe, BookOpen, Users } from 'lucide-react';
+import {toast} from "sonner";
 
 export default function Crear_Grupo({ onGroupCreated }) {
     const [groupName, setGroupName] = useState('');
@@ -10,11 +11,11 @@ export default function Crear_Grupo({ onGroupCreated }) {
 
     const handleCreate = () => {
         if (!groupName.trim()) {
-            alert('Por favor ingresa un nombre para el grupo');
+            toast.message('Por favor ingresa un nombre para el grupo');
             return;
         }
         if (!selectedCourse) {
-            alert('Por favor selecciona un Nivel Bebras');
+            toast.message('Por favor selecciona un Nivel Bebras');
             return;
         }
 
