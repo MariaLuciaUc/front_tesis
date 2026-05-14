@@ -51,7 +51,6 @@ export default function Crear_Grupo({ onGroupCreated }) {
                     <h2 className="text-2xl font-extrabold text-slate-800">Nuevo Grupo</h2>
                 </div>
 
-                {/* Nombre del grupo */}
                 <div className="mb-6">
                     <label className="block text-sm font-semibold text-slate-700 mb-2">Nombre del grupo</label>
                     <input
@@ -63,7 +62,6 @@ export default function Crear_Grupo({ onGroupCreated }) {
                     />
                 </div>
 
-                {/* Idioma */}
                 <div className="mb-6">
                     <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
                         <Globe size={16} /> Idioma
@@ -81,7 +79,6 @@ export default function Crear_Grupo({ onGroupCreated }) {
                     </select>
                 </div>
 
-                {/* Curso / Nivel Bebras */}
                 <div className="mb-8">
                     <label className="block text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
                         <BookOpen size={16} /> Nivel Bebras
@@ -103,7 +100,6 @@ export default function Crear_Grupo({ onGroupCreated }) {
                     </div>
                 </div>
 
-                {/* Botones */}
                 <div className="flex gap-4 pt-4 border-t border-slate-100">
                     <button
                         onClick={handleCreate}
