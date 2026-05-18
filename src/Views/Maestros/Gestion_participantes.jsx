@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Play, CheckCircle, RotateCcw, Clock, Users } from 'lucide-react';
+import { X, Play, CheckCircle, RotateCcw, Clock, Users, PinIcon } from 'lucide-react';
 
 const Gestion_participantes = ({ group, onUpdateStudentStatus, onClose }) => {
     const [students, setStudents] = useState(group.students);
@@ -94,15 +94,15 @@ const Gestion_participantes = ({ group, onUpdateStudentStatus, onClose }) => {
                     </div>
 
                     <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
-                        <p className="text-sm font-semibold text-slate-800 mb-2">📌 Nota:</p>
+                        <p className="text-sm font-semibold text-slate-800 mb-2">
+                            <PinIcon size={18}/> Nota:</p>
                         <p className="text-sm text-slate-600 mb-2">Haz clic en el estado o en "Cambiar estado" para modificar:</p>
                         <ul className="text-sm text-slate-600 space-y-1 ml-4">
                             <li><span className="inline-block px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs">No empezado</span> → <span className="inline-block px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 text-xs">Comenzó</span> (inicia el reloj)</li>
                             <li><span className="inline-block px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 text-xs">Comenzó</span> → <span className="inline-block px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs">Finalizado</span> (cierra el desafío)</li>
                             <li><span className="inline-block px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs">Finalizado</span> → <span className="inline-block px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs">No empezado</span> (abre el desafío nuevamente)</li>
                         </ul>
-                        <p className="text-sm text-red-600 mt-3">⚠️ No cambie los horarios a menos que haya un corte de energía o algún otro motivo por un tiempo prolongado.</p>
-                    </div>
+                         </div>
                 </div>
             </div>
         </div>
