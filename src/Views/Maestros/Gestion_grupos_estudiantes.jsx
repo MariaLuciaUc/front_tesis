@@ -221,7 +221,7 @@ const Gestion_grupos_estudiantes = () => {
                     <p className="text-slate-500">Vista del Profesor</p>
                 </div>
 
-                {/* Groups Section */}
+                {/* Seleccion grupos */}
                 <div className="bg-white rounded-2xl shadow-xl p-6 mb-8">
                     <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-200">
                         <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Users size={20} className="text-blue-600" /> Grupos</h2>
@@ -350,7 +350,7 @@ const Gestion_grupos_estudiantes = () => {
                     )}
                 </div>
 
-                {/* Teacher Description */}
+                {/* Descripcion del maestro */}
                 <div className="bg-white rounded-2xl shadow-xl p-6">
                     <h3 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><AlertCircle size={18} className="text-blue-600" /> Bienvenidos al Desafío Bebras</h3>
                     <p className="text-slate-600 text-sm mb-2">Ahora está ubicado en la vista del maestro donde puede crear y administrar grupos, crear y modificar cuentas de estudiantes y ver los resultados del desafío. También podrá imprimir los certificados de los estudiantes después del desafío.</p>
@@ -361,7 +361,7 @@ const Gestion_grupos_estudiantes = () => {
                     <p className="text-sm text-red-600 bg-red-50 p-3 rounded-xl mt-3 flex items-center gap-2"><ShieldOff size={16} /> <strong>IMPORTANTE (CUBA):</strong> Debe quitar la marca de verificación del permiso de investigación a TODOS los estudiantes usando el botón "Quitar todos permisos".</p>
                 </div>
 
-                {/* Ranking Modal */}
+                {/* Ranking */}
                 {showRanking && selectedGroup && (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowRanking(false)}>
                         <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 animate-[fadeInUp_.3s_ease-out]" onClick={(e) => e.stopPropagation()}>
