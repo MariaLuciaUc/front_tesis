@@ -11,8 +11,8 @@ const translations = {
     codePlaceholder: "Ingrese su código",
     verify: "Verificar código",
     forgotPass: "¿Olvidó su contraseña?",
-    newAct: "Nueva activación",
-    infoText: "El desafío Bebras es un concurso internacional de pensamiento computacional diseñado para promover la informática entre los estudiantes...",
+    newAct: "Información",
+    infoText: "El desafío Bebras es un concurso internacional de pensamiento computacional diseñado para promover la informática y el pensamiento cumputacional entre los estudiantes. Tenga en cuenta que las categorías Bebras son: Super Peque-1ro y 2do grado, Peque-3ro y 4to grado, Benjamin-5to y 6to grado, Cadete-7mo y 8vo grado, Junior-9no y 10mo grado y Senior-11no y 12mo grado",
     back: "Volver",
     next: "Siguiente",
     accountData: "Datos de cuenta",
@@ -38,8 +38,8 @@ const translations = {
     codePlaceholder: "Enter your code",
     verify: "Verify code",
     forgotPass: "Forgot your password?",
-    newAct: "New activation",
-    infoText: "The Bebras challenge is an international computational thinking contest designed to promote computer science among students...",
+    newAct: "Information",
+    infoText: "The Bebras challenge is an international computational thinking contest designed to promote logic and computational thinking among students. Please, note that the Bebras levels are: Super Peque-1st and 2nd grade, Peque-3rd and 4th grade, Benjamin-5th and 6th grade, Cadete-7th and 8th grade, Junior-9th and 10th grade and Senior-11th and 12th grade",
     back: "Back",
     next: "Next",
     accountData: "Account details",
@@ -69,7 +69,6 @@ const Activacion = ({onActivate, onResetPassword, onSuccess}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
 
-  // Form State
   const [formData, setFormData] = useState({
     activationCode: '',
     email: '',
@@ -274,6 +273,9 @@ const Activacion = ({onActivate, onResetPassword, onSuccess}) => {
               <div
                 className="bg-slate-50 p-4 rounded-xl border border-slate-200 h-32 overflow-y-auto text-sm text-slate-600">
                 {t.termsText}
+                <br/>
+                <br/>
+                <br/>
               </div>
               <label
                 className="flex items-center gap-3 mt-4 p-2 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">

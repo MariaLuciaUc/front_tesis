@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Save, X, Globe, BookOpen, Users } from 'lucide-react';
 import {toast} from "sonner";
 
-export default function Crear_Grupo({ onGroupCreated }) {
+export default function Crear_Grupo({ onGroupCreated, onCancel }) {
     const [groupName, setGroupName] = useState('');
     const [language, setLanguage] = useState('español');
     const [selectedCourse, setSelectedCourse] = useState('');
@@ -41,13 +41,27 @@ export default function Crear_Grupo({ onGroupCreated }) {
         setGroupName('');
         setLanguage('español');
         setSelectedCourse('');
+        if (onCancel) onCancel();
+    };
+
+    const handleClose = () => {
+        if (onCancel) onCancel();
     };
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-100 to-sky-100 p-4 font-sans">
             <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl p-8 relative animate-[fadeInUp_.4s_ease-out]">
+                {/* Botón X en la esquina superior derecha - AHORA FUERA DEL HEADER */}
+                <button
+                    onClick={handleClose}
+                    className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 transition-colors text-slate-500 hover:text-slate-700 z-10"
+                >
+                    <X size={20}/>
+                </button>
+
+                {/* Header sin el botón X */}
                 <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200">
-                    <Users className="text-blue-600" size={24} />
+                    <Users className="text-blue-600" size={24}/>
                     <h2 className="text-2xl font-extrabold text-slate-800">Nuevo Grupo</h2>
                 </div>
 

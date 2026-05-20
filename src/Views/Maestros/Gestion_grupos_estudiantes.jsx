@@ -1,14 +1,11 @@
 import React, { useState } from 'react';
 import Crear_Grupo from './Crear_Grupo';
 import Crear_cuentas_alumnos from './Crear_cuentas_alumnos';
-import Gestion_participantes from './Gestion_participantes';
+import Monitoreo_participantes from './Monitoreo_participantes.jsx';
 import castorcubasi from '/src/castorcubasi.jpg';
-import {
-    Users, Plus, Globe, BookOpen, Lock, Trophy, FileText, X, Edit, Trash2, Save,
-    CheckCircle, UserPlus, Clock, Award, BarChart3, Mail, KeyRound, AlertCircle,
-    Printer, TrendingUp, ShieldOff, Play, RotateCcw
-} from 'lucide-react';
+import {Users, Plus, Globe, BookOpen, Lock, Trophy, X, Edit, Trash2, Save, CheckCircle, UserPlus, Clock, BarChart3, AlertCircle, ShieldOff, Play, Download, FileDown,} from 'lucide-react';
 import {toast} from "sonner";
+import Exportar_diploma_alumno from './Exportar_diploma_alumno';
 
 const Gestion_grupos_estudiantes = () => {
     const [groups, setGroups] = useState([]);
@@ -20,6 +17,7 @@ const Gestion_grupos_estudiantes = () => {
     const [editFormData, setEditFormData] = useState({ username: '', name: '', researchPermission: false });
     const [language, setLanguage] = useState('es');
     const [showRanking, setShowRanking] = useState(false);
+    const [showExportDiplomas, setShowExportDiplomas] = useState(false);
 
     const selectedGroup = groups.find(g => g.id === selectedGroupId);
 
@@ -29,7 +27,7 @@ const Gestion_grupos_estudiantes = () => {
         setShowCreateGroup(false);
     };
 
-    const handleStudentsCreated = (listaNombres, genero, enviarCorreo) => {
+    const handleStudentsCreated = (listaNombres, genero) => {
         if (!selectedGroup) return;
         const nuevosEstudiantes = listaNombres.map((nombre, index) => ({
             id: Date.now().toString() + index,
@@ -62,20 +60,25 @@ const Gestion_grupos_estudiantes = () => {
 
     const publishScores = () => {
         if (!selectedGroup) return;
-        if (window.confirm('¿Cerrar este desafío y publicar las puntuaciones? Los estudiantes no podrán cambiar sus respuestas.')) {
-            setGroups(groups.map(group =>
-                group.id === selectedGroup.id
-                    ? {
-                        ...group,
-                        challengeClosed: true,
-                        students: group.students.map(student => ({
-                            ...student,
-                            score: student.calculatedScore !== null ? student.calculatedScore : Math.floor(Math.random() * 101)
-                        }))
-                    }
-                    : group
-            ));
+        if (selectedGroup.students.length===0){
+            toast.warning("No hay estudiantes inscritos en este grupo")
+        } else {
+            if (window.confirm('¿Cerrar este desafío y publicar las puntuaciones? Los estudiantes no podrán cambiar sus respuestas.')) {
+                setGroups(groups.map(group =>
+                    group.id === selectedGroup.id
+                        ? {
+                            ...group,
+                            challengeClosed: true,
+                            students: group.students.map(student => ({
+                                ...student,
+                                score: student.calculatedScore !== null ? student.calculatedScore : Math.floor(Math.random() * 101)
+                            }))
+                        }
+                        : group
+                ));
+            }
         }
+
     };
 
     const printDiplomas = () => {
@@ -84,17 +87,15 @@ const Gestion_grupos_estudiantes = () => {
             toast.warning('Primero debe cerrar el desafío y publicar las puntuaciones');
             return;
         }
-        const diplomasContent = selectedGroup.students.map(student =>
-            `Diploma para: ${student.name}\nPuntuación: ${student.score || 0}\n---\n`
-        ).join('\n');
-        const blob = new Blob([diplomasContent], { type: 'application/pdf' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `diplomas_${selectedGroup.name}.pdf`;
-        a.click();
-        URL.revokeObjectURL(url);
-        toast.success('Diplomas descargados en formato PDF');
+        if (selectedGroup.students.length === 0) {
+            toast.warning('No hay estudiantes en este grupo');
+            return;
+        }
+        setShowExportDiplomas(true);
+    };
+
+    const handleCloseDiplomas = () => {
+        setShowExportDiplomas(false);
     };
 
     const showRankingTable = () => {
@@ -129,19 +130,24 @@ const Gestion_grupos_estudiantes = () => {
 
     const removeAllResearchPermissions = () => {
         if (!selectedGroup) return;
-        if (window.confirm('¿Quitar permiso de investigación a TODOS los estudiantes? (Requerido para CUBA)')) {
-            setGroups(groups.map(group =>
-                group.id === selectedGroup.id
-                    ? {
-                        ...group,
-                        students: group.students.map(student => ({
-                            ...student,
-                            researchPermission: false
-                        }))
-                    }
-                    : group
-            ));
+        if (selectedGroup.students.length===0){
+           toast.warning("No hay estudiantes inscritos en este grupo")
+        } else {
+            if (window.confirm('¿Quitar permiso de investigación a TODOS los estudiantes? (Requerido para CUBA)')) {
+                setGroups(groups.map(group =>
+                    group.id === selectedGroup.id
+                        ? {
+                            ...group,
+                            students: group.students.map(student => ({
+                                ...student,
+                                researchPermission: false
+                            }))
+                        }
+                        : group
+                ));
+            }
         }
+
     };
 
     const handleSaveEdit = (studentId) => {
@@ -189,9 +195,10 @@ const Gestion_grupos_estudiantes = () => {
         setShowGestionParticipantes(true);
     };
 
-    if (showCreateGroup) return <Crear_Grupo onGroupCreated={handleGroupCreated} />;
+    if (showCreateGroup) return <Crear_Grupo onGroupCreated={handleGroupCreated} onCancel={()=>setShowCreateGroup(false)} />;
     if (showCrearCuentas) return <Crear_cuentas_alumnos onStudentsCreated={handleStudentsCreated} onCancel={() => setShowCrearCuentas(false)} />;
-    if (showGestionParticipantes) return <Gestion_participantes group={selectedGroup} onUpdateStudentStatus={handleUpdateStudentStatus} onClose={() => setShowGestionParticipantes(false)} />;
+    if (showGestionParticipantes) return <Monitoreo_participantes group={selectedGroup} onUpdateStudentStatus={handleUpdateStudentStatus} onClose={() => setShowGestionParticipantes(false)} />;
+    if (showExportDiplomas) return <Exportar_diploma_alumno group={selectedGroup} onClose={handleCloseDiplomas} />;
 
     return (
         <div className="min-h-screen bg-linear-to-br from-slate-100 to-sky-100 p-6 font-sans">
@@ -260,7 +267,7 @@ const Gestion_grupos_estudiantes = () => {
 
                                     <div className="flex flex-wrap gap-3 mb-8">
                                         <button onClick={handleGestionarParticipantes} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-all shadow-md">
-                                            <Users size={16} /> Gestionar participantes
+                                            <Users size={16} /> Monitorear participantes
                                         </button>
                                         {!selectedGroup.challengeClosed && (
                                             <button onClick={publishScores} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-600 text-white font-medium hover:bg-orange-700 transition-all shadow-md">
@@ -270,10 +277,10 @@ const Gestion_grupos_estudiantes = () => {
                                         {selectedGroup.challengeClosed && (
                                             <>
                                                 <button onClick={printDiplomas} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 transition-all shadow-md">
-                                                    <Printer size={16} /> Imprimir diplomas
+                                                    <FileDown size={16} /> Exportar diplomas de participación de estudiantes
                                                 </button>
                                                 <button onClick={showRankingTable} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-600 text-white font-medium hover:bg-yellow-700 transition-all shadow-md">
-                                                    <Trophy size={16} /> Ver ranking
+                                                    <Download size={16} /> Exportar reporte de participación de grupo
                                                 </button>
                                             </>
                                         )}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Play, CheckCircle, RotateCcw, Clock, Users, PinIcon } from 'lucide-react';
 
-const Gestion_participantes = ({ group, onUpdateStudentStatus, onClose }) => {
+const Monitoreo_participantes = ({ group, onUpdateStudentStatus, onClose }) => {
     const [students, setStudents] = useState(group.students);
 
     const handleStatusChange = (studentId, newStatus) => {
@@ -60,7 +60,7 @@ const Gestion_participantes = ({ group, onUpdateStudentStatus, onClose }) => {
                 <div className="flex justify-between items-center p-6 border-b border-slate-200">
                     <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                         <Users size={20} className="text-blue-600" />
-                        Gestionar participantes - {group.name}
+                        Monitoreo de participantes: {group.name}
                     </h2>
                     <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-100 transition-colors"><X size={20} className="text-slate-500" /></button>
                 </div>
@@ -69,7 +69,7 @@ const Gestion_participantes = ({ group, onUpdateStudentStatus, onClose }) => {
                     <div className="overflow-x-auto">
                         <table className="w-full border-collapse">
                             <thead className="bg-slate-100 sticky top-0">
-                            <tr><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">Estudiante</th><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">Estado</th><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">Hora de inicio</th><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">Hora de finalización</th><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">Acción</th></tr>
+                            <tr><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">Estudiante</th><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">Estado</th><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">Hora de inicio</th><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">Hora de finalización</th></tr>
                             </thead>
                             <tbody>
                             {students.map(student => (
@@ -109,4 +109,4 @@ const Gestion_participantes = ({ group, onUpdateStudentStatus, onClose }) => {
     );
 };
 
-export default Gestion_participantes;
+export default Monitoreo_participantes;
