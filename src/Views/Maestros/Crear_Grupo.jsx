@@ -72,7 +72,7 @@ export default function Crear_Grupo({ onGroupCreated, onCancel }) {
                         value={groupName}
                         onChange={(e) => setGroupName(e.target.value)}
                         className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                        placeholder="Ej: 5to Grado - Sección A"
+                        placeholder="Ej: 5to A (Nombre de la escuela)"
                     />
                 </div>
 

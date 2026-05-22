@@ -222,10 +222,12 @@ const Gestion_grupos_estudiantes = () => {
                 {/* Header */}
                 <div className="text-center mb-8">
                     <div className="flex items-center justify-center gap-4 mb-2">
-                        <img src={castorcubasi} alt="castorcubasi" className="w-16 h-16 rounded-full shadow-md" />
-                        <h1 className="text-3xl font-extrabold text-slate-800">Desafío Bebras</h1>
+                        <img src={castorcubasi} alt="castorcubasi" className="w-30 h-30 shadow-md"/>
+                        <div>
+                            <h1 className="text-3xl font-extrabold text-slate-800">Desafío Bebras</h1>
+                            <p className="text-slate-500">Vista del Profesor</p>
+                        </div>
                     </div>
-                    <p className="text-slate-500">Vista del Profesor</p>
                 </div>
 
                 {/* Seleccion grupos */}
