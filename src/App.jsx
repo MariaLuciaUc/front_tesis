@@ -1,16 +1,12 @@
-import React, {useState} from 'react';
 import Activacion from "./Views/Maestros/Activacion.jsx";
 import {Toaster} from "sonner";
 import Login_Estudiante from "./Views/Estudiantes/Login_Estudiante.jsx";
-import Pregunta from "./Views/Estudiantes/Pregunta.jsx";
 
 function App() {
-
-
   return (
     <div>
       <Toaster richColors/>
-        <Login_Estudiante/>
+        <Activacion/>
 
         {/*<Login_Estudiante/>*/}
     </div>

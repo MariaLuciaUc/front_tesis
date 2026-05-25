@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Desafio_Estudiantes from './Desafio_Estudiantes';
-import { Play, LogOut, Clock, Target, Award, List, CheckCircle, AlertCircle, BookOpen, Medal, Rocket, Flag } from 'lucide-react';
+import { Play, LogOut, Clock, Award, List, CheckCircle, AlertCircle, BookOpen, Medal, Rocket, Flag, Check } from 'lucide-react';
 
 const Panel_Estudiante = ({ student, onLogout }) => {
     const [desafioIniciado, setDesafioIniciado] = useState(false);
@@ -23,12 +23,12 @@ const Panel_Estudiante = ({ student, onLogout }) => {
                 </div>
 
                 <div className="bg-slate-50 rounded-xl p-5 mb-6 space-y-3 max-h-96 overflow-y-auto">
-                    <p className="text-slate-700 text-sm flex items-start gap-2"><Play size={14} className="text-blue-500 mt-0.5" /> Puedes comenzar el desafío haciendo clic en el botón de abajo. Cuando lo hagas, el temporizador se iniciará.</p>
+                    <p className="text-slate-700 text-sm flex items-start gap-2"><Play size={18} className="text-blue-500 mt-0.5" /> Puedes comenzar el desafío haciendo clic en el botón de abajo. Cuando lo hagas, el temporizador se iniciará.</p>
                     <p className="text-slate-700 text-sm flex items-start gap-2"><Clock size={14} className="text-blue-500 mt-0.5" /> Dispones de <strong>45 minutos</strong> para completar la prueba.</p>
                     <p className="text-slate-700 text-sm flex items-start gap-2"><List size={14} className="text-blue-500 mt-0.5" /> Puedes ver las preguntas como una lista. Abre cada pregunta haciendo clic en ella.</p>
-                    <p className="text-slate-700 text-sm flex items-start gap-2"><CheckCircle size={14} className="text-blue-500 mt-0.5" /> En las preguntas de seleccionar, haz clic en la respuesta y luego pulsa en el botón <strong>Enviar Respuesta</strong>.</p>
-                    <p className="text-slate-700 text-sm flex items-start gap-2"><AlertCircle size={14} className="text-blue-500 mt-0.5" /> En las preguntas donde debes escribir tu respuesta, escríbela y luego oprime el botón <strong>Enviar Respuesta</strong>.</p>
-                    <p className="text-slate-700 text-sm flex items-start gap-2"><Target size={14} className="text-blue-500 mt-0.5" /> Cuando termines, asegúrate de que todas las tareas estén marcadas para que se evalúen con las casillas de verificación. Si no eliges evaluar una tarea, no obtendrás puntos.</p>
+                    <p className="text-slate-700 text-sm flex items-start gap-2"><CheckCircle size={16} className="text-blue-500 mt-0.5" /> En las preguntas de seleccionar, haz clic en la respuesta y luego pulsa en el botón <strong>Enviar Respuesta</strong>.</p>
+                    <p className="text-slate-700 text-sm flex items-start gap-2"><AlertCircle size={17} className="text-blue-500 mt-0.5" /> En las preguntas donde debes escribir tu respuesta, escríbela y luego oprime el botón <strong>Enviar Respuesta</strong>.</p>
+                    <p className="text-slate-700 text-sm flex items-start gap-2"><Check size={30} className="text-blue-500 mt-0.5" /> Cuando termines, asegúrate de que todas las tareas estén marcadas para que se evalúen con las casillas de verificación. Si no eliges evaluar una tarea, no obtendrás puntos.</p>
                     <p className="text-slate-700 text-sm flex items-start gap-2"><Flag size={14} className="text-green-500 mt-0.5" /> Cuando estés listo, cierra el desafío con el botón <strong>Finalizar Desafío</strong></p>
                     <p className="text-slate-700 text-sm pt-2 font-semibold">¡Éxitos!</p>
 

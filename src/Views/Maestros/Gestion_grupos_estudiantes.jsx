@@ -3,13 +3,12 @@ import Crear_Grupo from './Crear_Grupo';
 import Crear_cuentas_alumnos from './Crear_cuentas_alumnos';
 import Monitoreo_participantes from './Monitoreo_participantes.jsx';
 import castorcubasi from '/src/castorcubasi.jpg';
-import {Users, Plus, Globe, BookOpen, Lock, Trophy, X, Edit, Trash2, Save, CheckCircle, UserPlus, Clock, BarChart3, AlertCircle, ShieldOff, Play, Download, FileDown, FileText, FileSpreadsheet} from 'lucide-react';
+import {Users, Plus, Globe, BookOpen, Lock, X, Edit, Trash2, Save, CheckCircle, UserPlus, Clock, BarChart3, AlertCircle, ShieldOff, Play, Download, FileDown, FileText, FileSpreadsheet, School} from 'lucide-react';
 import {toast} from "sonner";
 import Exportar_diploma_alumno from './Exportar_diploma_alumno';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-import Activacion from "./Activacion.jsx";
+import autoTable from 'jspdf-autotable';
 
 const Gestion_grupos_estudiantes = () => {
     const [groups, setGroups] = useState([]);
@@ -82,7 +81,6 @@ const Gestion_grupos_estudiantes = () => {
                 ));
             }
         }
-
     };
 
     const printDiplomas = () => {
@@ -101,7 +99,6 @@ const Gestion_grupos_estudiantes = () => {
     const handleCloseDiplomas = () => {
         setShowExportDiplomas(false);
     };
-
 
     const handleExportReport = () => {
         if (!selectedGroup) return;
@@ -138,6 +135,7 @@ const Gestion_grupos_estudiantes = () => {
             'Nombre de Usuario': student.username,
             'Género': student.genero || 'No especificado',
             'Grupo': selectedGroup.name,
+            'Escuela': selectedGroup.school || 'No especificada',
             'Nivel Bebras': selectedGroup.course,
             'Idioma del Desafío': selectedGroup.language === 'es' ? 'Español' : selectedGroup.language === 'en' ? 'Inglés' : selectedGroup.language,
             'Estado': student.status === 'finished' ? 'Finalizado' : student.status === 'in_progress' ? 'En progreso' : 'No comenzado',
@@ -155,19 +153,19 @@ const Gestion_grupos_estudiantes = () => {
 
             const colWidths = [
                 {wch: 25}, {wch: 20}, {wch: 12}, {wch: 20},
-                {wch: 15}, {wch: 25}, {wch: 15}, {wch: 15},
-                {wch: 12}, {wch: 18}, {wch: 20}, {wch: 20}
+                {wch: 25}, {wch: 15}, {wch: 25}, {wch: 15},
+                {wch: 15}, {wch: 12}, {wch: 18}, {wch: 20}, {wch: 20}
             ];
             worksheet['!cols'] = colWidths;
 
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, `Reporte_${selectedGroup.name}`);
 
-            // Add summary sheet
             const summaryData = [
                 ['RESUMEN DEL GRUPO'],
                 [''],
                 ['Nombre del Grupo', selectedGroup.name],
+                ['Escuela', selectedGroup.school || 'No especificada'],
                 ['Año/Nivel', selectedGroup.course],
                 ['Nivel Bebras', getBebrasLevel(selectedGroup.course)],
                 ['Idioma', selectedGroup.language === 'es' ? 'Español' : 'Inglés'],
@@ -212,63 +210,91 @@ const Gestion_grupos_estudiantes = () => {
 
     const exportToPDF = () => {
         try {
-            const doc = new jsPDF();
+            if (!selectedGroup) {
+                toast.error('No hay grupo seleccionado');
+                return;
+            }
+
+            const doc = new jsPDF({ orientation: 'landscape' });
             const reportData = generateReportData();
 
-            // Add title
+            if (reportData.length === 0) {
+                toast.warning('No hay datos para exportar');
+                return;
+            }
+
             doc.setFontSize(18);
             doc.setTextColor(33, 33, 33);
-            doc.text(`Reporte de Participación - ${selectedGroup.name}`, 14, 20);
+            doc.text(`Reporte de Participación`, 14, 20);
 
-            // Add metadata
-            doc.setFontSize(11);
+            doc.setFontSize(10);
             doc.setTextColor(100, 100, 100);
-            doc.text(`Fecha de generación: ${new Date().toLocaleString()}`, 14, 30);
-            doc.text(`Nivel Bebras: ${selectedGroup.course}`, 14, 37);
-            doc.text(`Idioma: ${selectedGroup.language === 'es' ? 'Español' : 'Inglés'}`, 14, 51);
-            doc.text(`Total de estudiantes: ${selectedGroup.students.length}`, 14, 58);
-            doc.text(`Desafío cerrado: ${selectedGroup.challengeClosed ? 'Sí' : 'No'}`, 14, 65);
+            let yPos = 30;
+            doc.text(`Fecha de generación: ${new Date().toLocaleString()}`, 14, yPos);
+            doc.text(`Grupo: ${selectedGroup.name}`, 14, yPos + 7);
+            doc.text(`Escuela: ${selectedGroup.school || 'No especificada'}`, 14, yPos + 14);
+            doc.text(`Nivel Bebras: ${selectedGroup.course}`, 14, yPos + 28);
+            doc.text(`Idioma del Desafío: ${selectedGroup.language}`, 14, yPos + 35);
+            doc.text(`Total de estudiantes: ${selectedGroup.students.length}`, 14, yPos + 42);
+            doc.text(`Desafío cerrado: ${selectedGroup.challengeClosed ? 'Sí' : 'No'}`, 14, yPos + 49);
 
-            // Add statistics
             const finished = selectedGroup.students.filter(s => s.status === 'finished').length;
             const inProgress = selectedGroup.students.filter(s => s.status === 'in_progress').length;
             const notStarted = selectedGroup.students.filter(s => s.status === 'not_started').length;
-            const scores = selectedGroup.students.filter(s => s.score !== null).map(s => s.score);
+            const scores = selectedGroup.students.filter(s => s.score !== null && s.score !== undefined).map(s => s.score);
             const avgScore = scores.length > 0 ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(2) : 'N/A';
             const highestScore = scores.length > 0 ? Math.max(...scores) : 'N/A';
-            const completionRate = ((finished / selectedGroup.students.length) * 100).toFixed(1);
+            const lowestScore = scores.length > 0 ? Math.min(...scores) : 'N/A';
+            const completionRate = selectedGroup.students.length > 0 ? ((finished / selectedGroup.students.length) * 100).toFixed(1) : '0';
 
-            doc.setFontSize(10);
+            let statsY = yPos + 59;
+            doc.setFontSize(9);
             doc.setTextColor(33, 33, 33);
-            doc.text(`Estadísticas:`, 14, 75);
-            doc.text(`• Finalizados: ${finished}`, 20, 82);
-            doc.text(`• En progreso: ${inProgress}`, 20, 89);
-            doc.text(`• No comenzados: ${notStarted}`, 20, 96);
-            doc.text(`• Puntuación promedio: ${avgScore}`, 20, 103);
-            doc.text(`• Puntuación más alta: ${highestScore}`, 20, 110);
-            doc.text(`• Tasa de finalización: ${completionRate}%`, 20, 117);
+            doc.text(`Estadísticas de Participación:`, 14, statsY);
+            doc.text(`• Total Finalizados: ${finished}`, 20, statsY + 7);
+            doc.text(`• Total En Progreso: ${inProgress}`, 20, statsY + 14);
+            doc.text(`• Total No Comenzados: ${notStarted}`, 20, statsY + 21);
+            doc.text(`Rendimiento:`, 14, statsY + 31);
+            doc.text(`• Puntuación Promedio: ${avgScore}`, 20, statsY + 38);
+            doc.text(`• Puntuación Más Alta: ${highestScore}`, 20, statsY + 45);
+            doc.text(`• Puntuación Más Baja: ${lowestScore}`, 20, statsY + 52);
+            doc.text(`• Tasa de Finalización: ${completionRate}%`, 20, statsY + 59);
 
-            // Create table
             const tableData = reportData.map(student => [
-                student['Nombre del Estudiante'],
-                student['Nombre de Usuario'],
-                student['Género'],
-                student['Estado'],
-                student['Puntuación'],
-                student['Permiso de Investigación']
+                student['Nombre del Estudiante'] || '',
+                student['Nombre de Usuario'] || '',
+                student['Género'] || '',
+                student['Grupo'] || '',
+                student['Escuela'] || '',
+                student['Nivel Bebras'] || '',
+                student['Idioma del Desafío'] || '',
+                student['Estado'] || '',
+                student['Puntuación'] !== undefined && student['Puntuación'] !== null ? student['Puntuación'].toString() : 'No disponible',
+                student['Permiso de Investigación'] || '',
             ]);
 
-            doc.autoTable({
-                startY: 125,
-                head: [['Nombre', 'Usuario', 'Género', 'Estado', 'Puntuación', 'Permiso']],
+            autoTable(doc, {
+                startY: statsY + 70,
+                head: [['Nombre', 'Usuario', 'Género', 'Grupo', 'Escuela', 'Nivel Bebras', 'Idioma', 'Estado', 'Puntuación', 'Permiso']],
                 body: tableData,
                 theme: 'striped',
-                headStyles: { fillColor: [41, 128, 185], textColor: 255, fontSize: 10 },
-                bodyStyles: { fontSize: 9 },
+                headStyles: { fillColor: [41, 128, 185], textColor: 255, fontSize: 7 },
+                bodyStyles: { fontSize: 6 },
                 alternateRowStyles: { fillColor: [245, 245, 245] },
-                margin: { left: 14, right: 14 },
+                margin: { left: 8, right: 8 },
+                columnStyles: {
+                    0: { cellWidth: 22 },
+                    1: { cellWidth: 18 },
+                    2: { cellWidth: 12 },
+                    3: { cellWidth: 18 },
+                    4: { cellWidth: 25 },
+                    5: { cellWidth: 15 },
+                    6: { cellWidth: 15 },
+                    7: { cellWidth: 15 },
+                    8: { cellWidth: 12 },
+                    9: { cellWidth: 12 }
+                },
                 didDrawPage: (data) => {
-                    // Add footer
                     const pageCount = doc.internal.getNumberOfPages();
                     doc.setFontSize(8);
                     doc.setTextColor(150, 150, 150);
@@ -280,7 +306,7 @@ const Gestion_grupos_estudiantes = () => {
             toast.success('Reporte exportado exitosamente en formato PDF');
         } catch (error) {
             console.error('Error exporting to PDF:', error);
-            toast.error('Error al exportar a PDF');
+            toast.error(`Error al exportar a PDF: ${error.message}`);
         }
         setShowExportOptions(false);
     };
@@ -329,7 +355,6 @@ const Gestion_grupos_estudiantes = () => {
                 ));
             }
         }
-
     };
 
     const handleSaveEdit = (studentId) => {
@@ -377,21 +402,18 @@ const Gestion_grupos_estudiantes = () => {
         setShowGestionParticipantes(true);
     };
 
-    const closeSesion = () => {
-        setShowGestionParticipantes(true)
-
-    }
+    const onLogout = () => {
+        window.location.reload();
+    };
 
     if (showCreateGroup) return <Crear_Grupo onGroupCreated={handleGroupCreated} onCancel={()=>setShowCreateGroup(false)} />;
     if (showCrearCuentas) return <Crear_cuentas_alumnos onStudentsCreated={handleStudentsCreated} onCancel={() => setShowCrearCuentas(false)} />;
     if (showGestionParticipantes) return <Monitoreo_participantes group={selectedGroup} onUpdateStudentStatus={handleUpdateStudentStatus} onClose={() => setShowGestionParticipantes(false)} />;
     if (showExportDiplomas) return <Exportar_diploma_alumno group={selectedGroup} onClose={handleCloseDiplomas} />;
-    if (showGestionParticipantes) return <Activacion/>
 
     return (
         <div className="min-h-screen bg-linear-to-br from-slate-100 to-sky-100 p-6 font-sans">
             <div className="max-w-7xl mx-auto">
-                {/* Language Selector */}
                 <div className="flex justify-end mb-4 gap-2 bg-slate-100 p-1 rounded-full w-fit ml-auto border border-slate-200">
                     <button
                         className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'es' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}
@@ -407,13 +429,11 @@ const Gestion_grupos_estudiantes = () => {
                     </button>
                     <div>
                         <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all shadow-md"
-                        onClick={closeSesion}
+                                onClick={onLogout}
                         >Cerrar sesión</button>
                     </div>
-
                 </div>
 
-                {/* Header */}
                 <div className="text-center mb-8">
                     <div className="flex items-center justify-center gap-4 mb-2">
                         <img src={castorcubasi} alt="castorcubasi" className="w-30 h-30 shadow-md"/>
@@ -424,7 +444,6 @@ const Gestion_grupos_estudiantes = () => {
                     </div>
                 </div>
 
-                {/* Seleccion grupos */}
                 <div className="bg-white rounded-2xl shadow-xl p-6 mb-8">
                     <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-200">
                         <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Users size={20} className="text-blue-600" /> Grupos</h2>
@@ -453,6 +472,7 @@ const Gestion_grupos_estudiantes = () => {
                                 <>
                                     <div className="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-200">
                                         <h3 className="text-lg font-bold text-slate-800">{selectedGroup.name}</h3>
+                                        <p className="text-sm text-slate-500 mt-1">{selectedGroup.school || 'Escuela no especificada'}</p>
                                         <div className="flex flex-wrap gap-3 mt-2">
                                             <span className="inline-flex items-center gap-1 text-sm text-slate-600"><Globe size={14} /> {selectedGroup.language}</span>
                                             <span className="inline-flex items-center gap-1 text-sm text-slate-600"><BookOpen size={14} /> {selectedGroup.course}</span>
@@ -553,7 +573,6 @@ const Gestion_grupos_estudiantes = () => {
                     )}
                 </div>
 
-                {/* Descripcion del maestro */}
                 <div className="bg-white rounded-2xl shadow-xl p-6">
                     <h3 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><AlertCircle size={18} className="text-blue-600" /> Bienvenidos al Desafío Bebras</h3>
                     <p className="text-slate-600 text-sm mb-2">Ahora está ubicado en la vista del maestro donde puede crear y administrar grupos, crear y modificar cuentas de estudiantes y ver los resultados del desafío. También podrá imprimir los certificados de los estudiantes después del desafío.</p>
@@ -564,7 +583,6 @@ const Gestion_grupos_estudiantes = () => {
                     <p className="text-sm text-red-600 bg-red-50 p-3 rounded-xl mt-3 flex items-center gap-2"><ShieldOff size={16} /> <strong>IMPORTANTE (CUBA):</strong> Debe quitar la marca de verificación del permiso de investigación a TODOS los estudiantes usando el botón "Quitar todos permisos".</p>
                 </div>
 
-                {/* Modal para exportar reporte de participacion excel/pdf */}
                 {showExportOptions && selectedGroup && (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowExportOptions(false)}>
                         <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-[fadeInUp_.3s_ease-out]" onClick={(e) => e.stopPropagation()}>
@@ -577,38 +595,19 @@ const Gestion_grupos_estudiantes = () => {
                                     <X size={20} />
                                 </button>
                             </div>
-
-                            <p className="text-slate-600 mb-6 text-sm">
-                                Seleccione el formato en el que desea exportar el reporte de participación del grupo.
-                            </p>
-
+                            <p className="text-slate-600 mb-6 text-sm">Seleccione el formato en el que desea exportar el reporte de participación del grupo.</p>
                             <div className="flex gap-4">
-                                <button
-                                    onClick={exportToExcel}
-                                    className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 transition-all shadow-md"
-                                >
-                                    <FileSpreadsheet size={20} />
-                                    Excel (.xlsx)
+                                <button onClick={exportToExcel} className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 transition-all shadow-md">
+                                    <FileSpreadsheet size={20} /> Excel (.xlsx)
                                 </button>
-                                <button
-                                    onClick={exportToPDF}
-                                    className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition-all shadow-md"
-                                >
-                                    <FileText size={20} />
-                                    PDF (.pdf)
+                                <button onClick={exportToPDF} className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition-all shadow-md">
+                                    <FileText size={20} /> PDF (.pdf)
                                 </button>
                             </div>
-
-                            <button
-                                onClick={() => setShowExportOptions(false)}
-                                className="w-full mt-4 px-4 py-2 rounded-xl border border-slate-300 text-slate-600 font-medium hover:bg-slate-50 transition-all"
-                            >
-                                Cancelar
-                            </button>
+                            <button onClick={() => setShowExportOptions(false)} className="w-full mt-4 px-4 py-2 rounded-xl border border-slate-300 text-slate-600 font-medium hover:bg-slate-50 transition-all">Cancelar</button>
                         </div>
                     </div>
                 )}
-
             </div>
         </div>
     );

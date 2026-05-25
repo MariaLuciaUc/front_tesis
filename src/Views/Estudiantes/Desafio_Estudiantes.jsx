@@ -7,7 +7,6 @@ import {toast} from "sonner";
 const Desafio_Estudiantes = (props) => {
     const { studentData, onBackToPanel } = props;
     const [name] = useState(studentData?.name || 'Estudiante');
-    const [code] = useState(studentData?.code || '');
     const [timeLeft, setTimeLeft] = useState(45 * 60);
     const [answers, setAnswers] = useState({});
     const [submitted, setSubmitted] = useState({});
@@ -210,7 +209,6 @@ const Desafio_Estudiantes = (props) => {
                         <div className="divide-y divide-slate-100 max-h-[500px] overflow-y-auto">
                             {questions.map((q, idx) => {
                                 const isAnswered = submitted[idx];
-                                const isEvaluated = evaluated[idx];
 
                                 return (
                                     <div

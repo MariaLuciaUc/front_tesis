@@ -17,7 +17,6 @@ const Login_Estudiante = () => {
             return;
         }
 
-        // Validación de ejemplo (reemplazar con tu lógica real)
         if (username === 'ana' && password === '123') {
             setStudentData({ username, name: 'Ana García', code: username });
             setLoggedIn(true);
@@ -42,7 +41,7 @@ const Login_Estudiante = () => {
             <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 animate-[fadeInUp_.4s_ease-out]">
                 <div className="text-center mb-6">
                     <div className="flex justify-center mb-4">
-                        <img src={castorcubasi} alt="Castor Bebras" className="w-24 h-24 rounded-full shadow-md" />
+                        <img src={castorcubasi} alt="Castor Bebras" className="w-24 h-24 shadow-md" />
                     </div>
                     <h2 className="text-2xl font-extrabold text-slate-800">Bienvenido al Desafío Bebras</h2>
                     <p className="text-slate-500 text-sm mt-2">Ingresa tus credenciales para comenzar</p>

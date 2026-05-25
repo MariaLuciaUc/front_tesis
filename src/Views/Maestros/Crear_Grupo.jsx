@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Save, X, Globe, BookOpen, Users } from 'lucide-react';
+import { Save, X, Globe, BookOpen, Users, School } from 'lucide-react';
 import {toast} from "sonner";
 
 export default function Crear_Grupo({ onGroupCreated, onCancel }) {
     const [groupName, setGroupName] = useState('');
+    const [schoolName, setSchoolName] = useState('');
     const [language, setLanguage] = useState('español');
     const [selectedCourse, setSelectedCourse] = useState('');
 
@@ -14,6 +15,10 @@ export default function Crear_Grupo({ onGroupCreated, onCancel }) {
             toast.info('Por favor ingresa un nombre para el grupo');
             return;
         }
+        if (!schoolName.trim()) {
+            toast.info('Por favor ingresa el nombre de la escuela');
+            return;
+        }
         if (!selectedCourse) {
             toast.info('Por favor selecciona un Nivel Bebras');
             return;
@@ -22,6 +27,7 @@ export default function Crear_Grupo({ onGroupCreated, onCancel }) {
         const newGroup = {
             id: Date.now().toString(),
             name: groupName,
+            school: schoolName,
             language: language === 'español' ? 'Español' :
                 language === 'english' ? 'Inglés' :
                     language === 'frances' ? 'Francés' :
@@ -33,12 +39,14 @@ export default function Crear_Grupo({ onGroupCreated, onCancel }) {
 
         onGroupCreated(newGroup);
         setGroupName('');
+        setSchoolName('');
         setLanguage('español');
         setSelectedCourse('');
     };
 
     const handleCancel = () => {
         setGroupName('');
+        setSchoolName('');
         setLanguage('español');
         setSelectedCourse('');
         if (onCancel) onCancel();
@@ -51,7 +59,6 @@ export default function Crear_Grupo({ onGroupCreated, onCancel }) {
     return (
         <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-100 to-sky-100 p-4 font-sans">
             <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl p-8 relative animate-[fadeInUp_.4s_ease-out]">
-                {/* Botón X en la esquina superior derecha - AHORA FUERA DEL HEADER */}
                 <button
                     onClick={handleClose}
                     className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 transition-colors text-slate-500 hover:text-slate-700 z-10"
@@ -59,7 +66,6 @@ export default function Crear_Grupo({ onGroupCreated, onCancel }) {
                     <X size={20}/>
                 </button>
 
-                {/* Header sin el botón X */}
                 <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200">
                     <Users className="text-blue-600" size={24}/>
                     <h2 className="text-2xl font-extrabold text-slate-800">Nuevo Grupo</h2>
@@ -72,7 +78,20 @@ export default function Crear_Grupo({ onGroupCreated, onCancel }) {
                         value={groupName}
                         onChange={(e) => setGroupName(e.target.value)}
                         className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                        placeholder="Ej: 5to A (Nombre de la escuela)"
+                        placeholder="Ej: 5to A"
+                    />
+                </div>
+
+                <div className="mb-6">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                        <School size={16} /> Escuela
+                    </label>
+                    <input
+                        type="text"
+                        value={schoolName}
+                        onChange={(e) => setSchoolName(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                        placeholder="Ej: Escuela Primaria José Martí"
                     />
                 </div>
 
