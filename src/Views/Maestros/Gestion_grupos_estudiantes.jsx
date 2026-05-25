@@ -21,6 +21,8 @@ const Gestion_grupos_estudiantes = () => {
     const [language, setLanguage] = useState('es');
     const [showExportDiplomas, setShowExportDiplomas] = useState(false);
     const [showExportOptions, setShowExportOptions] = useState(false);
+    const [showEditGroup, setShowEditGroup] = useState(false);
+    const [editGroupData, setEditGroupData] = useState({ name: '', school: '', course: '', language: 'es' });
 
     const selectedGroup = groups.find(g => g.id === selectedGroupId);
 
@@ -28,6 +30,40 @@ const Gestion_grupos_estudiantes = () => {
         setGroups([...groups, { ...newGroup, students: [], challengeClosed: false }]);
         setSelectedGroupId(newGroup.id);
         setShowCreateGroup(false);
+    };
+
+    const handleUpdateGroup = () => {
+        if (!editGroupData.name.trim()) {
+            toast.error('El nombre del grupo es obligatorio');
+            return;
+        }
+        setGroups(groups.map(group =>
+            group.id === selectedGroupId
+                ? { ...group, ...editGroupData }
+                : group
+        ));
+        setShowEditGroup(false);
+        toast.success('Grupo actualizado exitosamente');
+    };
+
+    const handleDeleteGroup = () => {
+        if (selectedGroup && window.confirm('¿Estás seguro de que deseas eliminar este grupo? Se perderán todos los estudiantes y datos asociados.')) {
+            setGroups(groups.filter(g => g.id !== selectedGroupId));
+            setSelectedGroupId(groups.length > 1 ? groups.find(g => g.id !== selectedGroupId)?.id || '' : '');
+            toast.success('Grupo eliminado exitosamente');
+        }
+    };
+
+    const openEditModal = () => {
+        if (selectedGroup) {
+            setEditGroupData({
+                name: selectedGroup.name,
+                school: selectedGroup.school || '',
+                course: selectedGroup.course,
+                language: selectedGroup.language
+            });
+            setShowEditGroup(true);
+        }
     };
 
     const handleStudentsCreated = (listaNombres, genero) => {
@@ -438,7 +474,7 @@ const Gestion_grupos_estudiantes = () => {
                     <div className="flex items-center justify-center gap-4 mb-2">
                         <img src={castorcubasi} alt="castorcubasi" className="w-30 h-30 shadow-md"/>
                         <div>
-                            <h1 className="text-3xl font-extrabold text-slate-800">Desafío Bebras</h1>
+                            <h1 className="text-3xl font-extrabold text-slate-800">Desafío BebrasCuba</h1>
                             <p className="text-slate-500">Vista del Profesor</p>
                         </div>
                     </div>
@@ -470,14 +506,34 @@ const Gestion_grupos_estudiantes = () => {
 
                             {selectedGroup && (
                                 <>
-                                    <div className="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-200">
-                                        <h3 className="text-lg font-bold text-slate-800">{selectedGroup.name}</h3>
-                                        <p className="text-sm text-slate-500 mt-1">{selectedGroup.school || 'Escuela no especificada'}</p>
-                                        <div className="flex flex-wrap gap-3 mt-2">
-                                            <span className="inline-flex items-center gap-1 text-sm text-slate-600"><Globe size={14} /> {selectedGroup.language}</span>
-                                            <span className="inline-flex items-center gap-1 text-sm text-slate-600"><BookOpen size={14} /> {selectedGroup.course}</span>
-                                            <span className="inline-flex items-center gap-1 text-sm text-slate-600"><Users size={14} /> {selectedGroup.students.length} estudiantes</span>
-                                            {selectedGroup.challengeClosed && <span className="inline-flex items-center gap-1 text-sm text-red-600"><Lock size={14} /> Desafío cerrado</span>}
+                                    <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl p-4 mb-6 border border-slate-200 shadow-sm">
+                                        <div className="flex justify-between items-start">
+                                            <div className="flex-1">
+                                                <h3 className="text-lg font-bold text-slate-800">{selectedGroup.name}</h3>
+                                                <p className="text-sm text-slate-500 mt-1">{selectedGroup.school || 'Escuela no especificada'}</p>
+                                                <div className="flex flex-wrap gap-3 mt-2">
+                                                    <span className="inline-flex items-center gap-1 text-sm text-slate-600"><Globe size={14} /> {selectedGroup.language === 'es' ? 'Español' : 'Inglés'}</span>
+                                                    <span className="inline-flex items-center gap-1 text-sm text-slate-600"><BookOpen size={14} /> {selectedGroup.course}</span>
+                                                    <span className="inline-flex items-center gap-1 text-sm text-slate-600"><Users size={14} /> {selectedGroup.students.length} estudiantes</span>
+                                                    {selectedGroup.challengeClosed && <span className="inline-flex items-center gap-1 text-sm text-red-600"><Lock size={14} /> Desafío cerrado</span>}
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={openEditModal}
+                                                    className="p-2 rounded-lg bg-white text-blue-600 hover:bg-blue-50 transition-all shadow-sm border border-slate-200"
+                                                    title="Editar grupo"
+                                                >
+                                                    <Edit size={18} />
+                                                </button>
+                                                <button
+                                                    onClick={handleDeleteGroup}
+                                                    className="p-2 rounded-lg bg-white text-red-600 hover:bg-red-50 transition-all shadow-sm border border-slate-200"
+                                                    title="Eliminar grupo"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -582,6 +638,90 @@ const Gestion_grupos_estudiantes = () => {
                     <p className="text-slate-600 text-sm mb-2">Una vez que finalice todo el grupo, puede hacer clic en el botón Cerrar este desafío y publicar las puntuaciones.</p>
                     <p className="text-sm text-red-600 bg-red-50 p-3 rounded-xl mt-3 flex items-center gap-2"><ShieldOff size={16} /> <strong>IMPORTANTE (CUBA):</strong> Debe quitar la marca de verificación del permiso de investigación a TODOS los estudiantes usando el botón "Quitar todos permisos".</p>
                 </div>
+
+                {showEditGroup && (
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-[fadeIn_.3s_ease-out]">
+                        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform transition-all duration-300 scale-100">
+                            <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
+                                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                    <Edit size={20} className="text-blue-500" />
+                                    Editar Grupo
+                                </h2>
+                                <button onClick={() => setShowEditGroup(false)} className="p-1 rounded-full hover:bg-slate-100 transition-all">
+                                    <X size={20} className="text-slate-500" />
+                                </button>
+                            </div>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Nombre del Grupo *</label>
+                                    <input
+                                        type="text"
+                                        value={editGroupData.name}
+                                        onChange={(e) => setEditGroupData({...editGroupData, name: e.target.value})}
+                                        className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                        placeholder="Ej: 5to Grado - Sección A"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Escuela</label>
+                                    <input
+                                        type="text"
+                                        value={editGroupData.school}
+                                        onChange={(e) => setEditGroupData({...editGroupData, school: e.target.value})}
+                                        className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                        placeholder="Nombre de la escuela"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Nivel / Año</label>
+                                    <select
+                                        value={editGroupData.course}
+                                        onChange={(e) => setEditGroupData({...editGroupData, course: e.target.value})}
+                                        className="w-full px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none"
+                                    >
+                                        <option value="1ro">1ro</option>
+                                        <option value="2do">2do</option>
+                                        <option value="3ro">3ro</option>
+                                        <option value="4to">4to</option>
+                                        <option value="5to">5to</option>
+                                        <option value="6to">6to</option>
+                                        <option value="7mo">7mo</option>
+                                        <option value="8vo">8vo</option>
+                                        <option value="9no">9no</option>
+                                        <option value="10mo">10mo</option>
+                                        <option value="11no">11no</option>
+                                        <option value="12mo">12mo</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Idioma</label>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setEditGroupData({...editGroupData, language: 'es'})}
+                                            className={`flex-1 px-4 py-2 rounded-xl font-medium transition-all ${editGroupData.language === 'es' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                                        >
+                                            Español
+                                        </button>
+                                        <button
+                                            onClick={() => setEditGroupData({...editGroupData, language: 'en'})}
+                                            className={`flex-1 px-4 py-2 rounded-xl font-medium transition-all ${editGroupData.language === 'en' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                                        >
+                                            English
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex gap-3 mt-6 pt-4 border-t border-slate-200">
+                                <button onClick={handleUpdateGroup} className="flex-1 bg-blue-600 text-white font-medium py-2 rounded-xl hover:bg-blue-700 transition-all shadow-md">
+                                    Guardar Cambios
+                                </button>
+                                <button onClick={() => setShowEditGroup(false)} className="flex-1 bg-slate-200 text-slate-700 font-medium py-2 rounded-xl hover:bg-slate-300 transition-all">
+                                    Cancelar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {showExportOptions && selectedGroup && (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowExportOptions(false)}>
