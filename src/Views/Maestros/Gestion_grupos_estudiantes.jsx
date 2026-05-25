@@ -9,6 +9,7 @@ import Exportar_diploma_alumno from './Exportar_diploma_alumno';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import Activacion from "./Activacion.jsx";
 
 const Gestion_grupos_estudiantes = () => {
     const [groups, setGroups] = useState([]);
@@ -19,7 +20,6 @@ const Gestion_grupos_estudiantes = () => {
     const [editingStudentId, setEditingStudentId] = useState(null);
     const [editFormData, setEditFormData] = useState({ username: '', name: '', researchPermission: false });
     const [language, setLanguage] = useState('es');
-    const [showRanking, setShowRanking] = useState(false);
     const [showExportDiplomas, setShowExportDiplomas] = useState(false);
     const [showExportOptions, setShowExportOptions] = useState(false);
 
@@ -102,10 +102,6 @@ const Gestion_grupos_estudiantes = () => {
         setShowExportDiplomas(false);
     };
 
-    const showRankingTable = () => {
-        if (!selectedGroup) return;
-        setShowRanking(true);
-    };
 
     const handleExportReport = () => {
         if (!selectedGroup) return;
@@ -118,19 +114,18 @@ const Gestion_grupos_estudiantes = () => {
 
     const getBebrasLevel = (course) => {
         const levels = {
-            'Preescolar': 'Castorito (5-6 años)',
-            '1ro': 'Castor (7-8 años)',
-            '2do': 'Castor (7-8 años)',
-            '3ro': 'Castor (9-10 años)',
-            '4to': 'Castor (9-10 años)',
-            '5to': 'Castor (11-12 años)',
-            '6to': 'Castor (11-12 años)',
-            '7mo': 'Junior (13-14 años)',
-            '8vo': 'Junior (13-14 años)',
-            '9no': 'Junior (13-14 años)',
-            '10mo': 'Senior (15-16 años)',
-            '11no': 'Senior (15-16 años)',
-            '12mo': 'Senior (17-18 años)'
+            '1ro': 'Super Peque',
+            '2do': 'Super Peque',
+            '3ro': 'Peque',
+            '4to': 'Peque',
+            '5to': 'Benjamin',
+            '6to': 'Benjamin',
+            '7mo': 'Cadete',
+            '8vo': 'Cadete',
+            '9no': 'Junior',
+            '10mo': 'Junior',
+            '11no': 'Senior',
+            '12mo': 'Senior'
         };
         return levels[course] || 'No especificado';
     };
@@ -158,7 +153,6 @@ const Gestion_grupos_estudiantes = () => {
             const reportData = generateReportData();
             const worksheet = XLSX.utils.json_to_sheet(reportData);
 
-            // Adjust column widths
             const colWidths = [
                 {wch: 25}, {wch: 20}, {wch: 12}, {wch: 20},
                 {wch: 15}, {wch: 25}, {wch: 15}, {wch: 15},
@@ -383,10 +377,16 @@ const Gestion_grupos_estudiantes = () => {
         setShowGestionParticipantes(true);
     };
 
+    const closeSesion = () => {
+        setShowGestionParticipantes(true)
+
+    }
+
     if (showCreateGroup) return <Crear_Grupo onGroupCreated={handleGroupCreated} onCancel={()=>setShowCreateGroup(false)} />;
     if (showCrearCuentas) return <Crear_cuentas_alumnos onStudentsCreated={handleStudentsCreated} onCancel={() => setShowCrearCuentas(false)} />;
     if (showGestionParticipantes) return <Monitoreo_participantes group={selectedGroup} onUpdateStudentStatus={handleUpdateStudentStatus} onClose={() => setShowGestionParticipantes(false)} />;
     if (showExportDiplomas) return <Exportar_diploma_alumno group={selectedGroup} onClose={handleCloseDiplomas} />;
+    if (showGestionParticipantes) return <Activacion/>
 
     return (
         <div className="min-h-screen bg-linear-to-br from-slate-100 to-sky-100 p-6 font-sans">
@@ -405,6 +405,12 @@ const Gestion_grupos_estudiantes = () => {
                     >
                         EN
                     </button>
+                    <div>
+                        <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all shadow-md"
+                        onClick={closeSesion}
+                        >Cerrar sesión</button>
+                    </div>
+
                 </div>
 
                 {/* Header */}
@@ -558,7 +564,7 @@ const Gestion_grupos_estudiantes = () => {
                     <p className="text-sm text-red-600 bg-red-50 p-3 rounded-xl mt-3 flex items-center gap-2"><ShieldOff size={16} /> <strong>IMPORTANTE (CUBA):</strong> Debe quitar la marca de verificación del permiso de investigación a TODOS los estudiantes usando el botón "Quitar todos permisos".</p>
                 </div>
 
-                {/* Export Options Modal */}
+                {/* Modal para exportar reporte de participacion excel/pdf */}
                 {showExportOptions && selectedGroup && (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowExportOptions(false)}>
                         <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-[fadeInUp_.3s_ease-out]" onClick={(e) => e.stopPropagation()}>
@@ -603,41 +609,6 @@ const Gestion_grupos_estudiantes = () => {
                     </div>
                 )}
 
-                {/* Ranking */}
-                {showRanking && selectedGroup && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowRanking(false)}>
-                        <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 animate-[fadeInUp_.3s_ease-out]" onClick={(e) => e.stopPropagation()}>
-                            <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
-                                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Trophy size={20} className="text-yellow-500" /> Ranking - {selectedGroup.name}</h2>
-                                <button onClick={() => setShowRanking(false)} className="p-1 rounded-full hover:bg-slate-100"><X size={20} /></button>
-                            </div>
-                            <p className="text-sm text-slate-500 mb-4 flex items-center gap-1"><BookOpen size={14} /> Mismo grupo de edad: {selectedGroup.course}</p>
-                            <table className="w-full">
-                                <thead className="bg-slate-100">
-                                <tr><th className="px-4 py-2 text-left">Posición</th><th className="px-4 py-2 text-left">Puntuación</th><th className="px-4 py-2 text-left">Cantidad</th></tr>
-                                </thead>
-                                <tbody>
-                                {(() => {
-                                    const scores = selectedGroup.students.filter(s => s.score !== null).map(s => s.score);
-                                    const scoreCounts = {};
-                                    scores.forEach(score => { scoreCounts[score] = (scoreCounts[score] || 0) + 1; });
-                                    const sortedScores = Object.keys(scoreCounts).map(Number).sort((a, b) => b - a);
-                                    return sortedScores.map((score, idx) => (
-                                        <tr key={score} className="border-b border-slate-100">
-                                            <td className="px-4 py-2 font-bold">{idx + 1}</td>
-                                            <td className="px-4 py-2">{score}</td>
-                                            <td className="px-4 py-2">{scoreCounts[score]} estudiante(s)</td>
-                                        </tr>
-                                    ));
-                                })()}
-                                {selectedGroup.students.filter(s => s.score !== null).length === 0 && (
-                                    <tr><td colSpan="3" className="text-center py-4 text-slate-500">No hay puntuaciones disponibles</td></tr>
-                                )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                )}
             </div>
         </div>
     );

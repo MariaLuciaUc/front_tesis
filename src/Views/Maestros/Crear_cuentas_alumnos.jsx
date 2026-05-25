@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, UserPlus, Send, Trash2, Users, Mail, CheckCircle, AlertCircle } from 'lucide-react';
+import {X, UserPlus, Send, Trash2, Users, Mail, CheckCircle, AlertCircle, ShieldOff} from 'lucide-react';
 
 export default function Crear_cuentas_alumnos({ onStudentsCreated, onCancel }) {
     const [nombres, setNombres] = useState('');
@@ -50,20 +50,24 @@ export default function Crear_cuentas_alumnos({ onStudentsCreated, onCancel }) {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-100 to-sky-100 p-4 font-sans">
-            <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-8 relative animate-[fadeInUp_.4s_ease-out]">
+            <div
+                className="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-8 relative animate-[fadeInUp_.4s_ease-out]">
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-200">
                     <div className="flex items-center gap-3">
-                        <UserPlus className="text-blue-600" size={24} />
+                        <UserPlus className="text-blue-600" size={24}/>
                         <h2 className="text-2xl font-extrabold text-slate-800">Crear cuentas nuevas</h2>
+
                     </div>
                     <button
                         onClick={cerrarModal}
                         className="p-2 rounded-full hover:bg-slate-100 transition-colors text-slate-500 hover:text-slate-700"
                     >
-                        <X size={20} />
+                        <X size={20}/>
                     </button>
                 </div>
+                <p className="text-sm text-red-600 bg-red-50 p-3 rounded-xl mt-3 flex items-center gap-2">
+                    <strong>IMPORTANTE:</strong> Escriba correctamente el nombre de los estudiantes del grupo. Este nombre es el que aparecerá en el certificado de participación.</p>
 
                 {/* Textarea nombres */}
                 <div className="mb-6">
@@ -81,7 +85,7 @@ export default function Crear_cuentas_alumnos({ onStudentsCreated, onCancel }) {
                         onClick={procesarNombres}
                         className="mt-3 flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all shadow-md hover:shadow-lg"
                     >
-                        <Users size={18} />
+                        <Users size={18}/>
                         Procesar Nombres
                     </button>
                 </div>
@@ -120,22 +124,23 @@ export default function Crear_cuentas_alumnos({ onStudentsCreated, onCancel }) {
                         onClick={guardarYEnviar}
                         className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 shadow-md hover:shadow-lg transition-all"
                     >
-                        <Send size={18} />
+                        <Send size={18}/>
                         Guardar y Agregar Estudiantes
                     </button>
                     <button
                         onClick={limpiarTodo}
                         className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-slate-200 text-slate-700 font-medium hover:bg-slate-300 transition-all"
                     >
-                        <Trash2 size={18} />
+                        <Trash2 size={18}/>
                         Limpiar todo
                     </button>
                 </div>
 
                 {/* Mensaje */}
                 {mensaje && (
-                    <div className={`mb-4 p-3 rounded-xl text-sm flex items-center gap-2 ${mensaje.includes('✅') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-                        {mensaje.includes('✅') ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+                    <div
+                        className={`mb-4 p-3 rounded-xl text-sm flex items-center gap-2 ${mensaje.includes('✅') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                        {mensaje.includes('✅') ? <CheckCircle size={18}/> : <AlertCircle size={18}/>}
                         {mensaje}
                     </div>
                 )}
@@ -144,12 +149,13 @@ export default function Crear_cuentas_alumnos({ onStudentsCreated, onCancel }) {
                 {mostrarVistaPrevia && listaNombres.length > 0 && (
                     <div className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
                         <h4 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
-                            <Users size={18} className="text-blue-600" />
+                            <Users size={18} className="text-blue-600"/>
                             📋 Vista Previa ({listaNombres.length} nombre(s)):
                         </h4>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto">
                             {listaNombres.map((nombre, index) => (
-                                <div key={index} className="text-sm text-slate-600 py-1 px-2 bg-white rounded border border-slate-100">
+                                <div key={index}
+                                     className="text-sm text-slate-600 py-1 px-2 bg-white rounded border border-slate-100">
                                     {index + 1}. {nombre}
                                 </div>
                             ))}
