@@ -145,23 +145,7 @@ const Gestion_grupos_estudiantes = () => {
         setShowExportOptions(true);
     };
 
-    const getBebrasLevel = (course) => {
-        const levels = {
-            '1ro': 'Super Peque',
-            '2do': 'Super Peque',
-            '3ro': 'Peque',
-            '4to': 'Peque',
-            '5to': 'Benjamin',
-            '6to': 'Benjamin',
-            '7mo': 'Cadete',
-            '8vo': 'Cadete',
-            '9no': 'Junior',
-            '10mo': 'Junior',
-            '11no': 'Senior',
-            '12mo': 'Senior'
-        };
-        return levels[course] || 'No especificado';
-    };
+
 
     const generateReportData = () => {
         if (!selectedGroup) return [];
@@ -203,7 +187,7 @@ const Gestion_grupos_estudiantes = () => {
                 ['Nombre del Grupo', selectedGroup.name],
                 ['Escuela', selectedGroup.school || 'No especificada'],
                 ['Año/Nivel', selectedGroup.course],
-                ['Nivel Bebras', getBebrasLevel(selectedGroup.course)],
+                ['Nivel Bebras',selectedGroup.course],
                 ['Idioma', selectedGroup.language === 'es' ? 'Español' : 'Inglés'],
                 ['Total de Estudiantes', selectedGroup.students.length],
                 ['Desafío Cerrado', selectedGroup.challengeClosed ? 'Sí' : 'No'],
@@ -512,7 +496,7 @@ const Gestion_grupos_estudiantes = () => {
                                                 <h3 className="text-lg font-bold text-slate-800">{selectedGroup.name}</h3>
                                                 <p className="text-sm text-slate-500 mt-1">{selectedGroup.school || 'Escuela no especificada'}</p>
                                                 <div className="flex flex-wrap gap-3 mt-2">
-                                                    <span className="inline-flex items-center gap-1 text-sm text-slate-600"><Globe size={14} /> {selectedGroup.language === 'es' ? 'Español' : 'Inglés'}</span>
+                                                    <span className="inline-flex items-center gap-1 text-sm text-slate-600"><Globe size={14} /> {selectedGroup.language}</span>
                                                     <span className="inline-flex items-center gap-1 text-sm text-slate-600"><BookOpen size={14} /> {selectedGroup.course}</span>
                                                     <span className="inline-flex items-center gap-1 text-sm text-slate-600"><Users size={14} /> {selectedGroup.students.length} estudiantes</span>
                                                     {selectedGroup.challengeClosed && <span className="inline-flex items-center gap-1 text-sm text-red-600"><Lock size={14} /> Desafío cerrado</span>}
@@ -538,20 +522,20 @@ const Gestion_grupos_estudiantes = () => {
                                     </div>
 
                                     <div className="flex flex-wrap gap-3 mb-8">
-                                        <button onClick={handleGestionarParticipantes} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-all shadow-md">
+                                        <button onClick={handleGestionarParticipantes} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all shadow-md">
                                             <Users size={16} /> Monitorear participantes
                                         </button>
                                         {!selectedGroup.challengeClosed && (
-                                            <button onClick={publishScores} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-600 text-white font-medium hover:bg-orange-700 transition-all shadow-md">
+                                            <button onClick={publishScores} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500 text-white font-medium hover:bg-orange-600 transition-all shadow-md">
                                                 <BarChart3 size={16} /> Cerrar desafío y publicar puntuaciones
                                             </button>
                                         )}
                                         {selectedGroup.challengeClosed && (
                                             <>
-                                                <button onClick={printDiplomas} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 transition-all shadow-md">
+                                                <button onClick={printDiplomas} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-600 text-white font-medium hover:bg-amber-700 transition-all shadow-md">
                                                     <FileDown size={16} /> Exportar diplomas de participación de estudiantes
                                                 </button>
-                                                <button onClick={handleExportReport} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-600 text-white font-medium hover:bg-yellow-700 transition-all shadow-md">
+                                                <button onClick={handleExportReport} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-600 text-white font-medium hover:bg-zinc-700 transition-all shadow-md">
                                                     <Download size={16} /> Exportar reporte de participación de grupo
                                                 </button>
                                             </>
@@ -562,7 +546,7 @@ const Gestion_grupos_estudiantes = () => {
                                         <div className="flex flex-wrap justify-between items-center mb-4">
                                             <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Users size={18} className="text-blue-600" /> Estudiantes</h2>
                                             <div className="flex gap-2">
-                                                <button onClick={() => setShowCrearCuentas(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition-all shadow-md">
+                                                <button onClick={() => setShowCrearCuentas(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-600 text-white font-medium hover:bg-yellow-700 transition-all shadow-md">
                                                     <UserPlus size={16} /> Crear cuentas
                                                 </button>
                                                 <button onClick={removeAllResearchPermissions} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition-all shadow-md" title="Quitar permiso de investigación a todos (CUBA)">
@@ -679,18 +663,13 @@ const Gestion_grupos_estudiantes = () => {
                                         onChange={(e) => setEditGroupData({...editGroupData, course: e.target.value})}
                                         className="w-full px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none"
                                     >
-                                        <option value="1ro">1ro</option>
-                                        <option value="2do">2do</option>
-                                        <option value="3ro">3ro</option>
-                                        <option value="4to">4to</option>
-                                        <option value="5to">5to</option>
-                                        <option value="6to">6to</option>
-                                        <option value="7mo">7mo</option>
-                                        <option value="8vo">8vo</option>
-                                        <option value="9no">9no</option>
-                                        <option value="10mo">10mo</option>
-                                        <option value="11no">11no</option>
-                                        <option value="12mo">12mo</option>
+                                        <option value="Super Peque">Super Peque</option>
+                                        <option value="Peque">Peque</option>
+                                        <option value="Benjamin">Benjamin</option>
+                                        <option value="Cadete">Cadete</option>
+                                        <option value="Junior">Junior</option>
+                                        <option value="Senior">Senior</option>
+
                                     </select>
                                 </div>
                                 <div>

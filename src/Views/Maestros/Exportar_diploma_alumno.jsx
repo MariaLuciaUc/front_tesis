@@ -386,7 +386,7 @@ const Exportar_diploma_alumno = ({ group, onClose }) => {
                             </div>
                             <div>
                                 <p className="text-sm text-slate-500">Participantes con puntuación</p>
-                                <p className="font-bold text-green-600 text-lg">{studentsWithScores.length} / {group.students.length}</p>
+                                <p className="font-bold text-black-600 text-lg">{studentsWithScores.length} / {group.students.length}</p>
                             </div>
                         </div>
                     </div>
@@ -432,7 +432,7 @@ const Exportar_diploma_alumno = ({ group, onClose }) => {
                                         <td className="px-4 py-3 text-sm text-slate-500">{student.username}</td>
                                         <td className="px-4 py-3 text-center">
                                             {student.score !== null ? (
-                                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 text-green-700 font-bold">
+                                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-black-100 text-black-700 font-bold">
                                                         {student.score} pts
                                                     </span>
                                             ) : (
@@ -471,7 +471,7 @@ const Exportar_diploma_alumno = ({ group, onClose }) => {
                             <button
                                 onClick={downloadAllDiplomas}
                                 disabled={isGenerating}
-                                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-800 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <Download size={18} />
                                 {isGenerating ? 'Generando...' : 'Descargar todos los diplomas'}

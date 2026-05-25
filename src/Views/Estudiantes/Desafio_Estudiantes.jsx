@@ -1,6 +1,6 @@
 // Desafio_Estudiantes.jsx
 import React, { useState, useEffect } from 'react';
-import { Clock, User, LogOut, Flag, CheckCircle, AlertCircle, Trophy, ThumbsUp, Target, List, Star, Menu, ArrowLeft } from 'lucide-react';
+import { Clock, User, LogOut, Flag, CheckCircle, AlertCircle, Trophy, ThumbsUp, Target, List, Star,ArrowLeft } from 'lucide-react';
 import Pregunta from './Pregunta';
 import {toast} from "sonner";
 
@@ -130,7 +130,7 @@ const Desafio_Estudiantes = (props) => {
                         <h2 className="text-2xl font-extrabold text-slate-800">Desafío completado</h2>
                     </div>
                     <div className="bg-slate-50 rounded-xl p-6 mb-6">
-                        <p className="text-slate-600 mb-2">✨ {name}, ¡lo hiciste increíble! ✨</p>
+                        <p className="text-slate-600 mb-2"> {name}, ¡lo hiciste increíble! </p>
                         <div className="text-5xl font-bold text-blue-600 my-4">{finalScore} / {questions.length}</div>
                         {finalScore === questions.length ? (
                             <div className="flex items-center justify-center gap-2 text-green-600 bg-green-50 p-3 rounded-xl"><Star size={20} /> ¡Perfecto! Eres un genio castor</div>
@@ -162,15 +162,15 @@ const Desafio_Estudiantes = (props) => {
                             <span className="font-bold text-slate-800">Desafío BebrasCuba</span>
                         </div>
                         <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-2 bg-orange-100 px-3 py-1.5 rounded-full">
-                                <Clock size={16} className="text-orange-600" />
+                            <div className="flex items-center gap-2 bg-black-100 px-3 py-1.5 rounded-full">
+                                <Clock size={16} className="text-black-600" />
                                 <span className="font-mono font-bold text-orange-700">{formatTime(timeLeft)}</span>
                             </div>
                             <div className="flex items-center gap-2 text-slate-600">
                                 <User size={16} />
                                 <span className="text-sm">{name}</span>
                             </div>
-                            <button onClick={handleExit} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-all text-sm font-medium">
+                            <button onClick={handleExit} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-100 text-black-600 hover:bg-gray-200 transition-all text-sm font-medium">
                                 <LogOut size={14} /> Salir
                             </button>
                             <button onClick={() => setShowFinishModal(true)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-all text-sm font-medium shadow-md">

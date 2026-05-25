@@ -109,7 +109,7 @@ export default function Crear_cuentas_alumnos({ onStudentsCreated, onCancel }) {
                 <div className="flex flex-wrap gap-4 mb-6">
                     <button
                         onClick={guardarYEnviar}
-                        className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 shadow-md hover:shadow-lg transition-all"
+                        className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-md hover:shadow-lg transition-all"
                     >
                         <Send size={18}/>
                         Guardar y Agregar Estudiantes

@@ -144,12 +144,12 @@ const Activacion = ({onActivate, onResetPassword, onSuccess}) => {
         <React.Fragment key={i}>
           <div className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold transition-colors ${
             step === i ? 'bg-blue-600 text-white shadow-md' :
-              step > i ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-400'
+              step > i ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-400'
           }`}>
             {step > i ? <Check size={16}/> : i}
           </div>
           {i < 5 && (
-            <div className={`w-8 h-1 rounded ${step > i ? 'bg-green-500' : 'bg-slate-200'}`}/>
+            <div className={`w-8 h-1 rounded ${step > i ? 'bg-blue-500' : 'bg-slate-200'}`}/>
           )}
         </React.Fragment>
       ))}

@@ -91,7 +91,6 @@ export default function Crear_Grupo({ onGroupCreated, onCancel }) {
                         value={schoolName}
                         onChange={(e) => setSchoolName(e.target.value)}
                         className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                        placeholder="Ej: Escuela Primaria José Martí"
                     />
                 </div>
 
@@ -106,9 +105,6 @@ export default function Crear_Grupo({ onGroupCreated, onCancel }) {
                     >
                         <option value="español">Español</option>
                         <option value="english">English</option>
-                        <option value="frances">Français</option>
-                        <option value="aleman">Deutsch</option>
-                        <option value="portugues">Português</option>
                     </select>
                 </div>
 
@@ -136,7 +132,7 @@ export default function Crear_Grupo({ onGroupCreated, onCancel }) {
                 <div className="flex gap-4 pt-4 border-t border-slate-100">
                     <button
                         onClick={handleCreate}
-                        className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 shadow-md hover:shadow-lg transition-all"
+                        className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-md hover:shadow-lg transition-all"
                     >
                         <Save size={18} /> Crear
                     </button>

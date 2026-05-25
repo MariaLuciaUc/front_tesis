@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Desafio_Estudiantes from './Desafio_Estudiantes';
-import { Play, LogOut, Clock, Award, List, CheckCircle, AlertCircle, BookOpen, Medal, Rocket, Flag, Check } from 'lucide-react';
+import {LogOut, Check, CircleDot, LucideCircleAlert, CircleX} from 'lucide-react';
 
 const Panel_Estudiante = ({ student, onLogout }) => {
     const [desafioIniciado, setDesafioIniciado] = useState(false);
@@ -12,47 +12,94 @@ const Panel_Estudiante = ({ student, onLogout }) => {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-100 to-sky-100 p-4 font-sans">
-            <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-8 animate-[fadeInUp_.4s_ease-out]">
-                <div className="text-center mb-6">
-                    <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Rocket size={32} className="text-blue-600" />
-                    </div>
-                    <h2 className="text-2xl font-extrabold text-slate-800">¡Bienvenido, {student?.name || 'Estudiante'}!</h2>
-                    <p className="text-slate-500 mt-2">¿Estás listo para ponerte a prueba?</p>
-                </div>
-
-                <div className="bg-slate-50 rounded-xl p-5 mb-6 space-y-3 max-h-96 overflow-y-auto">
-                    <p className="text-slate-700 text-sm flex items-start gap-2"><Play size={18} className="text-blue-500 mt-0.5" /> Puedes comenzar el desafío haciendo clic en el botón de abajo. Cuando lo hagas, el temporizador se iniciará.</p>
-                    <p className="text-slate-700 text-sm flex items-start gap-2"><Clock size={14} className="text-blue-500 mt-0.5" /> Dispones de <strong>45 minutos</strong> para completar la prueba.</p>
-                    <p className="text-slate-700 text-sm flex items-start gap-2"><List size={14} className="text-blue-500 mt-0.5" /> Puedes ver las preguntas como una lista. Abre cada pregunta haciendo clic en ella.</p>
-                    <p className="text-slate-700 text-sm flex items-start gap-2"><CheckCircle size={16} className="text-blue-500 mt-0.5" /> En las preguntas de seleccionar, haz clic en la respuesta y luego pulsa en el botón <strong>Enviar Respuesta</strong>.</p>
-                    <p className="text-slate-700 text-sm flex items-start gap-2"><AlertCircle size={17} className="text-blue-500 mt-0.5" /> En las preguntas donde debes escribir tu respuesta, escríbela y luego oprime el botón <strong>Enviar Respuesta</strong>.</p>
-                    <p className="text-slate-700 text-sm flex items-start gap-2"><Check size={30} className="text-blue-500 mt-0.5" /> Cuando termines, asegúrate de que todas las tareas estén marcadas para que se evalúen con las casillas de verificación. Si no eliges evaluar una tarea, no obtendrás puntos.</p>
-                    <p className="text-slate-700 text-sm flex items-start gap-2"><Flag size={14} className="text-green-500 mt-0.5" /> Cuando estés listo, cierra el desafío con el botón <strong>Finalizar Desafío</strong></p>
-                    <p className="text-slate-700 text-sm pt-2 font-semibold">¡Éxitos!</p>
-
-                    <div className="grid grid-cols-2 gap-3 pt-3 mt-2 border-t border-slate-200">
-                        <div className="flex items-center gap-2 text-sm"><List size={14} className="text-slate-400" /> <strong>Preguntas:</strong> 6</div>
-                        <div className="flex items-center gap-2 text-sm"><Clock size={14} className="text-slate-400" /> <strong>Tiempo:</strong> 45 minutos</div>
-                        <div className="flex items-center gap-2 text-sm"><Medal size={14} className="text-slate-400" /> <strong>Puntaje máximo:</strong> 100 puntos</div>
-                        <div className="flex items-center gap-2 text-sm"><Award size={14} className="text-slate-400" /> <strong>Nivel:</strong> Bebras</div>
-                    </div>
-                </div>
-
-                <div className="flex gap-4">
-                    <button onClick={handleIniciarDesafio} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 transition-all shadow-md hover:shadow-lg">
-                        <Play size={18} /> Comenzar desafío
-                    </button>
-                    <button onClick={onLogout} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-slate-200 text-slate-700 font-medium hover:bg-slate-300 transition-all">
-                        <LogOut size={18} /> Cerrar sesión
+        <div className="min-h-screen bg-gray-100 p-8 font-sans">
+            <div className="max-w-6xl mx-auto">
+                {/* Header con logout */}
+                <div className="flex justify-end mb-8">
+                    <button
+                        onClick={onLogout}
+                        className="flex items-center gap-2 px-4 py-2 rounded bg-red-500 text-white text-sm hover:bg-red-600 transition-all"
+                    >
+                        <LogOut size={16} /> Salir
                     </button>
                 </div>
 
-                <div className="mt-6 pt-4 border-t border-slate-200 text-center">
-                    <p className="text-xs text-slate-400 flex items-center justify-center gap-1">
-                        <BookOpen size={12} /> Desafío Internacional de Pensamiento Computacional - BebrasCuba - Edicion 2026
-                    </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-0 bg-white rounded-lg shadow-lg overflow-hidden">
+                    {/* Columna izquierda */}
+
+                    <div>
+                        <button
+                            onClick={handleIniciarDesafio}
+                            className="flex  items-left p-5 bg-white hover:bg-orange-100 transition-colors border border-gray-200 min-h-[5px] w-full text-left cursor-pointer"
+                        >
+                            <CircleDot size={18} color="orange"/>
+                            <p className="text-gray-600 text-l pl-8"> Desafio BebrasCuba - Nivel Benjamin</p>
+
+                        </button>
+                    </div>
+
+
+                    {/* Columna derecha - Información del desafío */}
+                    <div className="p-8 bg-white">
+                        <h3 className="text-2xl font-bold text-gray-800 mb-4">¡Bienvenido al Desafío Bebras!</h3>
+                        <p className="text-gray-600 mb-6">¿Estás listo para ponerte a prueba?</p>
+
+                        <div className="space-y-4 mb-8">
+                            <div className="flex items-start gap-3">
+                                <div
+                                    className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <Check size={12} className="text-white" />
+                                </div>
+                                <p className="text-gray-700">Puedes comenzar el desafío haciendo clic en el botón de la izquierda (Desafío Bebras). Cuando lo hagas, el temporizador se iniciará. Después de 45 minutos para completar la prueba.</p>
+                            </div>
+
+                            <div className="flex items-start gap-3">
+                                <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <Check size={12} className="text-white" />
+                                </div>
+                                <p className="text-gray-700">Puedes ver las preguntas como una lista. Abra cada pregunta haciendo clic en ella.</p>
+                            </div>
+
+                            <div className="flex items-start gap-3">
+                                <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <Check size={12} className="text-white" />
+                                </div>
+                                <p className="text-gray-700">En las preguntas de escoge, haz clic en la respuesta y luego pulsa el botón Enviar (marcado en naranja en la parte superior de la página).</p>
+                            </div>
+
+                            <div className="flex items-start gap-3">
+                                <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <Check size={12} className="text-white" />
+                                </div>
+                                <p className="text-gray-700">En las preguntas donde debes escribir tu respuesta, escriba la letra y luego escribe el botón OK (ubicado debajo de la caja donde entrarás la respuesta). NO hagas clic en Enviar o perderás los puntos, aunque tu respuesta esté correcta.</p>
+                            </div>
+
+                            <div className="flex items-start gap-3">
+                                <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <Check size={12} className="text-white" />
+                                </div>
+                                <p className="text-gray-700">Puedes regresar a la lista de preguntas con la fecha en la parte superior.</p>
+                            </div>
+
+                            <div className="flex items-start gap-3">
+                                <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <Check size={12} className="text-white" />
+                                </div>
+                                <p className="text-gray-700">Cuando termines, asegúrate de que todas las tareas estén marcadas para que se evalúen con las casillas de verificación. Si eliges no evaluar una tarea, no obtendrás puntos, aunque esté correcta.</p>
+                            </div>
+
+                            <div className="flex items-start gap-3">
+                                <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <Check size={12} className="text-white" />
+                                </div>
+                                <p className="text-gray-700">Cuando estés listo, cierra el desafío con el botón Finalizar Desafío.</p>
+                            </div>
+                        </div>
+
+                        <div className="text-center">
+                            <p className="text-xl font-semibold text-gray-800">¡Éxitos!</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
