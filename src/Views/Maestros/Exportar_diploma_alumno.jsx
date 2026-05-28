@@ -194,10 +194,6 @@ const Exportar_diploma_alumno = ({ group, onClose }) => {
                     
                     <div class="student-name">${student.name}</div>
                     
-                    <div class="score">
-                        Puntuación obtenida: <span class="score-number">${student.score}</span> puntos
-                    </div>
-                    
                     <div class="group-info">
                         <strong>Grupo:</strong> ${group.name}<br>
                         <strong>Nivel Bebras:</strong> ${group.course}
