@@ -4,11 +4,9 @@ import {
     Save,
     BookOpen,
     Plus,
-    Edit,
     Trash2,
     X,
     Clock,
-    Calendar,
     Settings,
     ChevronDown
 } from 'lucide-react';
@@ -35,7 +33,10 @@ const translations = {
         answer: "Respuesta correcta",
         editQuestion: "Editar pregunta",
         deleteQuestion: "Eliminar pregunta",
-        selectFirst: "Seleccione un nivel para ver las preguntas"
+        selectFirst: "Seleccione un nivel para ver las preguntas",
+        alreadyAdded: "Esta pregunta ya está agregada a este nivel",
+        noMoreQuestions: "No hay más preguntas disponibles en el banco para este nivel",
+        close: "Cerrar"
     },
     en: {
         title: "Challenge Configuration",
@@ -57,7 +58,10 @@ const translations = {
         answer: "Correct answer",
         editQuestion: "Edit question",
         deleteQuestion: "Delete question",
-        selectFirst: "Select a level to view questions"
+        selectFirst: "Select a level to view questions",
+        alreadyAdded: "This question has already been added to this level",
+        noMoreQuestions: "No more questions available in the bank for this level",
+        close: "Close"
     }
 };
 
@@ -123,9 +127,24 @@ const Confeccionar_Desafio = ({ onBack, language }) => {
     };
 
     const addQuestionToLevel = (question) => {
+        // Verificar si la pregunta ya está agregada en este nivel
+        const existingQuestions = selectedQuestions[selectedLevel] || [];
+        const isAlreadyAdded = existingQuestions.some(q =>
+            q.originalId === question.id || q.text === question.text
+        );
+
+        if (isAlreadyAdded) {
+            toast.error(t.alreadyAdded);
+            return;
+        }
+
         setSelectedQuestions(prev => ({
             ...prev,
-            [selectedLevel]: [...(prev[selectedLevel] || []), { ...question, id: Date.now() }]
+            [selectedLevel]: [...(prev[selectedLevel] || []), {
+                ...question,
+                id: Date.now(),
+                originalId: question.id
+            }]
         }));
         setShowQuestionBank(false);
         toast.success(`Pregunta agregada a ${selectedLevel}`);
@@ -136,6 +155,7 @@ const Confeccionar_Desafio = ({ onBack, language }) => {
             ...prev,
             [selectedLevel]: prev[selectedLevel].filter(q => q.id !== questionId)
         }));
+        toast.success('Pregunta eliminada');
     };
 
     const updateQuestion = (questionId, updates) => {
@@ -146,6 +166,7 @@ const Confeccionar_Desafio = ({ onBack, language }) => {
             )
         }));
         setEditingQuestion(null);
+        toast.success('Pregunta actualizada');
     };
 
     const saveConfiguration = () => {
@@ -157,6 +178,17 @@ const Confeccionar_Desafio = ({ onBack, language }) => {
     const getTotalScore = () => {
         const questions = selectedQuestions[selectedLevel] || [];
         return questions.reduce((sum, q) => sum + (q.points || 0), 0);
+    };
+
+    // Obtener preguntas disponibles (no agregadas aún)
+    const getAvailableQuestions = () => {
+        if (!selectedLevel) return [];
+        const existingQuestions = selectedQuestions[selectedLevel] || [];
+        const existingOriginalIds = existingQuestions.map(q => q.originalId);
+
+        return (questionBank[selectedLevel] || []).filter(
+            question => !existingOriginalIds.includes(question.id)
+        );
     };
 
     return (
@@ -296,8 +328,8 @@ const Confeccionar_Desafio = ({ onBack, language }) => {
                                             {t.questionsForLevel}: <span className="text-blue-600">{selectedLevel}</span>
                                         </h3>
                                         <span className="text-sm bg-slate-100 px-3 py-1 rounded-full">
-                      Total: {getTotalScore()} {t.points}
-                    </span>
+                                            Total: {getTotalScore()} {t.points}
+                                        </span>
                                     </div>
 
                                     {/* Lista de preguntas seleccionadas */}
@@ -395,23 +427,35 @@ const Confeccionar_Desafio = ({ onBack, language }) => {
                         </div>
                         <div className="p-6 overflow-y-auto max-h-[60vh]">
                             <div className="space-y-3">
-                                {questionBank[selectedLevel]?.map(question => (
-                                    <div key={question.id} className="flex justify-between items-center p-4 bg-slate-50 rounded-xl border border-slate-200">
-                                        <div className="flex-1">
-                                            <p className="font-medium text-slate-800">{question.text}</p>
-                                            <div className="flex gap-3 mt-1">
-                                                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{question.points} {t.points}</span>
-                                                <span className="text-xs text-slate-500">{t.answer}: {question.correctAnswer}</span>
+                                {getAvailableQuestions().length > 0 ? (
+                                    getAvailableQuestions().map(question => (
+                                        <div key={question.id} className="flex justify-between items-center p-4 bg-slate-50 rounded-xl border border-slate-200">
+                                            <div className="flex-1">
+                                                <p className="font-medium text-slate-800">{question.text}</p>
+                                                <div className="flex gap-3 mt-1">
+                                                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{question.points} {t.points}</span>
+                                                    <span className="text-xs text-slate-500">{t.answer}: {question.correctAnswer}</span>
+                                                </div>
                                             </div>
+                                            <button
+                                                onClick={() => addQuestionToLevel(question)}
+                                                className="ml-4 p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
+                                            >
+                                                <Plus size={18} />
+                                            </button>
                                         </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-8">
+                                        <p className="text-slate-500">{t.noMoreQuestions}</p>
                                         <button
-                                            onClick={() => addQuestionToLevel(question)}
-                                            className="ml-4 p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
+                                            onClick={() => setShowQuestionBank(false)}
+                                            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
                                         >
-                                            <Plus size={18} />
+                                            {t.close}
                                         </button>
                                     </div>
-                                ))}
+                                )}
                             </div>
                         </div>
                     </div>
