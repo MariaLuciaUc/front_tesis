@@ -1,5 +1,4 @@
-// Panel_Coordinador_Nacional.jsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import {Flag, Lock, RefreshCw, Mail, BarChart3, BookOpen} from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import Confeccion_Desafio from './Confeccion_Desafio';
@@ -16,7 +15,9 @@ const translations = {
         keyGenerated: "Clave generada correctamente",
         emailSent: "Correo enviado a los profesores",
         confeccionar: "Confeccionar Desafío",
-        reportes: "Ver Reportes"
+        reportes: "Ver Reportes",
+        categoryText: "Configurar fechas, categorías, preguntas y mensajes del desafío",
+        statisticsText: "Ver estadísticas de profesores, estudiantes y resultados del desafío"
     },
     en: {
         title: "National Coordinator Panel",
@@ -28,9 +29,40 @@ const translations = {
         keyGenerated: "Key generated successfully",
         emailSent: "Email sent to teachers",
         confeccionar: "Configure Challenge",
-        reportes: "View Reports"
+        reportes: "View Reports",
+        categoryText: "Configure dates, categories, tasks and challenge messages",
+        statisticsText: "View teachers, students and challenges statistics",
+    },
+    pt: {
+        title: "Painel do Coordenador Nacional",
+        subtitle: "Administração do Desafio BebrasCuba",
+        accessKey: "Chave de Acesso",
+        keyDescription: "Chave para ativação de contas de professores",
+        generateKey: "Gerar Chave",
+        sendToTeachers: "Enviar por e-mail",
+        keyGenerated: "Chave gerada com sucesso",
+        emailSent: "E-mail enviado aos professores",
+        confeccionar: "Configurar Desafio",
+        reportes: "Ver Relatórios",
+        categoryText: "Configurar datas, categorias, perguntas e mensagens do desafio",
+        statisticsText: "Ver estatísticas de professores, estudantes e resultados do desafio"
+    },
+    fr: {
+        title: "Tableau du Coordinateur National",
+        subtitle: "Administration du Défi BebrasCuba",
+        accessKey: "Clé d'accès",
+        keyDescription: "Clé pour l'activation des comptes enseignants",
+        generateKey: "Générer la clé",
+        sendToTeachers: "Envoyer par e-mail",
+        keyGenerated: "Clé générée avec succès",
+        emailSent: "E-mail envoyé aux enseignants",
+        confeccionar: "Configurer le Défi",
+        reportes: "Voir les rapports",
+        categoryText: "Configurer les dates, catégories, questions et messages du défi",
+        statisticsText: "Voir les statistiques des enseignants, étudiants et résultats du défi"
     }
 };
+
 
 const Panel_Coordinador_Nacional = () => {
     const [language, setLanguage] = useState('es');
@@ -102,6 +134,18 @@ const Panel_Coordinador_Nacional = () => {
                             >
                                 EN
                             </button>
+                            <button
+                                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'pt' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}
+                                onClick={() => setLanguage('pt')}
+                            >
+                                PT
+                            </button>
+                            <button
+                                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'fr' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}
+                                onClick={() => setLanguage('fr')}
+                            >
+                                FR
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -121,7 +165,6 @@ const Panel_Coordinador_Nacional = () => {
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
-                            {/* Solo mostrar la clave si ha sido generada */}
                             {keyGenerated && accessKey && (
                                 <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl font-mono text-xl font-bold tracking-wider">
                                     {accessKey}
@@ -157,7 +200,7 @@ const Panel_Coordinador_Nacional = () => {
                         </div>
                         <h2 className="text-xl font-bold text-slate-800 mb-2">{t.confeccionar}</h2>
                         <p className="text-slate-500 text-sm">
-                            Configurar fechas, categorías, preguntas y mensajes del desafío
+                            {t.categoryText}
                         </p>
                     </button>
                 </div>
@@ -172,7 +215,7 @@ const Panel_Coordinador_Nacional = () => {
                         </div>
                         <h2 className="text-xl font-bold text-slate-800 mb-2">{t.reportes}</h2>
                         <p className="text-slate-500 text-sm">
-                            Ver estadísticas de profesores, estudiantes y resultados del desafío
+                            {t.statisticsText}
                         </p>
                     </button>
                 </div>

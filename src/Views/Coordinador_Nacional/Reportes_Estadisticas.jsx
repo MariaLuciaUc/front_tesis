@@ -32,10 +32,40 @@ const translations = {
         scoreByLevel: "Score by Level",
         points: "pts",
         noData: "No data available"
+    },
+    pt: {
+        title: "Relatórios e Estatísticas",
+        back: "Voltar",
+        teachers: "Professores",
+        students: "Estudantes",
+        activeGroups: "Grupos Ativos",
+        pendingActivation: "Pendentes",
+        resolved: "Estudantes que resolveram",
+        completionRate: "Taxa de Conclusão",
+        avgScore: "Pontuação Média",
+        exportReport: "Exportar Relatório",
+        scoreByLevel: "Pontuação por Nível",
+        points: "pts",
+        noData: "Nenhum dado disponível"
+    },
+    fr: {
+        title: "Rapports et Statistiques",
+        back: "Retour",
+        teachers: "Enseignants",
+        students: "Étudiants",
+        activeGroups: "Groupes Actifs",
+        pendingActivation: "En attente",
+        resolved: "Étudiants ayant résolu",
+        completionRate: "Taux d'achèvement",
+        avgScore: "Score Moyen",
+        exportReport: "Exporter le rapport",
+        scoreByLevel: "Score par Niveau",
+        points: "pts",
+        noData: "Aucune donnée disponible"
     }
 };
 
-const Reportes_Estadisticas = ({ onBack, language }) => {
+const Reportes_Estadisticas = ({ onBack, language, onLanguageChange }) => {
     const t = translations[language];
 
     const [stats, setStats] = useState({
@@ -117,8 +147,8 @@ const Reportes_Estadisticas = ({ onBack, language }) => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-100 to-sky-100 font-sans">
             <div className="max-w-7xl mx-auto px-6 py-8">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-8">
+                {/* Header con botón de volver, título y selector de idioma */}
+                <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
                     <button
                         onClick={onBack}
                         className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-md text-slate-600 hover:bg-slate-50 transition-all"
@@ -127,7 +157,36 @@ const Reportes_Estadisticas = ({ onBack, language }) => {
                         {t.back}
                     </button>
                     <h1 className="text-2xl font-extrabold text-slate-800">{t.title}</h1>
-                    <div className="w-24"></div>
+
+                    {/* Selector de idioma */}
+                    <div className="flex gap-2 bg-slate-100 p-1 rounded-full border border-slate-200">
+                        <button
+                            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'es' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}
+                            onClick={() => onLanguageChange('es')}
+                        >
+                            ES
+                        </button>
+                        <button
+                            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'en' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}
+                            onClick={() => onLanguageChange('en')}
+                        >
+                            EN
+                        </button>
+                        <button
+                            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'pt' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}
+                            onClick={() => onLanguageChange('pt')}
+                        >
+                            PT
+                        </button>
+                        <button
+                            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'fr' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}
+                            onClick={() => onLanguageChange('fr')}
+                        >
+                            FR
+                        </button>
+                    </div>
+
+                    <div className="w-24"></div> {/* Spacer para mantener simetría opcional */}
                 </div>
 
                 <div className="grid lg:grid-cols-2 gap-8">

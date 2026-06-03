@@ -62,6 +62,56 @@ const translations = {
         alreadyAdded: "This question has already been added to this level",
         noMoreQuestions: "No more questions available in the bank for this level",
         close: "Close"
+    },
+    pt: {
+        title: "Configuração do Desafio",
+        back: "Voltar ao painel",
+        saveConfig: "Salvar Configuração",
+        configSaved: "Configuração salva",
+        contestName: "Nome do Concurso",
+        startDate: "Data de Início",
+        endDate: "Data de Término",
+        executionTime: "Tempo de Execução (minutos)",
+        welcomeMessageTeacher: "Mensagem de Boas-Vindas - Professores",
+        welcomeMessageStudent: "Mensagem de Boas-Vindas - Estudantes",
+        selectLevel: "Selecionar Nível Bebras",
+        questionsForLevel: "Perguntas para o nível",
+        noQuestions: "Nenhuma pergunta adicionada para este nível",
+        addQuestion: "Adicionar pergunta do banco",
+        questionBank: "Banco de Perguntas",
+        points: "pts",
+        answer: "Resposta correta",
+        editQuestion: "Editar pergunta",
+        deleteQuestion: "Excluir pergunta",
+        selectFirst: "Selecione um nível para ver as perguntas",
+        alreadyAdded: "Esta pergunta já foi adicionada a este nível",
+        noMoreQuestions: "Não há mais perguntas disponíveis no banco para este nível",
+        close: "Fechar"
+    },
+    fr: {
+        title: "Configuration du Défi",
+        back: "Retour au tableau",
+        saveConfig: "Enregistrer la configuration",
+        configSaved: "Configuration enregistrée",
+        contestName: "Nom du Concours",
+        startDate: "Date de début",
+        endDate: "Date de fin",
+        executionTime: "Temps d'exécution (minutes)",
+        welcomeMessageTeacher: "Message de bienvenue - Enseignants",
+        welcomeMessageStudent: "Message de bienvenue - Élèves",
+        selectLevel: "Sélectionner le niveau Bebras",
+        questionsForLevel: "Questions pour le niveau",
+        noQuestions: "Aucune question ajoutée pour ce niveau",
+        addQuestion: "Ajouter une question depuis la banque",
+        questionBank: "Banque de questions",
+        points: "pts",
+        answer: "Bonne réponse",
+        editQuestion: "Modifier la question",
+        deleteQuestion: "Supprimer la question",
+        selectFirst: "Sélectionnez un niveau pour voir les questions",
+        alreadyAdded: "Cette question a déjà été ajoutée à ce niveau",
+        noMoreQuestions: "Il n'y a plus de questions disponibles dans la banque pour ce niveau",
+        close: "Fermer"
     }
 };
 
@@ -98,7 +148,7 @@ const questionBank = {
 
 const niveles = ['Super Peque', 'Peque', 'Benjamin', 'Cadete', 'Junior', 'Senior'];
 
-const Confeccionar_Desafio = ({ onBack, language }) => {
+const Confeccionar_Desafio = ({ onBack, language, onLanguageChange }) => {
     const t = translations[language];
 
     const [config, setConfig] = useState({
@@ -127,7 +177,6 @@ const Confeccionar_Desafio = ({ onBack, language }) => {
     };
 
     const addQuestionToLevel = (question) => {
-        // Verificar si la pregunta ya está agregada en este nivel
         const existingQuestions = selectedQuestions[selectedLevel] || [];
         const isAlreadyAdded = existingQuestions.some(q =>
             q.originalId === question.id || q.text === question.text
@@ -180,12 +229,10 @@ const Confeccionar_Desafio = ({ onBack, language }) => {
         return questions.reduce((sum, q) => sum + (q.points || 0), 0);
     };
 
-    // Obtener preguntas disponibles (no agregadas aún)
     const getAvailableQuestions = () => {
         if (!selectedLevel) return [];
         const existingQuestions = selectedQuestions[selectedLevel] || [];
         const existingOriginalIds = existingQuestions.map(q => q.originalId);
-
         return (questionBank[selectedLevel] || []).filter(
             question => !existingOriginalIds.includes(question.id)
         );
@@ -194,8 +241,8 @@ const Confeccionar_Desafio = ({ onBack, language }) => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-100 to-sky-100 font-sans">
             <div className="max-w-7xl mx-auto px-6 py-8">
-                {/* Header con botón de volver */}
-                <div className="flex items-center justify-between mb-6">
+                {/* Header con botón de volver, título y selector de idioma */}
+                <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
                     <button
                         onClick={onBack}
                         className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-md text-slate-600 hover:bg-slate-50 transition-all"
@@ -204,6 +251,35 @@ const Confeccionar_Desafio = ({ onBack, language }) => {
                         {t.back}
                     </button>
                     <h1 className="text-2xl font-extrabold text-slate-800">{t.title}</h1>
+
+                    {/* Selector de idioma */}
+                    <div className="flex gap-2 bg-slate-100 p-1 rounded-full border border-slate-200">
+                        <button
+                            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'es' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}
+                            onClick={() => onLanguageChange('es')}
+                        >
+                            ES
+                        </button>
+                        <button
+                            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'en' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}
+                            onClick={() => onLanguageChange('en')}
+                        >
+                            EN
+                        </button>
+                        <button
+                            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'pt' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}
+                            onClick={() => onLanguageChange('pt')}
+                        >
+                            PT
+                        </button>
+                        <button
+                            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'fr' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}
+                            onClick={() => onLanguageChange('fr')}
+                        >
+                            FR
+                        </button>
+                    </div>
+
                     <button
                         onClick={saveConfiguration}
                         className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl shadow-md hover:bg-blue-700 transition-all"
@@ -249,25 +325,21 @@ const Confeccionar_Desafio = ({ onBack, language }) => {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-semibold text-slate-700 mb-2">{t.startDate}</label>
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="date"
-                                                value={config.startDate}
-                                                onChange={(e) => handleConfigChange('startDate', e.target.value)}
-                                                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                            />
-                                        </div>
+                                        <input
+                                            type="date"
+                                            value={config.startDate}
+                                            onChange={(e) => handleConfigChange('startDate', e.target.value)}
+                                            className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                        />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-semibold text-slate-700 mb-2">{t.endDate}</label>
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="date"
-                                                value={config.endDate}
-                                                onChange={(e) => handleConfigChange('endDate', e.target.value)}
-                                                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                            />
-                                        </div>
+                                        <input
+                                            type="date"
+                                            value={config.endDate}
+                                            onChange={(e) => handleConfigChange('endDate', e.target.value)}
+                                            className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                        />
                                     </div>
                                 </div>
 
@@ -322,7 +394,6 @@ const Confeccionar_Desafio = ({ onBack, language }) => {
 
                             {selectedLevel ? (
                                 <>
-                                    {/* Encabezado del nivel seleccionado */}
                                     <div className="flex justify-between items-center mb-4">
                                         <h3 className="font-bold text-slate-800">
                                             {t.questionsForLevel}: <span className="text-blue-600">{selectedLevel}</span>
@@ -332,7 +403,6 @@ const Confeccionar_Desafio = ({ onBack, language }) => {
                                         </span>
                                     </div>
 
-                                    {/* Lista de preguntas seleccionadas */}
                                     {selectedQuestions[selectedLevel]?.length > 0 ? (
                                         <div className="space-y-3 mb-4 max-h-96 overflow-y-auto">
                                             {selectedQuestions[selectedLevel].map((q, idx) => (
@@ -376,7 +446,6 @@ const Confeccionar_Desafio = ({ onBack, language }) => {
                                                                 <p className="text-sm text-slate-500 mt-1">{t.answer}: {q.correctAnswer}</p>
                                                             </div>
                                                             <div className="flex gap-2 ml-4">
-
                                                                 <button onClick={() => removeQuestion(q.id)} className="p-1 text-red-600 hover:bg-red-50 rounded">
                                                                     <Trash2 size={16} />
                                                                 </button>
@@ -392,7 +461,6 @@ const Confeccionar_Desafio = ({ onBack, language }) => {
                                         </div>
                                     )}
 
-                                    {/* Botón agregar pregunta */}
                                     <button
                                         onClick={() => setShowQuestionBank(true)}
                                         className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-blue-300 text-blue-600 font-medium hover:bg-blue-50 transition-all"
