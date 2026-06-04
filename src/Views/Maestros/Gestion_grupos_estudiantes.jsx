@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Crear_Grupo from './Crear_Grupo';
 import Crear_cuentas_alumnos from './Crear_cuentas_alumnos';
 import Monitoreo_participantes from './Monitoreo_participantes.jsx';
@@ -83,6 +83,8 @@ const translations = {
         noSchool: "Escuela no especificada",
         researchPermissionYes: "Sí",
         researchPermissionNo: "No",
+        teacherMessageTitle: "Mensaje al profesor",
+        defaultTeacherMessage: "Bienvenidos al Desafío Bebras Cuba 2026. Aquí podrán gestionar sus grupos y estudiantes."
     },
     en: {
         logout: "Logout",
@@ -156,6 +158,8 @@ const translations = {
         noSchool: "School not specified",
         researchPermissionYes: "Yes",
         researchPermissionNo: "No",
+        teacherMessageTitle: "Teacher's message",
+        defaultTeacherMessage: "Welcome to the Bebras Cuba 2026 Challenge. Here you can manage your groups and students."
     },
     pt: {
         logout: "Sair",
@@ -229,6 +233,8 @@ const translations = {
         noSchool: "Escola não especificada",
         researchPermissionYes: "Sim",
         researchPermissionNo: "Não",
+        teacherMessageTitle: "Mensagem do professor",
+        defaultTeacherMessage: "Bem-vindos ao Desafio Bebras Cuba 2026. Aqui você pode gerenciar seus grupos e alunos."
     },
     fr: {
         logout: "Déconnexion",
@@ -302,6 +308,8 @@ const translations = {
         noSchool: "École non spécifiée",
         researchPermissionYes: "Oui",
         researchPermissionNo: "Non",
+        teacherMessageTitle: "Message de l'enseignant",
+        defaultTeacherMessage: "Bienvenue au Défi Bebras Cuba 2026. Vous pouvez ici gérer vos groupes et vos élèves."
     }
 };
 
@@ -320,8 +328,22 @@ const Gestion_grupos_estudiantes = () => {
     const [showExportOptions, setShowExportOptions] = useState(false);
     const [showEditGroup, setShowEditGroup] = useState(false);
     const [editGroupData, setEditGroupData] = useState({ name: '', school: '', course: '', language: 'es' });
+    const [teacherWelcomeMessage, setTeacherWelcomeMessage] = useState('');
 
-    const selectedGroup = groups.find(g => g.id === selectedGroupId);
+    // Cargar mensaje de bienvenida del profesor desde localStorage
+    useEffect(() => {
+        const savedConfig = localStorage.getItem('bebrasContestConfig');
+        if (savedConfig) {
+            const config = JSON.parse(savedConfig);
+            if (config.welcomeMessageTeacher) {
+                setTeacherWelcomeMessage(config.welcomeMessageTeacher);
+            } else {
+                setTeacherWelcomeMessage(t.defaultTeacherMessage);
+            }
+        } else {
+            setTeacherWelcomeMessage(t.defaultTeacherMessage);
+        }
+    }, [t.defaultTeacherMessage]);
 
     const handleGroupCreated = (newGroup) => {
         setGroups([...groups, { ...newGroup, students: [], challengeClosed: false }]);
@@ -516,6 +538,8 @@ const Gestion_grupos_estudiantes = () => {
 
     const onLogout = () => window.location.reload();
 
+    const selectedGroup = groups.find(g => g.id === selectedGroupId);
+
     if (showCreateGroup) return <Crear_Grupo onGroupCreated={handleGroupCreated} onCancel={()=>setShowCreateGroup(false)} language={language} />;
     if (showCrearCuentas) return <Crear_cuentas_alumnos onStudentsCreated={handleStudentsCreated} onCancel={() => setShowCrearCuentas(false)} language={language} />;
     if (showGestionParticipantes) return <Monitoreo_participantes group={selectedGroup} onUpdateStudentStatus={handleUpdateStudentStatus} onClose={() => setShowGestionParticipantes(false)} language={language} />;
@@ -576,9 +600,17 @@ const Gestion_grupos_estudiantes = () => {
                     )}
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-xl p-6"><h3 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><AlertCircle size={18} className="text-blue-600" /> {t.welcomeTitle}</h3><p className="text-slate-600 text-sm mb-2">{t.welcomeText1}</p><p className="text-slate-600 text-sm mb-2">{t.welcomeText2}</p><p className="text-slate-600 text-sm mb-2">{t.welcomeText3}</p><p className="text-slate-600 text-sm mb-2">{t.welcomeText4}</p><p className="text-slate-600 text-sm mb-2">{t.welcomeText5}</p><p className="text-sm text-red-600 bg-red-50 p-3 rounded-xl mt-3 flex items-center gap-2"><ShieldOff size={16} /> <strong>{t.importantCuba}</strong></p></div>
+                <div className="bg-white rounded-2xl shadow-xl p-6">
+                    <h3 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+                        <AlertCircle size={18} className="text-blue-600" />
+                        {t.teacherMessageTitle}
+                    </h3>
+                    <div className="text-slate-700 text-sm bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        {teacherWelcomeMessage}
+                    </div>
+                </div>
 
-                {showEditGroup && (<div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"><div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6"><div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200"><h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Edit size={20} className="text-blue-500" /> {t.editGroupModalTitle}</h2><button onClick={() => setShowEditGroup(false)}><X size={20} /></button></div><div className="space-y-4"><div><label className="block text-sm font-semibold text-slate-700 mb-2">{t.groupName} *</label><input type="text" value={editGroupData.name} onChange={(e) => setEditGroupData({...editGroupData, name: e.target.value})} className="w-full px-4 py-2 rounded-xl border" /></div><div><label className="block text-sm font-semibold text-slate-700 mb-2">{t.school}</label><input type="text" value={editGroupData.school} onChange={(e) => setEditGroupData({...editGroupData, school: e.target.value})} className="w-full px-4 py-2 rounded-xl border" /></div><div><label className="block text-sm font-semibold text-slate-700 mb-2">{t.level}</label><select value={editGroupData.course} onChange={(e) => setEditGroupData({...editGroupData, course: e.target.value})} className="w-full px-4 py-2 rounded-xl border"><option value="Super Peque">Super Peque</option><option value="Peque">Peque</option><option value="Benjamin">Benjamin</option><option value="Cadete">Cadete</option><option value="Junior">Junior</option><option value="Senior">Senior</option></select></div><div><label className="block text-sm font-semibold text-slate-700 mb-2">{t.language}</label><div className="flex gap-2"><button onClick={() => setEditGroupData({...editGroupData, language: 'es'})} className={`flex-1 px-4 py-2 rounded-xl font-medium transition-all ${editGroupData.language === 'es' ? 'bg-blue-600 text-white' : 'bg-slate-100'}`}>{t.spanish}</button><button onClick={() => setEditGroupData({...editGroupData, language: 'en'})} className={`flex-1 px-4 py-2 rounded-xl font-medium transition-all ${editGroupData.language === 'en' ? 'bg-blue-600 text-white' : 'bg-slate-100'}`}>{t.english}</button></div></div></div><div className="flex gap-3 mt-6 pt-4 border-t"><button onClick={handleUpdateGroup} className="flex-1 bg-blue-600 text-white font-medium py-2 rounded-xl hover:bg-blue-700">{t.save}</button><button onClick={() => setShowEditGroup(false)} className="flex-1 bg-slate-200 text-slate-700 font-medium py-2 rounded-xl">{t.cancel}</button></div></div></div>)}
+                {showEditGroup && (<div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"><div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6"><div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200"><h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Edit size={20} className="text-blue-500" /> {t.editGroupModalTitle}</h2><button onClick={() => setShowEditGroup(false)}><X size={20} /></button></div><div className="space-y-4"><div><label className="block text-sm font-semibold text-slate-700 mb-2">{t.groupName} *</label><input type="text" value={editGroupData.name} onChange={(e) => setEditGroupData({...editGroupData, name: e.target.value})} className="w-full px-4 py-2 rounded-xl border" /></div><div><label className="block text-sm font-semibold text-slate-700 mb-2">{t.school}</label><input type="text" value={editGroupData.school} onChange={(e) => setEditGroupData({...editGroupData, school: e.target.value})} className="w-full px-4 py-2 rounded-xl border" /></div><div><label className="block text-sm font-semibold text-slate-700 mb-2">{t.level}</label><select value={editGroupData.course} onChange={(e) => setEditGroupData({...editGroupData, course: e.target.value})} className="w-full px-4 py-2 rounded-xl border"><option value="Super Peque">Super Peque</option><option value="Peque">Peque</option><option value="Benjamin">Benjamin</option><option value="Cadete">Cadete</option><option value="Junior">Junior</option><option value="Senior">Senior</option></select></div><div><label className="block text-sm font-semibold text-slate-700 mb-2">{t.language}</label><div className="flex gap-2"><button onClick={() => setEditGroupData({...editGroupData, language: 'es'})} className={`flex-1 px-4 py-2 rounded-xl font-medium transition-all ${editGroupData.language === 'es' ? 'bg-blue-600 text-white' : 'bg-slate-100'}`}>Español</button><button onClick={() => setEditGroupData({...editGroupData, language: 'en'})} className={`flex-1 px-4 py-2 rounded-xl font-medium transition-all ${editGroupData.language === 'en' ? 'bg-blue-600 text-white' : 'bg-slate-100'}`}>English</button></div></div></div><div className="flex gap-3 mt-6 pt-4 border-t"><button onClick={handleUpdateGroup} className="flex-1 bg-blue-600 text-white font-medium py-2 rounded-xl hover:bg-blue-700">{t.save}</button><button onClick={() => setShowEditGroup(false)} className="flex-1 bg-slate-200 text-slate-700 font-medium py-2 rounded-xl">{t.cancel}</button></div></div></div>)}
 
                 {showExportOptions && selectedGroup && (<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowExportOptions(false)}><div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}><div className="flex justify-between items-center mb-4 pb-3 border-b"><h2 className="text-xl font-bold"><Download size={20} className="inline mr-2 text-yellow-500" /> {t.exportFormat} - {selectedGroup.name}</h2><button onClick={() => setShowExportOptions(false)}><X size={20} /></button></div><p className="text-slate-600 mb-6 text-sm">{t.selectFormat}</p><div className="flex gap-4"><button onClick={exportToExcel} className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700"><FileSpreadsheet size={20} /> {t.excel}</button><button onClick={exportToPDF} className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700"><FileText size={20} /> {t.pdf}</button></div><button onClick={() => setShowExportOptions(false)} className="w-full mt-4 px-4 py-2 rounded-xl border border-slate-300 text-slate-600 font-medium hover:bg-slate-50">{t.cancel}</button></div></div>)}
             </div>

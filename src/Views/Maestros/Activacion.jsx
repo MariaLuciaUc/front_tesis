@@ -12,7 +12,7 @@ const translations = {
     verify: "Verificar código",
     forgotPass: "¿Olvidó su contraseña?",
     newAct: "Información",
-    infoText: "El desafío Bebras es un concurso internacional de pensamiento computacional diseñado para promover la informática y el pensamiento cumputacional entre los estudiantes. Tenga en cuenta que las categorías Bebras son: Super Peque-1ro y 2do grado, Peque-3ro y 4to grado, Benjamin-5to y 6to grado, Cadete-7mo y 8vo grado, Junior-9no y 10mo grado y Senior-11no y 12mo grado",
+    infoText: "El desafío Bebras es un concurso internacional de pensamiento computacional diseñado para promover la informática y el pensamiento computacional entre los estudiantes. Tenga en cuenta que las categorías Bebras son: Super Peque-1ro y 2do grado, Peque-3ro y 4to grado, Benjamin-5to y 6to grado, Cadete-7mo y 8vo grado, Junior-9no y 10mo grado y Senior-11no y 12mo grado",
     back: "Volver",
     next: "Siguiente",
     accountData: "Datos de cuenta",
@@ -20,7 +20,7 @@ const translations = {
     passPlaceholder: "Contraseña",
     termsTitle: "Términos y Condiciones",
     termsText: "Esta plataforma es un sistema de gestión basado en ejercicios y una herramienta de análisis de aprendizaje. El sistema ofrece la posibilidad de compartir y crear cursos, ejercicios electrónicos y otros recursos didácticos. Los estudiantes pueden usarla realizando su propio trabajo o respondiendo preguntas evaluadas automáticamente por la plataforma o el profesor.",
-    termText2: "El servicio consta de tres grupos principales de usuarios: profesores, estdiantes y coordinador nacional. El coordinador nacional es el responsable de la creación del desafío. El grupo ¨profesores¨ esta formado por todos los usuarios con una cuenta de profesor en el sistema. Los estudiantes pueden usar el sistema a través de cursos creados por su profesor",
+    termText2: "El servicio consta de tres grupos principales de usuarios: profesores, estudiantes y coordinador nacional. El coordinador nacional es el responsable de la creación del desafío. El grupo 'profesores' está formado por todos los usuarios con una cuenta de profesor en el sistema. Los estudiantes pueden usar el sistema a través de cursos creados por su profesor",
     acceptTerms: "Acepto los términos y condiciones",
     confirmTitle: "Confirmación final",
     acceptEmails: "Acepto recibir correos informativos",
@@ -140,13 +140,18 @@ const Activacion = ({onActivate, onResetPassword, onSuccess}) => {
   };
 
   const handleVerifyCode = async () => {
-    if (!formData.activationCode.trim()) return;
+    const enteredCode = formData.activationCode.trim().toUpperCase();
+    if (!enteredCode) return;
 
     setIsLoading(true);
-    // Simulamos una llamada a la API
+
     setTimeout(() => {
       setIsLoading(false);
-      if (formData.activationCode === 'BEBRASCUBA112025') {
+      // Obtener la clave guardada por el coordinador nacional
+      const savedKey = localStorage.getItem('bebrasAccessKey');
+
+      // SOLO verificar si el código ingresado coincide EXACTAMENTE con el generado por el coordinador
+      if (savedKey && enteredCode === savedKey) {
         toast.success(t.successVerify);
         setStep(2);
       } else {
@@ -166,7 +171,6 @@ const Activacion = ({onActivate, onResetPassword, onSuccess}) => {
     }
     if (step === 5) {
       setIsLoading(true);
-      // Simulamos la activación final
       setTimeout(() => {
         setIsLoading(false);
         if (onActivate) onActivate(formData);
@@ -216,7 +220,7 @@ const Activacion = ({onActivate, onResetPassword, onSuccess}) => {
 
   return (
       <div
-          className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-100 to-sky-100 p-4 font-sans">
+          className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-sky-100 p-4 font-sans">
         <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl p-8 relative animate-[fadeInUp_.4s_ease-out]">
 
           {/* Selector de Idioma con PT y FR */}
@@ -348,7 +352,7 @@ const Activacion = ({onActivate, onResetPassword, onSuccess}) => {
                       className="bg-slate-50 p-4 rounded-xl border border-slate-200 h-32 overflow-y-auto text-sm text-slate-600">
                     {t.termsText}
                     <br/>
-                    {t.termsText2}
+                    {t.termText2}
                     <br/>
                     <br/>
                   </div>

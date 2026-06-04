@@ -16,7 +16,7 @@ const translations = {
         questionsTitle: "Preguntas del desafío",
         clickHint: "Haz clic en cualquier pregunta para resolverla",
         evaluateLabel: "Evaluar",
-        evaluateNote: "Marca \"Evaluar\" solo las preguntas que quieras que cuenten para tu puntaje final",
+        evaluateNote: "Solo las preguntas que tengan marcado \"Evaluar\" contarán para el resultado final",
         finishModalTitle: "¿Finalizar desafío?",
         finishModalText: "Antes de finalizar, verifica que:",
         finishListItem1: "Haz respondido todas las preguntas que deseas",
@@ -34,7 +34,6 @@ const translations = {
         keepTrying: "¡No te rindas! La práctica hace al maestro",
         backToList: "Volver a la lista",
         answerRequired: "Debes responder la pregunta antes de enviar",
-        // Score messages
         scorePrefix: "Puntuación final:",
         answeredLabel: "Respondida"
     },
@@ -49,7 +48,7 @@ const translations = {
         questionsTitle: "Challenge questions",
         clickHint: "Click on any question to solve it",
         evaluateLabel: "Evaluate",
-        evaluateNote: "Check 'Evaluate' only for questions you want to count towards your final score",
+        evaluateNote: "Only check questions will count to final score",
         finishModalTitle: "Finish challenge?",
         finishModalText: "Before finishing, verify that:",
         finishListItem1: "You have answered all the questions you want",
@@ -137,21 +136,21 @@ const translations = {
 };
 
 const Desafio_Estudiantes = (props) => {
-    const { studentData, onBackToPanel, language = 'es', setLanguage } = props;
+    const { studentData, onBackToPanel, language = 'es', setLanguage, contestConfig: propConfig } = props;
     const t = translations[language];
 
     const [name] = useState(studentData?.name || 'Estudiante');
-    const [timeLeft, setTimeLeft] = useState(45 * 60);
+    const [contestConfig, setContestConfig] = useState(null);
     const [answers, setAnswers] = useState({});
     const [submitted, setSubmitted] = useState({});
-    const [evaluated, setEvaluated] = useState({});
     const [showFinishModal, setShowFinishModal] = useState(false);
     const [finished, setFinished] = useState(false);
     const [finalScore, setFinalScore] = useState(null);
     const [showExitModal, setShowExitModal] = useState(false);
     const [selectedQuestion, setSelectedQuestion] = useState(null);
+    const [timeLeft, setTimeLeft] = useState(null); // Inicializar como null
 
-    // Preguntas del desafío (contenido fijo, sin traducir porque son nombres y textos específicos)
+    // Preguntas del desafío (contenido fijo)
     const questions = [
         { id: 1, name: "El puente loco de los castores", text: "Los castores construyen un puente con 3 troncos rojos y 2 azules. ¿Cuántos troncos usan en total?", type: "number", answer: "5" },
         { id: 2, name: "Castor repartidor", text: "Un castor puede transportar 2 ramas por viaje. Si necesita mover 9 ramas, ¿cuántos viajes debe hacer?", type: "number", answer: "5" },
@@ -160,16 +159,68 @@ const Desafio_Estudiantes = (props) => {
         { id: 5, name: "El castor talador experto", text: "Si un castor tarda 5 minutos en talar un árbol, ¿cuántos minutos tardará en talar 4 árboles?", type: "number", answer: "20" }
     ];
 
+    // Evaluated: todas marcadas por defecto
+    const [evaluated, setEvaluated] = useState(() => {
+        const initial = {};
+        for (let i = 0; i < questions.length; i++) initial[i] = true;
+        return initial;
+    });
+
+    // Cargar configuración del concurso (desde props o localStorage)
     useEffect(() => {
-        if (timeLeft > 0 && !finished) {
+        const loadConfig = () => {
+            let config;
+            if (propConfig) {
+                config = propConfig;
+            } else {
+                const savedConfig = localStorage.getItem('bebrasContestConfig');
+                if (savedConfig) {
+                    config = JSON.parse(savedConfig);
+                } else {
+                    config = {
+                        contestName: 'Desafío Bebras Cuba 2026',
+                        executionTime: 45,
+                        welcomeMessageStudent: '¡Bienvenido al Desafío Bebras! Lee cada pregunta cuidadosamente y selecciona la respuesta correcta.'
+                    };
+                }
+            }
+            setContestConfig(config);
+        };
+        loadConfig();
+    }, [propConfig]);
+
+    // Inicializar o actualizar el temporizador cuando la configuración esté lista
+    useEffect(() => {
+        if (contestConfig && timeLeft === null && !finished) {
+            const savedTime = localStorage.getItem('bebrasRemainingTime');
+            if (savedTime && !finished) {
+                setTimeLeft(parseInt(savedTime));
+            } else {
+                // Usar el tiempo de la configuración (en minutos -> segundos)
+                setTimeLeft((contestConfig.executionTime || 45) * 60);
+            }
+        }
+    }, [contestConfig, finished]);
+
+    // Guardar tiempo restante en localStorage cada segundo
+    useEffect(() => {
+        if (timeLeft !== null && timeLeft > 0 && !finished) {
+            localStorage.setItem('bebrasRemainingTime', timeLeft);
+        }
+    }, [timeLeft, finished]);
+
+    // Temporizador: solo corre si timeLeft tiene valor y es >0 y no ha finalizado
+    useEffect(() => {
+        if (timeLeft !== null && timeLeft > 0 && !finished) {
             const timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
             return () => clearInterval(timer);
-        } else if (timeLeft === 0 && !finished) {
+        } else if (timeLeft !== null && timeLeft === 0 && !finished) {
             handleFinalizar();
         }
     }, [timeLeft, finished]);
 
     const formatTime = (seconds) => {
+        if (seconds === null) return "--:--";
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
@@ -207,22 +258,31 @@ const Desafio_Estudiantes = (props) => {
         setFinalScore(score);
         setFinished(true);
         setShowFinishModal(false);
+        localStorage.removeItem('bebrasRemainingTime');
     };
 
     const handleExit = () => setShowExitModal(true);
-    const confirmExit = () => onBackToPanel && onBackToPanel();
-
-    const handleSelectQuestion = (index) => {
-        setSelectedQuestion(index);
+    const confirmExit = () => {
+        localStorage.removeItem('bebrasRemainingTime');
+        onBackToPanel && onBackToPanel();
     };
 
-    const handleBackToList = () => {
-        setSelectedQuestion(null);
-    };
+    const handleSelectQuestion = (index) => setSelectedQuestion(index);
+    const handleBackToList = () => setSelectedQuestion(null);
 
     const answeredCount = Object.keys(submitted).filter(key => submitted[key]).length;
     const progressPercentage = (answeredCount / questions.length) * 100;
 
+    // Pantalla de carga mientras se carga la configuración o el tiempo
+    if (contestConfig === null || timeLeft === null) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-sky-100">
+                <div className="text-slate-500">Cargando desafío...</div>
+            </div>
+        );
+    }
+
+    // Pantalla de finalización
     if (finished) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-100 to-sky-100 p-4 font-sans">
@@ -263,10 +323,9 @@ const Desafio_Estudiantes = (props) => {
                             <div className="bg-blue-600 text-white p-1.5 rounded-lg">
                                 <Target size={18} />
                             </div>
-                            <span className="font-bold text-slate-800">{t.challengeName}</span>
+                            <span className="font-bold text-slate-800">{contestConfig.contestName}</span>
                         </div>
                         <div className="flex items-center gap-4">
-                            {/* Selector de idioma compacto para el desafío */}
                             <div className="flex gap-1 bg-slate-100 p-1 rounded-full border border-slate-200">
                                 <button className={`px-2 py-0.5 rounded-full text-xs font-semibold transition-all ${language === 'es' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('es')}>ES</button>
                                 <button className={`px-2 py-0.5 rounded-full text-xs font-semibold transition-all ${language === 'en' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('en')}>EN</button>
@@ -333,7 +392,12 @@ const Desafio_Estudiantes = (props) => {
                                         </div>
                                         <div className="flex items-center gap-2 flex-shrink-0">
                                             <label className="flex items-center gap-1.5 text-xs cursor-pointer px-2 py-1 rounded-lg hover:bg-slate-100" onClick={(e) => e.stopPropagation()}>
-                                                <input type="checkbox" checked={!!evaluated[idx]} defaultChecked={true} onChange={() => toggleEvaluate(idx)} className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                                                <input
+                                                    type="checkbox"
+                                                    checked={!!evaluated[idx]}
+                                                    onChange={() => toggleEvaluate(idx)}
+                                                    className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                                />
                                                 <span className="text-slate-500">{t.evaluateLabel}</span>
                                             </label>
                                         </div>
@@ -350,7 +414,7 @@ const Desafio_Estudiantes = (props) => {
                     </div>
                 </div>
 
-                {/* Modales */}
+                {/* Modales (igual que antes) */}
                 {showFinishModal && (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowFinishModal(false)}>
                         <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-[fadeInUp_.3s_ease-out]" onClick={(e) => e.stopPropagation()}>
@@ -446,7 +510,7 @@ const Desafio_Estudiantes = (props) => {
                 />
             </div>
 
-            {/* Modales (mismos que antes) */}
+            {/* Modales de finalizar y salir (igual que en la lista) */}
             {showFinishModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowFinishModal(false)}>
                     <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-[fadeInUp_.3s_ease-out]" onClick={(e) => e.stopPropagation()}>

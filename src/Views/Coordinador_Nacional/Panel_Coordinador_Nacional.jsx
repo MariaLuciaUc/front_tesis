@@ -63,9 +63,8 @@ const translations = {
     }
 };
 
-
-const Panel_Coordinador_Nacional = () => {
-    const [language, setLanguage] = useState('es');
+const Panel_Coordinador_Nacional = ({ onLanguageChange: externalLanguageChange, language: externalLanguage }) => {
+    const [language, setLanguage] = useState(externalLanguage || 'es');
     const t = translations[language];
     const [accessKey, setAccessKey] = useState('');
     const [keyGenerated, setKeyGenerated] = useState(false);
@@ -73,15 +72,18 @@ const Panel_Coordinador_Nacional = () => {
     const [showConfeccion, setShowConfeccion] = useState(false);
     const [showReportes, setShowReportes] = useState(false);
 
-    // Generar clave: BEBRAS + CUBA + MES + AÑO
+    // Generar clave: BEBRAS + PAIS + MES + AÑO
     const generateAccessKey = () => {
         const fecha = new Date();
         const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-        const año = fecha.getFullYear();
-        const key = `BEBRASCUBA${mes}${año}`;
+        const anno = fecha.getFullYear();
+        const pais = 'CUBA'; // PAIS
+        const key = `BEBRAS${pais}${mes}${anno}`;
         setAccessKey(key);
         setKeyGenerated(true);
+        // Guardar la clave en localStorage para que la use Activacion
         localStorage.setItem('bebrasAccessKey', key);
+        toast.success(t.keyGenerated);
     };
 
     // Enviar clave por correo a profesores
@@ -93,19 +95,25 @@ const Panel_Coordinador_Nacional = () => {
         setIsSending(true);
         setTimeout(() => {
             setIsSending(false);
+            toast.success(t.emailSent);
         }, 1000);
     };
 
+    const handleLanguageChange = (newLang) => {
+        setLanguage(newLang);
+        if (externalLanguageChange) externalLanguageChange(newLang);
+    };
+
     if (showConfeccion) {
-        return <Confeccion_Desafio onBack={() => setShowConfeccion(false)} language={language} />;
+        return <Confeccion_Desafio onBack={() => setShowConfeccion(false)} language={language} onLanguageChange={handleLanguageChange} />;
     }
 
     if (showReportes) {
-        return <Reportes_Estadisticas onBack={() => setShowReportes(false)} language={language} />;
+        return <Reportes_Estadisticas onBack={() => setShowReportes(false)} language={language} onLanguageChange={handleLanguageChange} />;
     }
 
     return (
-        <div className="min-h-screen bg-blue-to-br from-slate-100 to-sky-100 font-sans">
+        <div className="min-h-screen bg-gradient-to-br from-slate-100 to-sky-100 font-sans">
             <Toaster position="top-right" richColors />
 
             {/* Header */}
@@ -124,25 +132,25 @@ const Panel_Coordinador_Nacional = () => {
                         <div className="flex gap-2 bg-slate-100 p-1 rounded-full border border-slate-200">
                             <button
                                 className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'es' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}
-                                onClick={() => setLanguage('es')}
+                                onClick={() => handleLanguageChange('es')}
                             >
                                 ES
                             </button>
                             <button
                                 className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'en' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}
-                                onClick={() => setLanguage('en')}
+                                onClick={() => handleLanguageChange('en')}
                             >
                                 EN
                             </button>
                             <button
                                 className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'pt' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}
-                                onClick={() => setLanguage('pt')}
+                                onClick={() => handleLanguageChange('pt')}
                             >
                                 PT
                             </button>
                             <button
                                 className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'fr' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}
-                                onClick={() => setLanguage('fr')}
+                                onClick={() => handleLanguageChange('fr')}
                             >
                                 FR
                             </button>
@@ -209,8 +217,7 @@ const Panel_Coordinador_Nacional = () => {
                         onClick={() => setShowReportes(true)}
                         className="bg-white rounded-2xl shadow-xl p-8 text-center hover:shadow-2xl transition-all group"
                     >
-                        <div
-                            className="bg-emerald-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-emerald-600 transition-colors">
+                        <div className="bg-emerald-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-emerald-600 transition-colors">
                             <BarChart3 size={32} className="text-emerald-600 group-hover:text-white transition-colors"/>
                         </div>
                         <h2 className="text-xl font-bold text-slate-800 mb-2">{t.reportes}</h2>
