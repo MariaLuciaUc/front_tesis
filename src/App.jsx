@@ -7,7 +7,7 @@ function App() {
   return (
     <div>
       <Toaster richColors/>
-        <Activacion/>
+        <Login_Estudiante/>
 
         {/*<Login_Estudiante/>*/}
     </div>

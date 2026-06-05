@@ -114,7 +114,7 @@ const Monitoreo_participantes = ({ group, onUpdateStudentStatus, onClose, langua
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 font-sans">
-            <div className="bg-white rounded-2xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-hidden animate-[fadeInUp_.3s_ease-out]">
+            <div className="bg-white rounded-2xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-hidden">
                 <div className="flex justify-between items-center p-6 border-b border-slate-200">
                     <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                         <Users size={20} className="text-blue-600" /> {t.title} {group.name}
@@ -125,23 +125,57 @@ const Monitoreo_participantes = ({ group, onUpdateStudentStatus, onClose, langua
                     <div className="overflow-x-auto">
                         <table className="w-full border-collapse">
                             <thead className="bg-slate-100 sticky top-0">
-                            <tr><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.student}</th><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.status}</th><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.startTime}</th><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.endTime}</th><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.changeStatus}</th></tr>
+                            <tr>
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.student}</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.status}</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.startTime}</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.endTime}</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.changeStatus}</th>
+                            </tr>
                             </thead>
                             <tbody>
                             {students.map(student => (
                                 <tr key={student.id} className="border-b border-slate-100 hover:bg-slate-50">
+                                    {/* Estudiante */}
                                     <td className="px-4 py-3 font-medium text-slate-800">{student.name}</td>
-                                    <td className="px-4 py-3"><span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium cursor-pointer ${getStatusClass(student.status)}`} onClick={() => handleStatusChange(student.id, getNextStatus(student.status))}>{getStatusText(student.status)}</span></td>
-                                    <td className="px-4 py-3 text-sm text-slate-500 flex items-center gap-1"><Clock size={12} /> {student.startTime || '—'}</td>
-                                    <td className="px-4 py-3 text-sm text-slate-500 flex items-center gap-1"><Clock size={12} /> {student.endTime || '—'}</td>
-                                    <td className="px-4 py-3"><button onClick={() => handleStatusChange(student.id, getNextStatus(student.status))} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 shadow-md">{getNextStatusIcon(student.status)} {t.changeStatus}</button></td>
+
+                                    {/* Estado (clic para cambiar) */}
+                                    <td className="px-4 py-3">
+                                            <span
+                                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium cursor-pointer ${getStatusClass(student.status)}`}
+                                                onClick={() => handleStatusChange(student.id, getNextStatus(student.status))}
+                                            >
+                                                {getStatusText(student.status)}
+                                            </span>
+                                    </td>
+
+                                    {/* SOLO hora de inicio */}
+                                    <td className="px-4 py-3 text-sm text-slate-500">
+                                        {student.startTime || '—'}
+                                    </td>
+
+                                    {/* SOLO hora de finalización */}
+                                    <td className="px-4 py-3 text-sm text-slate-500">
+                                        {student.endTime || '—'}
+                                    </td>
+
+                                    {/* Botón cambiar estado */}
+                                    <td className="px-4 py-3">
+                                        <button
+                                            onClick={() => handleStatusChange(student.id, getNextStatus(student.status))}
+                                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 shadow-md"
+                                        >
+                                            {getNextStatusIcon(student.status)} {t.changeStatus}
+                                        </button>
+                                    </td>
                                 </tr>
                             ))}
                             </tbody>
                         </table>
                     </div>
+
                     <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
-                        <p className="text-sm font-semibold text-slate-800 mb-2"><PinIcon size={18} /> {t.note}</p>
+                        <p className="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-1"><PinIcon size={18} /> {t.note}</p>
                         <p className="text-sm text-slate-600 mb-2">{t.note1}</p>
                         <ul className="text-sm text-slate-600 space-y-1 ml-4">
                             <li><span className="inline-block px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs">{t.notStarted}</span> → <span className="inline-block px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 text-xs">{t.inProgress}</span> ({t.notStartedDesc})</li>

@@ -83,7 +83,6 @@ const Panel_Coordinador_Nacional = ({ onLanguageChange: externalLanguageChange, 
         setKeyGenerated(true);
         // Guardar la clave en localStorage para que la use Activacion
         localStorage.setItem('bebrasAccessKey', key);
-        toast.success(t.keyGenerated);
     };
 
     // Enviar clave por correo a profesores
@@ -95,7 +94,6 @@ const Panel_Coordinador_Nacional = ({ onLanguageChange: externalLanguageChange, 
         setIsSending(true);
         setTimeout(() => {
             setIsSending(false);
-            toast.success(t.emailSent);
         }, 1000);
     };
 
