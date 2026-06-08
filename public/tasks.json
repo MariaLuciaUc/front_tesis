@@ -1,0 +1,358 @@
+{
+    "contest": "Bebras",
+    "tasks": [
+
+        {
+            "id": 1,
+            "taskCode": "2023-LT-01",
+            "title": "Ordenar los castores por su sombrero",
+            "category": "Super-Peque",
+            "ageGroup": "6-8",
+            "difficulty": "Media",
+            "type": "single-choice",
+            "question": "¿Cuál es el orden correcto de los castores de izquierda a derecha?",
+            "description": "Los castores de la derecha deben tener sombreros más altos que los de la izquierda.",
+            "images": ["castores_sombreros.png"],
+            "options": ["1,2,3,4,5", "2,1,3,5,4", "3,1,4,2,5", "1,3,2,4,5"],
+            "correctOption": "1,2,3,4,5",
+            "correctAnswer": null,
+            "evaluation": {
+                "correctOption": "1,2,3,4,5",
+                "score": 1,
+                "partialScoring": false
+            },
+            "explanation": "Hay dos soluciones posibles porque algunos sombreros tienen la misma altura.",
+            "solution": "Ordenar los sombreros de menor a mayor altura."
+        },  {
+            "id": 2,
+            "taskCode": "2023-CH-01",
+            "title": "Sombrilla",
+            "category": "Super-Peque",
+            "ageGroup": "6-8",
+            "difficulty": "Difícil",
+            "type": "single-choice",
+            "question": "¿Cuál de las cuatro imágenes muestra la sombrilla de Anna?",
+            "description": "Una de cuatro imágenes muestra la sombrilla de Anna. Los patrones están en secuencia.",
+            "images": ["sombrilla_anna.png"],
+            "options": ["Imagen A", "Imagen B", "Imagen C", "Imagen D"],
+            "correctOption": "Imagen C",
+            "correctAnswer": null,
+            "evaluation": {
+                "correctOption": "Imagen C",
+                "score": 1,
+                "partialScoring": false
+            },
+            "explanation": "Solo la imagen C tiene una secuencia de cinco patrones que coinciden completamente.",
+            "solution": "Cada patrón se usa solo una vez. Comparando secuencias, solo la C coincide."
+        },
+        {
+            "id": 3,
+            "taskCode": "2023-LG-52",
+            "title": "Serpiente bailarina",
+            "category": "Super-Peque",
+            "ageGroup": "6-8",
+            "difficulty": "Dificil",
+            "type": "single-choice",
+            "question": "¿Qué imagen sigue en la secuencia?",
+            "description": "La serpiente Silvia baila. Cada paso gira 90 grados en dirección de las agujas del reloj.",
+            "images": ["serpiente_bailarina.png"],
+            "options": ["A", "B", "C", "D"],
+            "correctOption": "C",
+            "correctAnswer": null,
+            "evaluation": {
+                "correctOption": "C",
+                "score": 1,
+                "partialScoring": false
+            },
+            "explanation": "En cada paso la serpiente gira 90°, la cola cambia y la línea fina se alterna.",
+            "solution": "La serpiente gira 90° a la derecha, cola recta, línea fina arriba → opción C."
+        }, {
+            "id": 4,
+            "taskCode": "2023-LG-52",
+            "title": "Serpiente bailarina",
+            "category": "Peque",
+            "ageGroup": "8-10",
+            "difficulty": "Media",
+            "type": "single-choice",
+            "question": "¿Qué imagen sigue en la secuencia?",
+            "description": "La serpiente Silvia baila. Cada paso gira 90 grados en dirección de las agujas del reloj.",
+            "images": ["serpiente_bailarina.png"],
+            "options": ["A", "B", "C", "D"],
+            "correctOption": "C",
+            "correctAnswer": null,
+            "evaluation": {
+                "correctOption": "C",
+                "score": 1,
+                "partialScoring": false
+            },
+            "explanation": "En cada paso la serpiente gira 90°, la cola cambia y la línea fina se alterna.",
+            "solution": "La serpiente gira 90° a la derecha, cola recta, línea fina arriba → opción C."
+        },
+        {
+            "id": 5,
+            "taskCode": "2023-LT-01",
+            "title": "Ordenar los castores por su sombrero",
+            "category": "Peque",
+            "ageGroup": "8-10",
+            "difficulty": "Facil",
+            "type": "single-choice",
+            "question": "¿Cuál es el orden correcto de los castores de izquierda a derecha?",
+            "description": "Los castores de la derecha deben tener sombreros más altos que los de la izquierda.",
+            "images": ["castores_sombreros.png"],
+            "options": ["1,2,3,4,5", "2,1,3,5,4", "3,1,4,2,5", "1,3,2,4,5"],
+            "correctOption": "1,2,3,4,5",
+            "correctAnswer": null,
+            "evaluation": {
+                "correctOption": "1,2,3,4,5",
+                "score": 1,
+                "partialScoring": false
+            },
+            "explanation": "Hay dos soluciones posibles porque algunos sombreros tienen la misma altura.",
+            "solution": "Ordenar los sombreros de menor a mayor altura."
+        },
+
+        {
+            "id": 6,
+            "taskCode": "2023-CH-01",
+            "title": "Sombrilla",
+            "category": "Peque",
+            "ageGroup": "8-10",
+            "difficulty": "Media",
+            "type": "single-choice",
+            "question": "¿Cuál de las cuatro imágenes muestra la sombrilla de Anna?",
+            "description": "Una de cuatro imágenes muestra la sombrilla de Anna. Los patrones están en secuencia.",
+            "images": ["sombrilla_anna.png"],
+            "options": ["Imagen A", "Imagen B", "Imagen C", "Imagen D"],
+            "correctOption": "Imagen C",
+            "correctAnswer": null,
+            "evaluation": {
+                "correctOption": "Imagen C",
+                "score": 1,
+                "partialScoring": false
+            },
+            "explanation": "Solo la imagen C tiene una secuencia de cinco patrones que coinciden completamente.",
+            "solution": "Cada patrón se usa solo una vez. Comparando secuencias, solo la C coincide."
+        },
+
+
+        {
+            "id": 7,
+            "taskCode": "203-22LT-01",
+            "title": "Descubre la moneda",
+            "category": "Peque",
+            "ageGroup": "8-10",
+            "difficulty": "Fácil",
+            "type": "single-choice",
+            "question": "¿Cuál es la cuarta moneda que Eduardo puso?",
+            "description": "Eduardo tiene 6 monedas. Las puso una arriba de la otra formando una pirámide.",
+            "images": ["descubre_moneda.png"],
+            "options": ["A", "B", "C", "D"],
+            "correctOption": "B",
+            "correctAnswer": null,
+            "evaluation": {
+                "correctOption": "B",
+                "score": 10,
+                "partialScoring": false
+            },
+            "explanation": "La última moneda no está superpuesta. La cuarta está superpuesta solo por las posteriores.",
+            "solution": "La moneda B es la cuarta colocada."
+        },
+        {
+            "id": 8,
+            "taskCode": "2023-LT-98",
+            "title": "Álbum de fotos",
+            "category": "Benjamin",
+            "ageGroup": "10-12",
+            "difficulty": "Fácil",
+            "type": "text",
+            "question": "¿En qué número de álbum están las fotos de enero?",
+            "description": "Luna ordenó los meses alfabéticamente en lugar de cronológicamente.",
+            "images": ["album_fotos.png"],
+            "options": ["Álbum 1", "Álbum 2", "Álbum 3", "Álbum 4", "Álbum 5", "Álbum 6", "Álbum 7", "Álbum 8", "Álbum 9", "Álbum 10", "Álbum 11", "Álbum 12"],
+            "correctOption": "Álbum 4",
+            "correctAnswer": null,
+            "evaluation": {
+                "correctOption": "Álbum 4",
+                "score": 1,
+                "partialScoring": false
+            },
+            "explanation": "Orden alfabético: abril(1), agosto(2), diciembre(3), enero(4)...",
+            "solution": "Enero está en el álbum 4."
+        },
+        {
+            "id": 9,
+            "taskCode": "2023-CH-01",
+            "title": "Sombrilla",
+            "category": "Benjamin",
+            "ageGroup": "10-12",
+            "difficulty": "Facil",
+            "type": "single-choice",
+            "question": "¿Cuál de las cuatro imágenes muestra la sombrilla de Anna?",
+            "description": "Una de cuatro imágenes muestra la sombrilla de Anna. Los patrones están en secuencia.",
+            "images": ["sombrilla_anna.png"],
+            "options": ["Imagen A", "Imagen B", "Imagen C", "Imagen D"],
+            "correctOption": "Imagen C",
+            "correctAnswer": null,
+            "evaluation": {
+                "correctOption": "Imagen C",
+                "score": 1,
+                "partialScoring": false
+            },
+            "explanation": "Solo la imagen C tiene una secuencia de cinco patrones que coinciden completamente.",
+            "solution": "Cada patrón se usa solo una vez. Comparando secuencias, solo la C coincide."
+        }, {
+            "id": 10,
+            "taskCode": "2023-CA-01",
+            "title": "Árbol mágico",
+            "category": "Benjamin",
+            "ageGroup": "10-12",
+            "difficulty": "Difícil",
+            "type": "text",
+            "question": "¿Cuántas manzanas quedan al final del día?",
+            "description": "Árbol mágico: pájaro (+2), ardilla (-1), serpiente (0). Empieza con 25 manzanas.",
+            "images": ["arbol_magico.png"],
+            "options": [],
+            "correctOption": null,
+            "correctAnswer": "7",
+            "evaluation": {
+                "correctAnswer": "7",
+                "score": 1,
+                "partialScoring": false
+            },
+            "explanation": "Después de la última serpiente, 4 pájaros suman 8, una ardilla resta 1, quedan 7.",
+            "solution": "Ignorar todo antes de la última serpiente porque reinicia a 0."
+        }, {
+            "id": 11,
+            "taskCode": "2023-CA-01",
+            "title": "Árbol mágico",
+            "category": "Cadete",
+            "ageGroup": "10-12",
+            "difficulty": "Media",
+            "type": "text",
+            "question": "¿Cuántas manzanas quedan al final del día?",
+            "description": "Benito el castor tiene un árbol mágico que crece cerca de su casa. Cada vez que un pájaro se posa sobre él ( ), del árbol crecen 2 manzanas. Cada vez que una ardilla sube ( ), el árbol deja caer 1 manzana (si tiene alguna). Benito también ha notado que cada vez que una serpiente visita el árbol ( ), ¡todas las manzanas desaparecen \ninstantáneamente! \n \nUna mañana, Benito nota que el árbol mágico contiene 25 manzanas. Luego, él pasa el resto del día haciendo dibujos de todos los animales que se acercan al árbol. Los dibujos, en orden, son:\n",
+            "images": ["arbol_magico.png"],
+            "options": [],
+            "correctOption": null,
+            "correctAnswer": "7",
+            "evaluation": {
+                "correctAnswer": "7",
+                "score": 1,
+                "partialScoring": false
+            },
+            "explanation": "Después de la última serpiente, 4 pájaros suman 8, una ardilla resta 1, quedan 7.",
+            "solution": "Ignorar todo antes de la última serpiente porque reinicia a 0."
+        },
+
+        {
+            "id": 12,
+            "taskCode": "2023-SK-02",
+            "title": "Sembrando zanahorias",
+            "category": "Cadete",
+            "ageGroup": "12-14",
+            "difficulty": "Difícil",
+            "type": "single-choice",
+            "question": "¿Qué imagen muestra las semillas sembradas?",
+            "description": "Un conejo robótico salta izquierda/derecha y siembra semillas. No se sabe dónde empezó, pero las tres semillas quedaron en diferentes montículos.",
+            "images": ["zanahorias_conejo.png"],
+            "options": ["Imagen 1", "Imagen 2", "Imagen 3", "Imagen 4"],
+            "correctOption": "Imagen 3",
+            "correctAnswer": null,
+            "evaluation": {
+                "correctOption": "Imagen 3",
+                "score": 1,
+                "partialScoring": false
+            },
+            "explanation": "El conejo debe comenzar en el tercer montículo desde la izquierda.",
+            "solution": "Siguiendo la secuencia, las semillas quedan en montículos 1,3 y 4."
+        }, {
+            "id": 13,
+            "taskCode": "2023-SK-02",
+            "title": "Sembrando zanahorias",
+            "category": "Junior",
+            "ageGroup": "14-16",
+            "difficulty": "Media",
+            "type": "single-choice",
+            "question": "¿Qué imagen muestra las semillas sembradas?",
+            "description": "Un conejo robótico salta izquierda/derecha y siembra semillas. No se sabe dónde empezó, pero las tres semillas quedaron en diferentes montículos.",
+            "images": ["zanahorias_conejo.png"],
+            "options": ["Imagen 1", "Imagen 2", "Imagen 3", "Imagen 4"],
+            "correctOption": "Imagen 3",
+            "correctAnswer": null,
+            "evaluation": {
+                "correctOption": "Imagen 3",
+                "score": 1,
+                "partialScoring": false
+            },
+            "explanation": "El conejo debe comenzar en el tercer montículo desde la izquierda.",
+            "solution": "Siguiendo la secuencia, las semillas quedan en montículos 1,3 y 4."
+        }, {
+            "id": 14,
+            "taskCode": "2023-UY-01",
+            "title": "Tesoro lógico",
+            "category": "Junior",
+            "ageGroup": "14-16",
+            "difficulty": "Dificil",
+            "type": "single-choice",
+            "question": "¿En qué cofre estaba el oro?",
+            "description": "Tres cofres (montañas, palmera, mar). Un turista tomó foto antes de llenar el oro, dos después. Ningún turista vio el oro.",
+            "images": ["tesoro_logico.png"],
+            "options": ["Cofre junto a las montañas", "Cofre debajo de la palmera", "Cofre junto al mar"],
+            "correctOption": "Cofre junto a las montañas",
+            "correctAnswer": null,
+            "evaluation": {
+                "correctOption": "Cofre junto a las montañas",
+                "score": 1,
+                "partialScoring": false
+            },
+            "explanation": "Si el oro está en montañas, solo Carla tomó foto antes, consistente.",
+            "solution": "Probando cada opción, solo montañas no genera contradicción."
+        },
+
+        {
+            "id": 15,
+            "taskCode": "2023-SK-02",
+            "title": "Sembrando zanahorias",
+            "category": "Senior",
+            "ageGroup": "16-19",
+            "difficulty": "Facil",
+            "type": "single-choice",
+            "question": "¿Qué imagen muestra las semillas sembradas?",
+            "description": "Un conejo robótico salta izquierda/derecha y siembra semillas. No se sabe dónde empezó, pero las tres semillas quedaron en diferentes montículos.",
+            "images": ["zanahorias_conejo.png"],
+            "options": ["Imagen 1", "Imagen 2", "Imagen 3", "Imagen 4"],
+            "correctOption": "Imagen 3",
+            "correctAnswer": null,
+            "evaluation": {
+                "correctOption": "Imagen 3",
+                "score": 1,
+                "partialScoring": false
+            },
+            "explanation": "El conejo debe comenzar en el tercer montículo desde la izquierda.",
+            "solution": "Siguiendo la secuencia, las semillas quedan en montículos 1,3 y 4."
+        },
+
+        {
+            "id": 16,
+            "taskCode": "2023-UY-01",
+            "title": "Tesoro lógico",
+            "category": "Senior",
+            "ageGroup": "16-18",
+            "difficulty": "Media",
+            "type": "single-choice",
+            "question": "¿En qué cofre estaba el oro?",
+            "description": "Tres cofres (montañas, palmera, mar). Un turista tomó foto antes de llenar el oro, dos después. Ningún turista vio el oro.",
+            "images": ["tesoro_logico.png"],
+            "options": ["Cofre junto a las montañas", "Cofre debajo de la palmera", "Cofre junto al mar"],
+            "correctOption": "Cofre junto a las montañas",
+            "correctAnswer": null,
+            "evaluation": {
+                "correctOption": "Cofre junto a las montañas",
+                "score": 1,
+                "partialScoring": false
+            },
+            "explanation": "Si el oro está en montañas, solo Carla tomó foto antes, consistente.",
+            "solution": "Probando cada opción, solo montañas no genera contradicción."
+        }
+    ]
+}
