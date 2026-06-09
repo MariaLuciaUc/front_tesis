@@ -91,6 +91,78 @@ const translations = {
         studentWelcome: "Student welcome message",
         generalInfo: "General Information",
         bebrasCategory: "Bebras Category"
+    },
+    pt: {
+        title: "Configuração do Desafio",
+        back: "Voltar ao painel",
+        saveConfig: "Salvar configuração geral do desafio",
+        configSaved: "Configuração salva com sucesso no servidor",
+        contestName: "Nome do Concurso",
+        startDate: "Data de Início",
+        endDate: "Data de Término",
+        executionTime: "Tempo de Execução (minutos)",
+        welcomeMessageTeacher: "Mensagem de Boas-vindas - Professores",
+        welcomeMessageStudent: "Mensagem de Boas-vindas - Estudantes",
+        selectLevel: "Selecionar Nível Bebras",
+        questionsForLevel: "Questões para o nível",
+        noQuestions: "Nenhuma questão adicionada para este nível",
+        addQuestion: "Adicionar questão do banco",
+        questionBank: "Banco de Questões",
+        points: "pts",
+        answer: "Resposta correta",
+        editQuestion: "Editar questão",
+        deleteQuestion: "Excluir questão",
+        selectFirst: "Selecione um nível para visualizar as questões",
+        alreadyAdded: "Esta questão já foi adicionada a este nível",
+        noMoreQuestions: "Não há mais questões disponíveis no banco para este nível",
+        close: "Fechar",
+        scoringScheme: "Esquema de Pontuação",
+        basePoints: "Pontos por resposta correta",
+        timeBonus: "Bônus por tempo restante",
+        negativePoints: "Penalidade por resposta incorreta",
+        levelConfiguration: "Configuração do Nível",
+        saveLevelConfig: "Salvar configuração do nível",
+        levelConfigSaved: "Configuração salva para",
+        pointsConfig: "Configuração de pontos",
+        studentWelcome: "Boas-vindas ao estudante",
+        generalInfo: "Informações Gerais",
+        bebrasCategory: "Categoria Bebras"
+    },
+    fr: {
+        title: "Configuration du Défi",
+        back: "Retour au panneau",
+        saveConfig: "Enregistrer la configuration générale du défi",
+        configSaved: "Configuration enregistrée avec succès sur le serveur",
+        contestName: "Nom du Concours",
+        startDate: "Date de Début",
+        endDate: "Date de Fin",
+        executionTime: "Temps d'Exécution (minutes)",
+        welcomeMessageTeacher: "Message de Bienvenue - Enseignants",
+        welcomeMessageStudent: "Message de Bienvenue - Étudiants",
+        selectLevel: "Sélectionner le Niveau Bebras",
+        questionsForLevel: "Questions pour le niveau",
+        noQuestions: "Aucune question ajoutée pour ce niveau",
+        addQuestion: "Ajouter une question de la banque",
+        questionBank: "Banque de Questions",
+        points: "pts",
+        answer: "Réponse correcte",
+        editQuestion: "Modifier la question",
+        deleteQuestion: "Supprimer la question",
+        selectFirst: "Sélectionnez un niveau pour voir les questions",
+        alreadyAdded: "Cette question a déjà été ajoutée à ce niveau",
+        noMoreQuestions: "Plus de questions disponibles dans la banque pour ce niveau",
+        close: "Fermer",
+        scoringScheme: "Barème des Points",
+        basePoints: "Points par réponse correcte",
+        timeBonus: "Bonus pour le temps restant",
+        negativePoints: "Pénalité pour réponse incorrecte",
+        levelConfiguration: "Configuration du Niveau",
+        saveLevelConfig: "Enregistrer la configuration du niveau",
+        levelConfigSaved: "Configuration enregistrée pour",
+        pointsConfig: "Configuration des points",
+        studentWelcome: "Bienvenue à l'étudiant",
+        generalInfo: "Informations Générales",
+        bebrasCategory: "Catégorie Bebras"
     }
 };
 
@@ -99,7 +171,6 @@ const niveles = ['Super Peque', 'Peque', 'Benjamin', 'Cadete', 'Junior', 'Senior
 const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode = 'CU' }) => {
     const t = translations[language] || translations.es;
 
-    // Detectamos si es un ID temporal real o autogenerado por primera vez
     const [config, setConfig] = useState({
         id: Date.now(),
         contestName: 'Desafío Bebras Cuba 2026',
@@ -126,10 +197,65 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
 
         const savedLevelConfigs = localStorage.getItem('bebrasLevelConfigs');
         if (savedLevelConfigs) setLevelConfigs(JSON.parse(savedLevelConfigs));
-
-        const savedQuestions = localStorage.getItem('bebrasSelectedQuestions');
-        if (savedQuestions) setSelectedQuestions(JSON.parse(savedQuestions));
     }, []);
+
+    useEffect(() => {
+        const fetchSavedQuestionsFromDB = async () => {
+            if (String(config.id).length > 7 || !selectedLevel) return;
+
+            try {
+                const response = await api.get('/contest_tasks');
+                const serverTasks = response.data || [];
+
+                const currentCategoryId = getCategoryIdByLevelName(selectedLevel);
+                const filteredServerTasks = serverTasks.filter(
+                    t => t.contest_id === config.id && t.category_id === currentCategoryId
+                );
+
+                const jsonResponse = await fetch('/tasks.json');
+                const jsonData = await jsonResponse.json();
+                const rawTasks = jsonData.tasks || [];
+
+                const levelConfig = getLevelConfig(selectedLevel);
+                const defaultPoints = levelConfig.scoringScheme?.basePoints || 10;
+
+                const matchingQuestions = filteredServerTasks.map(serverTask => {
+                    const taskDetails = rawTasks.find(
+                        r => trimString(r.taskCode) === trimString(serverTask.task_code)
+                    ) || {};
+
+                    return {
+                        ...taskDetails,
+                        id: serverTask.id || Date.now() + Math.random(),
+                        originalId: taskDetails.id,
+                        task_code: serverTask.task_code,
+                        text: taskDetails.title || taskDetails.question || "Tarea sin título",
+                        correctAnswer: taskDetails.correctOption || taskDetails.correctAnswer || "N/A",
+                        points: serverTask.points || defaultPoints,
+                        display_order: serverTask.display_order
+                    };
+                });
+
+                setSelectedQuestions(prev => {
+                    const updated = {
+                        ...prev,
+                        [selectedLevel]: matchingQuestions
+                    };
+                    localStorage.setItem('bebrasSelectedQuestions', JSON.stringify(updated));
+                    return updated;
+                });
+
+            } catch (err) {
+                console.error("Error al sincronizar preguntas con el servidor Laravel:", err);
+            }
+        };
+
+        fetchSavedQuestionsFromDB();
+    }, [selectedLevel, config.id]);
+
+    const trimString = (str) => {
+        return str ? String(str).trim() : '';
+    };
 
     const getCategoryIdByLevelName = (levelName) => {
         const categoryMap = {
@@ -170,17 +296,14 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
         toast.success(`${t.levelConfigSaved} ${level}`);
     };
 
-    // Abre el modal cargando y filtrando tasks.json desde la raíz de la carpeta public
     const handleOpenQuestionBank = async () => {
         if (!selectedLevel) return;
 
-        // Validación preventiva contra errores 422: Evitar IDs temporales generados por Date.now()
         if (String(config.id).length > 7) {
             toast.warning("Primero debes guardar la configuración general del desafío (Panel Izquierdo) para registrarlo en la Base de Datos.");
             return;
         }
 
-        const categoryId = getCategoryIdByLevelName(selectedLevel);
         const normalizedCategoryName = selectedLevel.replace(' ', '-');
 
         try {
@@ -190,12 +313,10 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
             }
             const data = await jsonResponse.json();
 
-            // Acceder correctamente al nodo "tasks" del objeto JSON
             const rawTasks = data.tasks || [];
             const existingQuestions = selectedQuestions[selectedLevel] || [];
             const existingOriginalIds = existingQuestions.map(q => q.originalId);
 
-            // Filtrar preguntas que pertenezcan a este nivel y no estén duplicadas en pantalla
             const filteredTasks = rawTasks.filter(task => {
                 const matchesCategory = task.category === selectedLevel || task.category === normalizedCategoryName;
                 const isNotAdded = !existingOriginalIds.includes(task.id);
@@ -210,7 +331,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
         }
     };
 
-    // Envía los campos relacionales definidos a Laravel
     const addQuestionToLevel = async (task) => {
         const existingQuestions = selectedQuestions[selectedLevel] || [];
         const currentTaskCode = task.taskCode || task.task_code || task.code;
@@ -219,23 +339,20 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
         const categoryId = getCategoryIdByLevelName(selectedLevel);
         const displayOrder = existingQuestions.length + 1;
 
-        // Cuerpo estructurado idénticamente a los campos requeridos por tu backend
         const contestTaskData = {
             id: currentTaskId,
-            contest_id: config.id, // ID real guardado en base de datos
+            contest_id: config.id,
             category_id: categoryId,
             task_code: currentTaskCode,
             display_order: displayOrder
         };
 
         try {
-            // Envío por POST a /api/contest_tasks
             await api.post('/contest_tasks', contestTaskData);
 
             const levelConfig = getLevelConfig(selectedLevel);
             const points = levelConfig.scoringScheme?.basePoints || task.defaultPoints || 10;
 
-            // Normalizar propiedades de visualización mapeando 'title' a 'text'
             const taskTitle = task.title || task.question || task.text || "Tarea sin título";
             const correctAnswerDisplay = task.correctOption || task.correctAnswer || "N/A";
 
@@ -244,7 +361,7 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                     ...prev,
                     [selectedLevel]: [...(prev[selectedLevel] || []), {
                         ...task,
-                        id: Date.now(), // ID reactivo e independiente para el renderizado local de React
+                        id: Date.now(),
                         originalId: currentTaskId,
                         task_code: currentTaskCode,
                         text: taskTitle,
@@ -266,16 +383,43 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
         }
     };
 
-    const removeQuestion = (questionId) => {
-        setSelectedQuestions(prev => {
-            const updated = {
-                ...prev,
-                [selectedLevel]: prev[selectedLevel].filter(q => q.id !== questionId)
-            };
-            localStorage.setItem('bebrasSelectedQuestions', JSON.stringify(updated));
-            return updated;
-        });
-        toast.success('Pregunta removida visualmente');
+    const removeQuestion = async (questionId) => {
+        const preguntaAEliminar = selectedQuestions[selectedLevel]?.find(q => q.id === questionId);
+
+        if (!preguntaAEliminar) {
+            toast.error("No se encontró la pregunta a eliminar.");
+            return;
+        }
+
+        const currentTaskCode = preguntaAEliminar.task_code || preguntaAEliminar.taskCode || preguntaAEliminar.code;
+
+        if (!currentTaskCode) {
+            toast.error("No se pudo determinar el código de la tarea.");
+            return;
+        }
+
+        try {
+            await api.delete('/contest_tasks', {
+                data: {
+                    contest_id: Number(config.id),
+                    task_code: currentTaskCode
+                }
+            });
+
+            setSelectedQuestions(prev => {
+                const updated = {
+                    ...prev,
+                    [selectedLevel]: prev[selectedLevel].filter(q => q.id !== questionId)
+                };
+                localStorage.setItem('bebrasSelectedQuestions', JSON.stringify(updated));
+                return updated;
+            });
+
+            toast.success('Pregunta eliminada de la Base de Datos correctamente.');
+        } catch (err) {
+            console.error("Error al eliminar la pregunta en Laravel:", err.response?.data || err.message);
+            toast.error(err.response?.data?.message || "No se pudo eliminar la pregunta en el servidor.");
+        }
     };
 
     const updateQuestionPoints = (questionId, newPoints) => {
@@ -298,7 +442,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
         toast.success('Pregunta actualizada');
     };
 
-    // Envía el concurso a Laravel y recupera el ID autoincremental de la Base de Datos
     const saveConfiguration = async () => {
         setIsSaving(true);
         const year = config.startDate ? new Date(config.startDate).getFullYear() : new Date().getFullYear();
@@ -313,8 +456,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
 
         try {
             const response = await api.post('/contests', datosContest);
-
-            // Evaluamos la respuesta de Laravel dinámicamente buscando el ID incremental real
             const serverId = response.data?.id || response.data?.contest?.id;
 
             if (serverId) {
@@ -348,7 +489,7 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                     </button>
                     <h1 className="text-2xl font-extrabold text-slate-800">{t.title}</h1>
                     <div className="flex gap-2 bg-slate-100 p-1 rounded-full border border-slate-200">
-                        {['es', 'en'].map(lang => (
+                        {['es', 'en', 'pt', 'fr'].map(lang => (
                             <button key={lang} className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === lang ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => onLanguageChange(lang)}>
                                 {lang.toUpperCase()}
                             </button>
@@ -360,7 +501,7 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                     {/* Columna Izquierda - Configuración General */}
                     <div className="space-y-6">
                         <button onClick={saveConfiguration} disabled={isSaving} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl shadow-md hover:bg-blue-700 transition-all">
-                            <Save size={18}/> {isSaving ? 'Guardando...' : t.saveConfig}
+                            <Save size={18}/> {isSaving ? '...' : t.saveConfig}
                         </button>
                         <div className="bg-white rounded-2xl shadow-xl p-6">
                             <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2 mb-6 pb-4 border-b border-slate-200">
@@ -452,7 +593,7 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                                                                             <button onClick={() => setEditingQuestion(q.id)} className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full hover:bg-blue-200 flex items-center gap-1">
                                                                                 <Edit3 size={10} /> {q.points} {t.points}
                                                                             </button>
-                                                                            <span className="text-xs bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md">Código: {q.task_code}</span>
+                                                                            <span className="text-xs bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md">Código: {q.task_code || q.taskCode}</span>
                                                                         </div>
                                                                         <p className="text-slate-800 font-medium">{q.text}</p>
                                                                         <p className="text-xs text-slate-500 mt-1">{t.answer}: {q.correctAnswer}</p>
