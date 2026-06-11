@@ -3,7 +3,7 @@ import Crear_Grupo from './Crear_Grupo';
 import Crear_cuentas_alumnos from './Crear_cuentas_alumnos';
 import Monitoreo_participantes from './Monitoreo_participantes.jsx';
 import castorcubasi from '/src/castorcubasi.jpg';
-import { Users, Plus, Globe, BookOpen, Lock, X, Edit, Trash2, Save, CheckCircle, UserPlus, Clock, BarChart3, AlertCircle, ShieldOff, Play, Download, FileDown, FileText, FileSpreadsheet, School } from 'lucide-react';
+import { Users, Plus, Globe, BookOpen, Lock, X, Trash2, Save, CheckCircle, UserPlus, Clock, BarChart3, AlertCircle, ShieldOff, Play, Download, FileDown, FileText, FileSpreadsheet, School, Edit } from 'lucide-react';
 import { toast } from "sonner";
 import Exportar_diploma_alumno from './Exportar_diploma_alumno';
 import * as XLSX from 'xlsx';
@@ -53,9 +53,7 @@ const translations = {
         errorExport: "Error al exportar",
         student: "Estudiante",
         username: "Usuario",
-        gender: "Género",
         score: "Puntuación",
-        permission: "Permiso",
         status: "Estado",
         actions: "Acciones",
         save: "Guardar",
@@ -81,10 +79,12 @@ const translations = {
         completionRate: "Tasa de Finalización",
         notSpecified: "No especificado",
         noSchool: "Escuela no especificada",
-        researchPermissionYes: "Sí",
-        researchPermissionNo: "No",
         teacherMessageTitle: "Mensaje al profesor",
-        defaultTeacherMessage: "Bienvenidos al Desafío Bebras Cuba 2026. Aquí podrán gestionar sus grupos y estudiantes."
+        defaultTeacherMessage: "Bienvenidos al Desafío Bebras Cuba 2026. Aquí podrán gestionar sus grupos y estudiantes.",
+        studentUpdated: "Estudiante actualizado exitosamente",
+        updateError: "Error al actualizar el estudiante",
+        nameRequired: "El nombre del estudiante es obligatorio",
+        scoresPublished: "Puntuaciones publicadas exitosamente"
     },
     en: {
         logout: "Logout",
@@ -127,9 +127,7 @@ const translations = {
         errorExport: "Error exporting",
         student: "Student",
         username: "Username",
-        gender: "Gender",
         score: "Score",
-        permission: "Permission",
         status: "Status",
         actions: "Actions",
         save: "Save",
@@ -155,10 +153,12 @@ const translations = {
         completionRate: "Completion Rate",
         notSpecified: "Not specified",
         noSchool: "School not specified",
-        researchPermissionYes: "Yes",
-        researchPermissionNo: "No",
         teacherMessageTitle: "Teacher's message",
-        defaultTeacherMessage: "Welcome to the Bebras Cuba 2026 Challenge. Here you can manage your groups and students."
+        defaultTeacherMessage: "Welcome to the Bebras Cuba 2026 Challenge. Here you can manage your groups and students.",
+        studentUpdated: "Student updated successfully",
+        updateError: "Error updating student",
+        nameRequired: "Student name is required",
+        scoresPublished: "Scores published successfully"
     },
     pt: {
         logout: "Sair",
@@ -201,9 +201,7 @@ const translations = {
         errorExport: "Erro ao exportar",
         student: "Estudante",
         username: "Usuário",
-        gender: "Gênero",
         score: "Pontuação",
-        permission: "Permissão",
         status: "Status",
         actions: "Ações",
         save: "Salvar",
@@ -229,10 +227,12 @@ const translations = {
         completionRate: "Taxa de Conclusão",
         notSpecified: "Não especificado",
         noSchool: "Escola não especificada",
-        researchPermissionYes: "Sim",
-        researchPermissionNo: "Não",
         teacherMessageTitle: "Mensagem do professor",
-        defaultTeacherMessage: "Bem-vindos ao Desafio Bebras Cuba 2026. Aqui você pode gerenciar seus grupos e alunos."
+        defaultTeacherMessage: "Bem-vindos ao Desafio Bebras Cuba 2026. Aqui você pode gerenciar seus grupos e alunos.",
+        studentUpdated: "Estudante atualizado com sucesso",
+        updateError: "Erro ao atualizar estudante",
+        nameRequired: "O nome do estudante é obrigatório",
+        scoresPublished: "Pontuações publicadas com sucesso"
     },
     fr: {
         logout: "Déconnexion",
@@ -275,9 +275,7 @@ const translations = {
         errorExport: "Erreur lors de l'exportation",
         student: "Élève",
         username: "Nom d'utilisateur",
-        gender: "Genre",
         score: "Score",
-        permission: "Autorisation",
         status: "Statut",
         actions: "Actions",
         save: "Enregistrer",
@@ -303,10 +301,12 @@ const translations = {
         completionRate: "Taux d'achèvement",
         notSpecified: "Non spécifié",
         noSchool: "École non spécifiée",
-        researchPermissionYes: "Oui",
-        researchPermissionNo: "Non",
         teacherMessageTitle: "Message de l'enseignant",
-        defaultTeacherMessage: "Bienvenue au Défi Bebras Cuba 2026. Vous pouvez ici gérer vos groupes et vos élèves."
+        defaultTeacherMessage: "Bienvenue au Défi Bebras Cuba 2026. Vous pouvez ici gérer vos groupes et vos élèves.",
+        studentUpdated: "Étudiant mis à jour avec succès",
+        updateError: "Erreur lors de la mise à jour",
+        nameRequired: "Le nom de l'étudiant est requis",
+        scoresPublished: "Scores publiés avec succès"
     }
 };
 
@@ -319,13 +319,14 @@ const Gestion_grupos_estudiantes = () => {
     const [showCreateGroup, setShowCreateGroup] = useState(false);
     const [showCrearCuentas, setShowCrearCuentas] = useState(false);
     const [showGestionParticipantes, setShowGestionParticipantes] = useState(false);
-    const [editingStudentId, setEditingStudentId] = useState(null);
-    const [editFormData, setEditFormData] = useState({ username: '', name: '', researchPermission: false });
     const [showExportDiplomas, setShowExportDiplomas] = useState(false);
     const [showExportOptions, setShowExportOptions] = useState(false);
-    const [showEditGroup, setShowEditGroup] = useState(false);
-    const [editGroupData, setEditGroupData] = useState({ name: '', school: '', course: '', language: 'es' });
     const [teacherWelcomeMessage, setTeacherWelcomeMessage] = useState('');
+
+    // Estados para editar estudiante
+    const [editingStudentId, setEditingStudentId] = useState(null);
+    const [editFormData, setEditFormData] = useState({ full_name: '', username: '' });
+    const [isUpdating, setIsUpdating] = useState(false);
 
     // Cargar grupos desde la API
     useEffect(() => {
@@ -362,40 +363,31 @@ const Gestion_grupos_estudiantes = () => {
         loadGroups();
     }, []);
 
-    // Cargar la información completa del grupo seleccionado usando el método show
+    // Cargar los estudiantes del grupo seleccionado
     useEffect(() => {
-        const loadSelectedGroupInfo = async () => {
+        const loadGroupStudents = async () => {
             if (!selectedGroupId) return;
 
             try {
-                const response = await api.get(`/groups/${selectedGroupId}`);
-                console.log('Información del grupo desde backend:', response.data);
+                const response = await api.get(`/groups/${selectedGroupId}/students`);
+                console.log('Estudiantes del grupo:', response.data);
 
-                if (response.data) {
+                if (response.data && response.data.students) {
                     setGroups(prevGroups => prevGroups.map(group =>
                         group.id === selectedGroupId
                             ? {
                                 ...group,
-                                school: response.data.school || group.school || '',
-                                languageCode: response.data.language || group.languageCode || 'es',
-                                language: response.data.language === 'es' ? 'Español' :
-                                    response.data.language === 'en' ? 'English' :
-                                        response.data.language === 'pt' ? 'Português' : 'Français',
-                                course: (() => {
-                                    const categoryMap = { 1: 'Super Peque', 2: 'Peque', 3: 'Benjamin', 4: 'Cadete', 5: 'Junior', 6: 'Senior' };
-                                    return categoryMap[response.data.category_id] || group.course || 'Super Peque';
-                                })(),
-                                students: response.data.students || group.students || []
+                                students: response.data.students
                             }
                             : group
                     ));
                 }
             } catch (error) {
-                console.error('Error al cargar información del grupo:', error);
+                console.error('Error al cargar estudiantes del grupo:', error);
             }
         };
 
-        loadSelectedGroupInfo();
+        loadGroupStudents();
     }, [selectedGroupId]);
 
     // Cargar mensaje de bienvenida del profesor desde localStorage
@@ -419,24 +411,12 @@ const Gestion_grupos_estudiantes = () => {
         setShowCreateGroup(false);
     };
 
-    const handleUpdateGroup = () => {
-        if (!editGroupData.name.trim()) {
-            toast.error(t.groupNameRequired);
-            return;
-        }
-        setGroups(groups.map(group => group.id === selectedGroupId ? { ...group, ...editGroupData } : group));
-        setShowEditGroup(false);
-        toast.success(t.groupUpdated);
-    };
-
     const handleDeleteGroup = async () => {
         if (!selectedGroup) return;
 
         if (window.confirm(t.deleteGroupConfirm)) {
             try {
-                
                 await api.delete(`/groups/${selectedGroupId}`);
-
                 setGroups(groups.filter(g => g.id !== selectedGroupId));
                 setSelectedGroupId(groups.length > 1 ? groups.find(g => g.id !== selectedGroupId)?.id || '' : '');
                 toast.success(t.groupDeleted);
@@ -448,28 +428,28 @@ const Gestion_grupos_estudiantes = () => {
         }
     };
 
-    const openEditModal = () => {
-        if (selectedGroup) {
-            setEditGroupData({ name: selectedGroup.name, school: selectedGroup.school || '', course: selectedGroup.course, language: selectedGroup.languageCode || 'es' });
-            setShowEditGroup(true);
-        }
-    };
-
-    const handleStudentsCreated = (listaNombres, genero) => {
+    const handleStudentsCreated = () => {
         if (!selectedGroup) return;
-        const nuevosEstudiantes = listaNombres.map((nombre, index) => ({
-            id: Date.now().toString() + index,
-            username: nombre.toLowerCase().replace(/\s/g, '').normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
-            name: nombre,
-            genero: genero,
-            researchPermission: false,
-            status: 'not_started',
-            score: null,
-            startTime: null,
-            endTime: null,
-            calculatedScore: null
-        }));
-        setGroups(groups.map(group => group.id === selectedGroup.id ? { ...group, students: [...group.students, ...nuevosEstudiantes] } : group));
+
+        const loadUpdatedStudents = async () => {
+            try {
+                const response = await api.get(`/groups/${selectedGroupId}/students`);
+                if (response.data && response.data.students) {
+                    setGroups(prevGroups => prevGroups.map(group =>
+                        group.id === selectedGroupId
+                            ? {
+                                ...group,
+                                students: response.data.students
+                            }
+                            : group
+                    ));
+                }
+            } catch (error) {
+                console.error('Error al recargar estudiantes:', error);
+            }
+        };
+
+        loadUpdatedStudents();
         setShowCrearCuentas(false);
     };
 
@@ -484,15 +464,32 @@ const Gestion_grupos_estudiantes = () => {
             toast.warning(t.noStudentsWarning);
         } else {
             if (window.confirm(t.publishConfirm)) {
-                setGroups(groups.map(group => group.id === selectedGroup.id ? { ...group, challengeClosed: true, students: group.students.map(student => ({ ...student, score: student.calculatedScore !== null ? student.calculatedScore : Math.floor(Math.random() * 101) })) } : group));
+                const updatedStudents = selectedGroup.students.map(student => ({
+                    ...student,
+                    score: student.score !== null ? student.score : Math.floor(Math.random() * 101),
+                    status: student.status === 'not_started' ? 'finished' : student.status
+                }));
+
+                setGroups(groups.map(group =>
+                    group.id === selectedGroup.id
+                        ? { ...group, challengeClosed: true, students: updatedStudents }
+                        : group
+                ));
+                toast.success(t.scoresPublished);
             }
         }
     };
 
     const printDiplomas = () => {
         if (!selectedGroup) return;
-        if (!selectedGroup.challengeClosed) { toast.warning(t.noStudentsWarning); return; }
-        if (selectedGroup.students.length === 0) { toast.warning(t.noStudentsWarning); return; }
+        if (!selectedGroup.challengeClosed) {
+            toast.warning("Primero debe cerrar el desafío y publicar las puntuaciones");
+            return;
+        }
+        if (selectedGroup.students.length === 0) {
+            toast.warning(t.noStudentsWarning);
+            return;
+        }
         setShowExportDiplomas(true);
     };
 
@@ -500,22 +497,23 @@ const Gestion_grupos_estudiantes = () => {
 
     const handleExportReport = () => {
         if (!selectedGroup) return;
-        if (selectedGroup.students.length === 0) { toast.warning(t.noStudentsExport); return; }
+        if (selectedGroup.students.length === 0) {
+            toast.warning(t.noStudentsExport);
+            return;
+        }
         setShowExportOptions(true);
     };
 
     const generateReportData = () => {
         if (!selectedGroup) return [];
         return selectedGroup.students.map(student => ({
-            [t.student]: student.name,
-            [t.username]: student.username,
-            [t.gender]: student.genero || t.notSpecified,
+            [t.student]: student.full_name || student.name || '—',
+            [t.username]: student.username || '—',
             [t.school]: selectedGroup.school || t.noSchool,
             [t.level]: selectedGroup.course,
             [t.language]: selectedGroup.language,
             [t.status]: student.status === 'finished' ? t.finished : student.status === 'in_progress' ? t.inProgress : t.notStarted,
             [t.score]: student.score !== null && student.score !== undefined ? student.score : 'N/A',
-            [t.permission]: student.researchPermission ? t.researchPermissionYes : t.researchPermissionNo,
         }));
     };
 
@@ -525,6 +523,7 @@ const Gestion_grupos_estudiantes = () => {
             const worksheet = XLSX.utils.json_to_sheet(reportData);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, `Reporte_${selectedGroup.name}`);
+
             const summaryData = [
                 [t.summaryReport], [],
                 [t.totalStudents, selectedGroup.students.length],
@@ -565,33 +564,88 @@ const Gestion_grupos_estudiantes = () => {
             y += 7;
             doc.text(`${t.completionRate}: ${((selectedGroup.students.filter(s => s.status === 'finished').length / selectedGroup.students.length) * 100).toFixed(1)}%`, 14, y);
             y += 15;
-            const tableData = reportData.map(r => [r[t.student], r[t.username], r[t.gender], r[t.school], r[t.level], r[t.language], r[t.status], r[t.score], r[t.permission]]);
-            autoTable(doc, { startY: y, head: [[t.student, t.username, t.gender, t.school, t.level, t.language, t.status, t.score, t.permission]], body: tableData, theme: 'striped', headStyles: { fillColor: [41,128,185] } });
+            const tableData = reportData.map(r => [r[t.student], r[t.username], r[t.school], r[t.level], r[t.language], r[t.status], r[t.score]]);
+            autoTable(doc, { startY: y, head: [[t.student, t.username, t.school, t.level, t.language, t.status, t.score]], body: tableData, theme: 'striped', headStyles: { fillColor: [41,128,185] } });
             doc.save(`Reporte_participacion_${selectedGroup.name}_${new Date().toISOString().split('T')[0]}.pdf`);
             toast.success(`${t.reportGenerated} PDF`);
         } catch (error) { console.error(error); toast.error(t.errorExport); }
         setShowExportOptions(false);
     };
 
+    // Función para editar estudiante (abrir formulario)
     const handleEditStudent = (student) => {
         setEditingStudentId(student.id);
-        setEditFormData({ username: student.username, name: student.name, researchPermission: student.researchPermission });
+        setEditFormData({
+            full_name: student.full_name || '',
+            username: student.username || ''
+        });
     };
 
-    const toggleResearchPermission = (studentId) => {
-        if (!selectedGroup) return;
-        setGroups(groups.map(group => group.id === selectedGroup.id ? { ...group, students: group.students.map(student => student.id === studentId ? { ...student, researchPermission: !student.researchPermission } : student) } : group));
+    // Función para actualizar estudiante (guardar cambios)
+    const handleUpdateStudent = async (studentId) => {
+        if (!editFormData.full_name.trim()) {
+            toast.error(t.nameRequired);
+            return;
+        }
+
+        setIsUpdating(true);
+
+        try {
+            const updateData = {
+                full_name: editFormData.full_name,
+                username: editFormData.username
+            };
+
+            const response = await api.put(`/students/${studentId}`, updateData);
+
+            if (response.data.success) {
+                toast.success(t.studentUpdated);
+
+                const studentsResponse = await api.get(`/groups/${selectedGroupId}/students`);
+                if (studentsResponse.data && studentsResponse.data.students) {
+                    setGroups(prevGroups => prevGroups.map(group =>
+                        group.id === selectedGroupId
+                            ? { ...group, students: studentsResponse.data.students }
+                            : group
+                    ));
+                }
+
+                setEditingStudentId(null);
+                setEditFormData({ full_name: '', username: '' });
+            } else {
+                toast.error(response.data.message || t.updateError);
+            }
+        } catch (error) {
+            console.error('Error al actualizar estudiante:', error);
+            const errorMessage = error.response?.data?.message || t.updateError;
+            toast.error(errorMessage);
+        } finally {
+            setIsUpdating(false);
+        }
     };
 
-    const handleSaveEdit = (studentId) => {
-        if (!selectedGroup) return;
-        setGroups(groups.map(group => group.id === selectedGroup.id ? { ...group, students: group.students.map(student => student.id === studentId ? { ...student, ...editFormData } : student) } : group));
+    const handleCancelEdit = () => {
         setEditingStudentId(null);
+        setEditFormData({ full_name: '', username: '' });
     };
 
-    const handleDeleteStudent = (studentId) => {
+    const handleDeleteStudent = async (studentId) => {
         if (window.confirm('¿Estás seguro de que quieres eliminar este estudiante?')) {
-            setGroups(groups.map(group => group.id === selectedGroup.id ? { ...group, students: group.students.filter(s => s.id !== studentId) } : group));
+            try {
+                await api.delete(`/students/${studentId}`);
+                const response = await api.get(`/groups/${selectedGroupId}/students`);
+                if (response.data && response.data.students) {
+                    setGroups(prevGroups => prevGroups.map(group =>
+                        group.id === selectedGroupId
+                            ? { ...group, students: response.data.students }
+                            : group
+                    ));
+                }
+                toast.success('Estudiante eliminado exitosamente');
+            } catch (error) {
+                console.error('Error al eliminar estudiante:', error);
+                toast.error('Error al eliminar el estudiante');
+            }
         }
     };
 
@@ -612,7 +666,19 @@ const Gestion_grupos_estudiantes = () => {
     const selectedGroup = groups.find(g => g.id === selectedGroupId);
 
     if (showCreateGroup) return <Crear_Grupo onGroupCreated={handleGroupCreated} onCancel={()=>setShowCreateGroup(false)} language={language} />;
-    if (showCrearCuentas) return <Crear_cuentas_alumnos onStudentsCreated={handleStudentsCreated} onCancel={() => setShowCrearCuentas(false)} language={language} />;
+
+    if (showCrearCuentas) return <Crear_cuentas_alumnos
+        onStudentsCreated={handleStudentsCreated}
+        onCancel={() => setShowCrearCuentas(false)}
+        groupId={selectedGroupId}
+        categoryId={(() => {
+            const categoryMap = { 'Super Peque': 1, 'Peque': 2, 'Benjamin': 3, 'Cadete': 4, 'Junior': 5, 'Senior': 6 };
+            return categoryMap[selectedGroup?.course] || 1;
+        })()}
+        teacherId={1}
+        language={language}
+    />;
+
     if (showGestionParticipantes) return <Monitoreo_participantes group={selectedGroup} onUpdateStudentStatus={handleUpdateStudentStatus} onClose={() => setShowGestionParticipantes(false)} language={language} />;
     if (showExportDiplomas) return <Exportar_diploma_alumno group={selectedGroup} onClose={handleCloseDiplomas} language={language} />;
 
@@ -644,26 +710,141 @@ const Gestion_grupos_estudiantes = () => {
                         <div className="text-center py-12"><p className="text-slate-500 mb-4">{t.noGroups}</p><button onClick={() => setShowCreateGroup(true)} className="px-6 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all">{t.createFirstGroup}</button></div>
                     ) : (
                         <>
-                            <div className="mb-6"><label className="block text-sm font-semibold text-slate-700 mb-2">{t.selectGroup}</label><select value={selectedGroupId} onChange={(e) => setSelectedGroupId(e.target.value)} className="w-full md:w-64 px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none">{groups.map(group => <option key={group.id} value={group.id}>{group.name}  {group.school}</option>)}</select></div>
+                            <div className="mb-6">
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">{t.selectGroup}</label>
+                                <select value={selectedGroupId} onChange={(e) => setSelectedGroupId(e.target.value)} className="w-full md:w-64 px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none">
+                                    {groups.map(group => <option key={group.id} value={group.id}>{group.name} {group.school}</option>)}
+                                </select>
+                            </div>
 
                             {selectedGroup && (
                                 <>
                                     <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl p-4 mb-6 border border-slate-200 shadow-sm">
                                         <div className="flex justify-between items-start">
-                                            <div className="flex-1"><h3 className="text-lg font-bold text-slate-800">{selectedGroup.name}</h3><p className="text-sm text-slate-500 mt-1">{selectedGroup.school || t.noSchool}</p><div className="flex flex-wrap gap-3 mt-2"><span className="inline-flex items-center gap-1 text-sm text-slate-600"><Globe size={14} /> {selectedGroup.language}</span><span className="inline-flex items-center gap-1 text-sm text-slate-600"><BookOpen size={14} /> {selectedGroup.course}</span><span className="inline-flex items-center gap-1 text-sm text-slate-600"><Users size={14} /> {selectedGroup.students.length} {t.studentsCount}</span>{selectedGroup.challengeClosed && <span className="inline-flex items-center gap-1 text-sm text-red-600"><Lock size={14} /> {t.challengeClosedLabel}</span>}</div></div>
-                                            <div className="flex gap-2"><button onClick={openEditModal} className="p-2 rounded-lg bg-white text-blue-600 hover:bg-blue-50 transition-all shadow-sm border border-slate-200" title={t.editGroup}><Edit size={18} /></button><button onClick={handleDeleteGroup} className="p-2 rounded-lg bg-white text-red-600 hover:bg-red-50 transition-all shadow-sm border border-slate-200" title={t.deleteGroup}><Trash2 size={18} /></button></div>
+                                            <div className="flex-1">
+                                                <h3 className="text-lg font-bold text-slate-800">{selectedGroup.name}</h3>
+                                                <p className="text-sm text-slate-500 mt-1">{selectedGroup.school || t.noSchool}</p>
+                                                <div className="flex flex-wrap gap-3 mt-2">
+                                                    <span className="inline-flex items-center gap-1 text-sm text-slate-600"><Globe size={14} /> {selectedGroup.language}</span>
+                                                    <span className="inline-flex items-center gap-1 text-sm text-slate-600"><BookOpen size={14} /> {selectedGroup.course}</span>
+                                                    <span className="inline-flex items-center gap-1 text-sm text-slate-600"><Users size={14} /> {selectedGroup.students.length} {t.studentsCount}</span>
+                                                    {selectedGroup.challengeClosed && <span className="inline-flex items-center gap-1 text-sm text-red-600"><Lock size={14} /> {t.challengeClosedLabel}</span>}
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button onClick={handleDeleteGroup} className="p-2 rounded-lg bg-white text-red-600 hover:bg-red-50 transition-all shadow-sm border border-slate-200" title={t.deleteGroup}>
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
 
                                     <div className="flex flex-wrap gap-3 mb-8">
-                                        <button onClick={handleGestionarParticipantes} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all shadow-md"><Users size={16} /> {t.monitorParticipants}</button>
-                                        {!selectedGroup.challengeClosed && <button onClick={publishScores} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500 text-white font-medium hover:bg-orange-600 transition-all shadow-md"><BarChart3 size={16} /> {t.closeChallenge}</button>}
-                                        {selectedGroup.challengeClosed && (<><button onClick={printDiplomas} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-600 text-white font-medium hover:bg-amber-700 transition-all shadow-md"><FileDown size={16} /> {t.exportDiplomas}</button><button onClick={handleExportReport} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-600 text-white font-medium hover:bg-zinc-700 transition-all shadow-md"><Download size={16} /> {t.exportReport}</button></>)}
+                                        <button onClick={handleGestionarParticipantes} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all shadow-md">
+                                            <Users size={16} /> {t.monitorParticipants}
+                                        </button>
+                                        {!selectedGroup.challengeClosed && (
+                                            <button onClick={publishScores} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500 text-white font-medium hover:bg-orange-600 transition-all shadow-md">
+                                                <BarChart3 size={16} /> {t.closeChallenge}
+                                            </button>
+                                        )}
+                                        {selectedGroup.challengeClosed && (
+                                            <>
+                                                <button onClick={printDiplomas} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-600 text-white font-medium hover:bg-amber-700 transition-all shadow-md">
+                                                    <FileDown size={16} /> {t.exportDiplomas}
+                                                </button>
+                                                <button onClick={handleExportReport} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-600 text-white font-medium hover:bg-zinc-700 transition-all shadow-md">
+                                                    <Download size={16} /> {t.exportReport}
+                                                </button>
+                                            </>
+                                        )}
                                     </div>
 
+                                    {/* TABLA DE ESTUDIANTES */}
                                     <div>
-                                        <div className="flex flex-wrap justify-between items-center mb-4"><h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Users size={18} className="text-blue-600" /> {t.students}</h2><div className="flex gap-2"><button onClick={() => setShowCrearCuentas(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-600 text-white font-medium hover:bg-yellow-700 transition-all shadow-md"><UserPlus size={16} /> {t.createAccounts}</button></div></div>
-                                        <div className="overflow-x-auto"><table className="w-full border-collapse"><thead className="bg-slate-100"><tr><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.username}</th><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.student}</th><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.gender}</th><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.score}</th><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.permission}</th><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.status}</th><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.actions}</th></tr></thead><tbody>{selectedGroup.students.map(student => (editingStudentId === student.id ? (<tr key={student.id}><td className="px-4 py-2"><input value={editFormData.username} onChange={(e) => setEditFormData({...editFormData, username: e.target.value})} className="w-full px-2 py-1 rounded border" /></td><td className="px-4 py-2"><input value={editFormData.name} onChange={(e) => setEditFormData({...editFormData, name: e.target.value})} className="w-full px-2 py-1 rounded border" /></td><td className="px-4 py-2">{student.genero || '—'}</td><td className="px-4 py-2">{student.score !== undefined && student.score !== null ? student.score : '—'}</td><td className="px-4 py-2"><input type="checkbox" checked={editFormData.researchPermission} onChange={(e) => setEditFormData({...editFormData, researchPermission: e.target.checked})} className="w-4 h-4" /></td><td className="px-4 py-2">{getStatusBadge(student.status)}</td><td className="px-4 py-2 flex gap-2"><button onClick={() => handleSaveEdit(student.id)} className="p-1 text-green-600 hover:bg-green-50 rounded"><Save size={16} /></button><button onClick={() => setEditingStudentId(null)} className="p-1 text-red-600 hover:bg-red-50 rounded"><X size={16} /></button></td></tr>) : (<tr key={student.id}><td className="px-4 py-2 text-sm">{student.username}</td><td className="px-4 py-2 text-sm font-medium">{student.name}</td><td className="px-4 py-2 text-sm">{student.genero || '—'}</td><td className="px-4 py-2 text-sm font-bold">{student.score !== undefined && student.score !== null ? student.score : '—'}</td><td className="px-4 py-2"><input type="checkbox" checked={student.researchPermission} onChange={() => toggleResearchPermission(student.id)} className="w-4 h-4" /></td><td className="px-4 py-2">{getStatusBadge(student.status)}</td><td className="px-4 py-2 flex gap-2"><button onClick={() => handleEditStudent(student)} className="p-1 text-blue-600 hover:bg-blue-50 rounded"><Edit size={16} /></button><button onClick={() => handleDeleteStudent(student.id)} className="p-1 text-red-600 hover:bg-red-50 rounded"><Trash2 size={16} /></button></td></tr>)))}</tbody></table>{selectedGroup.students.length === 0 && <div className="text-center py-8 text-slate-500">{t.noStudentsTable}</div>}</div>
+                                        <div className="flex flex-wrap justify-between items-center mb-4">
+                                            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                                <Users size={18} className="text-blue-600" /> {t.students}
+                                            </h2>
+                                            <div className="flex gap-2">
+                                                <button onClick={() => setShowCrearCuentas(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-600 text-white font-medium hover:bg-yellow-700 transition-all shadow-md">
+                                                    <UserPlus size={16} /> {t.createAccounts}
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full border-collapse">
+                                                <thead className="bg-slate-100">
+                                                <tr>
+                                                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.username}</th>
+                                                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.student}</th>
+                                                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.score}</th>
+                                                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.status}</th>
+                                                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.actions}</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                {selectedGroup.students && selectedGroup.students.length > 0 ? (
+                                                    selectedGroup.students.map((student, index) => (
+                                                        editingStudentId === student.id ? (
+                                                            <tr key={student.id} className="border-b border-slate-100 bg-blue-50">
+                                                                <td className="px-4 py-2">
+                                                                    <input
+                                                                        type="text"
+                                                                        value={editFormData.username}
+                                                                        onChange={(e) => setEditFormData({ ...editFormData, username: e.target.value })}
+                                                                        className="w-full px-2 py-1 rounded border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                                                                        placeholder="Usuario"
+                                                                    />
+                                                                </td>
+                                                                <td className="px-4 py-2">
+                                                                    <input
+                                                                        type="text"
+                                                                        value={editFormData.full_name}
+                                                                        onChange={(e) => setEditFormData({ ...editFormData, full_name: e.target.value })}
+                                                                        className="w-full px-2 py-1 rounded border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                                                                        placeholder="Nombre completo"
+                                                                    />
+                                                                </td>
+                                                                <td className="px-4 py-2 text-sm font-bold">{student.score !== null && student.score !== undefined ? student.score : '—'}</td>
+                                                                <td className="px-4 py-2">{getStatusBadge(student.status || 'not_started')}</td>
+                                                                <td className="px-4 py-2 flex gap-2">
+                                                                    <button onClick={() => handleUpdateStudent(student.id)} disabled={isUpdating} className="p-1 text-green-600 hover:bg-green-50 rounded disabled:opacity-50" title={t.save}>
+                                                                        <Save size={16} />
+                                                                    </button>
+                                                                    <button onClick={handleCancelEdit} className="p-1 text-red-600 hover:bg-red-50 rounded" title={t.cancel}>
+                                                                        <X size={16} />
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        ) : (
+                                                            <tr key={student.id} className="border-b border-slate-100 hover:bg-slate-50">
+                                                                <td className="px-4 py-2 text-sm">{student.username || '—'}</td>
+                                                                <td className="px-4 py-2 text-sm font-medium">{student.full_name || student.name || '—'}</td>
+                                                                <td className="px-4 py-2 text-sm font-bold">{student.score !== null && student.score !== undefined ? student.score : '—'}</td>
+                                                                <td className="px-4 py-2">{getStatusBadge(student.status || 'not_started')}</td>
+                                                                <td className="px-4 py-2 flex gap-2">
+                                                                    <button onClick={() => handleEditStudent(student)} className="p-1 text-blue-600 hover:bg-blue-50 rounded" title={t.edit}>
+                                                                        <Edit size={16} />
+                                                                    </button>
+                                                                    <button onClick={() => handleDeleteStudent(student.id)} className="p-1 text-red-600 hover:bg-red-50 rounded" title={t.delete}>
+                                                                        <Trash2 size={16} />
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        )
+                                                    ))
+                                                ) : (
+                                                    <tr>
+                                                        <td colSpan="5" className="px-4 py-8 text-center text-slate-500">
+                                                            {t.noStudentsTable}
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </>
                             )}
@@ -681,9 +862,28 @@ const Gestion_grupos_estudiantes = () => {
                     </div>
                 </div>
 
-                {showEditGroup && (<div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"><div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6"><div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200"><h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Edit size={20} className="text-blue-500" /> {t.editGroupModalTitle}</h2><button onClick={() => setShowEditGroup(false)}><X size={20} /></button></div><div className="space-y-4"><div><label className="block text-sm font-semibold text-slate-700 mb-2">{t.groupName} *</label><input type="text" value={editGroupData.name} onChange={(e) => setEditGroupData({...editGroupData, name: e.target.value})} className="w-full px-4 py-2 rounded-xl border" /></div><div><label className="block text-sm font-semibold text-slate-700 mb-2">{t.school}</label><input type="text" value={editGroupData.school} onChange={(e) => setEditGroupData({...editGroupData, school: e.target.value})} className="w-full px-4 py-2 rounded-xl border" /></div><div><label className="block text-sm font-semibold text-slate-700 mb-2">{t.level}</label><select value={editGroupData.course} onChange={(e) => setEditGroupData({...editGroupData, course: e.target.value})} className="w-full px-4 py-2 rounded-xl border"><option value="Super Peque">Super Peque</option><option value="Peque">Peque</option><option value="Benjamin">Benjamin</option><option value="Cadete">Cadete</option><option value="Junior">Junior</option><option value="Senior">Senior</option></select></div><div><label className="block text-sm font-semibold text-slate-700 mb-2">{t.language}</label><div className="flex gap-2"><button onClick={() => setEditGroupData({...editGroupData, language: 'es'})} className={`flex-1 px-4 py-2 rounded-xl font-medium transition-all ${editGroupData.language === 'es' ? 'bg-blue-600 text-white' : 'bg-slate-100'}`}>Español</button><button onClick={() => setEditGroupData({...editGroupData, language: 'en'})} className={`flex-1 px-4 py-2 rounded-xl font-medium transition-all ${editGroupData.language === 'en' ? 'bg-blue-600 text-white' : 'bg-slate-100'}`}>English</button></div></div></div><div className="flex gap-3 mt-6 pt-4 border-t"><button onClick={handleUpdateGroup} className="flex-1 bg-blue-600 text-white font-medium py-2 rounded-xl hover:bg-blue-700">{t.save}</button><button onClick={() => setShowEditGroup(false)} className="flex-1 bg-slate-200 text-slate-700 font-medium py-2 rounded-xl">{t.cancel}</button></div></div></div>)}
-
-                {showExportOptions && selectedGroup && (<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowExportOptions(false)}><div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}><div className="flex justify-between items-center mb-4 pb-3 border-b"><h2 className="text-xl font-bold"><Download size={20} className="inline mr-2 text-yellow-500" /> {t.exportFormat} - {selectedGroup.name}</h2><button onClick={() => setShowExportOptions(false)}><X size={20} /></button></div><p className="text-slate-600 mb-6 text-sm">{t.selectFormat}</p><div className="flex gap-4"><button onClick={exportToExcel} className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700"><FileSpreadsheet size={20} /> {t.excel}</button><button onClick={exportToPDF} className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700"><FileText size={20} /> {t.pdf}</button></div><button onClick={() => setShowExportOptions(false)} className="w-full mt-4 px-4 py-2 rounded-xl border border-slate-300 text-slate-600 font-medium hover:bg-slate-50">{t.cancel}</button></div></div>)}
+                {showExportOptions && selectedGroup && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowExportOptions(false)}>
+                        <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex justify-between items-center mb-4 pb-3 border-b">
+                                <h2 className="text-xl font-bold"><Download size={20} className="inline mr-2 text-yellow-500" /> {t.exportFormat} - {selectedGroup.name}</h2>
+                                <button onClick={() => setShowExportOptions(false)}><X size={20} /></button>
+                            </div>
+                            <p className="text-slate-600 mb-6 text-sm">{t.selectFormat}</p>
+                            <div className="flex gap-4">
+                                <button onClick={exportToExcel} className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700">
+                                    <FileSpreadsheet size={20} /> {t.excel}
+                                </button>
+                                <button onClick={exportToPDF} className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700">
+                                    <FileText size={20} /> {t.pdf}
+                                </button>
+                            </div>
+                            <button onClick={() => setShowExportOptions(false)} className="w-full mt-4 px-4 py-2 rounded-xl border border-slate-300 text-slate-600 font-medium hover:bg-slate-50">
+                                {t.cancel}
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

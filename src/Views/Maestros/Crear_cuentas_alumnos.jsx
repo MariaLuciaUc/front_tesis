@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, UserPlus, Send, Trash2, Users, CheckCircle, AlertCircle, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
+import api from '../../api/axios.js';
 
 const translations = {
     es: {
@@ -17,7 +18,9 @@ const translations = {
         clearButton: "Limpiar todo",
         noNames: "Por favor, ingrese al menos un nombre",
         studentsAdded: " estudiante(s) agregado(s) correctamente",
-        close: "Cerrar"
+        close: "Cerrar",
+        creating: "Creando estudiantes...",
+        errorCreating: "Error al crear los estudiantes"
     },
     en: {
         title: "Create new accounts",
@@ -33,7 +36,9 @@ const translations = {
         clearButton: "Clear all",
         noNames: "Please enter at least one name",
         studentsAdded: " student(s) added successfully",
-        close: "Close"
+        close: "Close",
+        creating: "Creating students...",
+        errorCreating: "Error creating students"
     },
     pt: {
         title: "Criar novas contas",
@@ -49,7 +54,9 @@ const translations = {
         clearButton: "Limpar tudo",
         noNames: "Por favor, insira pelo menos um nome",
         studentsAdded: " aluno(s) adicionado(s) com sucesso",
-        close: "Fechar"
+        close: "Fechar",
+        creating: "Criando estudantes...",
+        errorCreating: "Erro ao criar estudantes"
     },
     fr: {
         title: "Créer de nouveaux comptes",
@@ -65,38 +72,63 @@ const translations = {
         clearButton: "Tout effacer",
         noNames: "Veuillez saisir au moins un nom",
         studentsAdded: " élève(s) ajouté(s) avec succès",
-        close: "Fermer"
+        close: "Fermer",
+        creating: "Création des étudiants...",
+        errorCreating: "Erreur lors de la création des étudiants"
     }
 };
 
-export default function Crear_cuentas_alumnos({ onStudentsCreated, onCancel, language: propLanguage = 'es' }) {
+export default function Crear_cuentas_alumnos({ onStudentsCreated, onCancel, groupId, categoryId, teacherId, language: propLanguage = 'es' }) {
     const [language, setLanguage] = useState(propLanguage);
     const t = translations[language];
 
     const [nombres, setNombres] = useState('');
     const [genero, setGenero] = useState('Femenino');
     const [enviarCorreo, setEnviarCorreo] = useState(false);
-    const [mensaje, setMensaje] = useState('');
     const [mostrarVistaPrevia, setMostrarVistaPrevia] = useState(false);
     const [listaNombres, setListaNombres] = useState([]);
+    const [isCreating, setIsCreating] = useState(false);
 
-    const guardarYEnviar = () => {
+    const guardarYEnviar = async () => {
         const nombresArray = nombres
             .split('\n')
             .map(nombre => nombre.trim())
             .filter(nombre => nombre !== '');
 
         if (nombresArray.length === 0) {
-            setMensaje(t.noNames);
+            toast.error(t.noNames);
             return;
         }
 
+        setIsCreating(true);
         setListaNombres(nombresArray);
-        setMostrarVistaPrevia(true);
-        setMensaje(`${nombresArray.length} ${t.studentsAdded}`);
 
-        if (onStudentsCreated) {
-            onStudentsCreated(nombresArray, genero, enviarCorreo);
+        const estudiantesData = {
+            teacher_id: teacherId,
+            category_id: categoryId,
+            group_id: groupId,
+            students: nombresArray,
+            gender: genero
+        };
+
+        try {
+            const response = await api.post('/students/bulk', estudiantesData);
+            console.log('Estudiantes creados:', response.data);
+
+            setMostrarVistaPrevia(true);
+            toast.success(`${nombresArray.length} ${t.studentsAdded}`);
+
+            if (onStudentsCreated) {
+                onStudentsCreated(nombresArray, genero, enviarCorreo);
+            }
+
+            setNombres('');
+        } catch (error) {
+            console.error('Error al crear estudiantes:', error);
+            const errorMessage = error.response?.data?.message || t.errorCreating;
+            toast.error(errorMessage);
+        } finally {
+            setIsCreating(false);
         }
     };
 
@@ -104,7 +136,6 @@ export default function Crear_cuentas_alumnos({ onStudentsCreated, onCancel, lan
         setNombres('');
         setListaNombres([]);
         setMostrarVistaPrevia(false);
-        setMensaje('');
     };
 
     const cerrarModal = () => {
@@ -115,7 +146,6 @@ export default function Crear_cuentas_alumnos({ onStudentsCreated, onCancel, lan
     return (
         <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-100 to-sky-100 p-4 font-sans">
             <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-8 relative animate-[fadeInUp_.4s_ease-out]">
-                {/* Selector de idioma */}
                 <div className="absolute top-4 right-4 flex gap-1 bg-slate-100 p-1 rounded-full border border-slate-200">
                     <button className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'es' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('es')}>ES</button>
                     <button className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'en' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('en')}>EN</button>
@@ -123,7 +153,6 @@ export default function Crear_cuentas_alumnos({ onStudentsCreated, onCancel, lan
                     <button className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'fr' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('fr')}>FR</button>
                 </div>
 
-                {/* Header */}
                 <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-200">
                     <div className="flex items-center gap-3">
                         <UserPlus className="text-blue-600" size={24} />
@@ -139,7 +168,6 @@ export default function Crear_cuentas_alumnos({ onStudentsCreated, onCancel, lan
                     <span><strong>{t.important}</strong> {t.importantText}</span>
                 </p>
 
-                {/* Textarea nombres */}
                 <div className="mb-6 mt-4">
                     <label className="block text-sm font-semibold text-slate-700 mb-2">{t.nameLabel}</label>
                     <textarea
@@ -148,54 +176,53 @@ export default function Crear_cuentas_alumnos({ onStudentsCreated, onCancel, lan
                         onChange={(e) => setNombres(e.target.value)}
                         placeholder={t.namePlaceholder}
                         rows={6}
+                        disabled={isCreating}
                     />
                 </div>
 
-                {/* Género y correo */}
-                <div className="grid md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">{t.genderLabel}</label>
-                        <select
-                            value={genero}
-                            onChange={(e) => setGenero(e.target.value)}
-                            className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                <div className="mb-6">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">{t.genderLabel}</label>
+                    <div className="flex gap-4">
+                        <button
+                            type="button"
+                            onClick={() => setGenero('Femenino')}
+                            className={`px-6 py-2 rounded-xl font-medium transition-all ${genero === 'Femenino' ? 'bg-pink-500 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+                            disabled={isCreating}
                         >
-                            <option value="Femenino">{t.female}</option>
-                            <option value="Masculino">{t.male}</option>
-                        </select>
-                    </div>
-
-                    <div className="flex items-center gap-3 mt-6">
-                        <input
-                            type="checkbox"
-                            id="correoCheckbox"
-                            checked={enviarCorreo}
-                            onChange={(e) => setEnviarCorreo(e.target.checked)}
-                            className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <label htmlFor="correoCheckbox" className="text-sm text-slate-700">{t.emailCheckbox}</label>
+                            {t.female}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setGenero('Masculino')}
+                            className={`px-6 py-2 rounded-xl font-medium transition-all ${genero === 'Masculino' ? 'bg-blue-500 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+                            disabled={isCreating}
+                        >
+                            {t.male}
+                        </button>
                     </div>
                 </div>
 
-                {/* Botones */}
+                <div className="flex items-center gap-3 mb-6">
+                    <input
+                        type="checkbox"
+                        id="correoCheckbox"
+                        checked={enviarCorreo}
+                        onChange={(e) => setEnviarCorreo(e.target.checked)}
+                        className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        disabled={isCreating}
+                    />
+                    <label htmlFor="correoCheckbox" className="text-sm text-slate-700">{t.emailCheckbox}</label>
+                </div>
+
                 <div className="flex flex-wrap gap-4 mb-6">
-                    <button onClick={guardarYEnviar} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-md hover:shadow-lg transition-all">
-                        <Send size={18} /> {t.saveButton}
+                    <button onClick={guardarYEnviar} disabled={isCreating} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                        <Send size={18} /> {isCreating ? t.creating : t.saveButton}
                     </button>
-                    <button onClick={limpiarTodo} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-slate-200 text-slate-700 font-medium hover:bg-slate-300 transition-all">
+                    <button onClick={limpiarTodo} disabled={isCreating} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-slate-200 text-slate-700 font-medium hover:bg-slate-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                         <Trash2 size={18} /> {t.clearButton}
                     </button>
                 </div>
 
-                {/* Mensaje */}
-                {mensaje && (
-                    <div className={`mb-4 p-3 rounded-xl text-sm flex items-center gap-2 ${mensaje.includes(t.studentsAdded) ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-                        {mensaje.includes(t.studentsAdded) ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
-                        {mensaje}
-                    </div>
-                )}
-
-                {/* Vista previa */}
                 {mostrarVistaPrevia && listaNombres.length > 0 && (
                     <div className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
                         <h4 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
@@ -204,7 +231,7 @@ export default function Crear_cuentas_alumnos({ onStudentsCreated, onCancel, lan
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto">
                             {listaNombres.map((nombre, index) => (
                                 <div key={index} className="text-sm text-slate-600 py-1 px-2 bg-white rounded border border-slate-100">
-                                    {index + 1}. {nombre}
+                                    {index + 1}. {nombre} - {genero === 'Femenino' ? t.female : t.male}
                                 </div>
                             ))}
                         </div>
