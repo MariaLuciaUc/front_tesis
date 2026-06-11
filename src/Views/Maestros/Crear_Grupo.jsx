@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import { Save, X, Globe, BookOpen, Users, School } from 'lucide-react';
 import { toast } from 'sonner';
+import api from '../../api/axios.js';
 
 const translations = {
     es: {
@@ -17,7 +18,9 @@ const translations = {
         spanish: "Español",
         english: "Inglés",
         portuguese: "Portugués",
-        french: "Francés"
+        french: "Francés",
+        groupCreated: "Grupo creado exitosamente",
+        createError: "Error al crear el grupo"
     },
     en: {
         title: "New Group",
@@ -33,7 +36,9 @@ const translations = {
         spanish: "Spanish",
         english: "English",
         portuguese: "Portuguese",
-        french: "French"
+        french: "French",
+        groupCreated: "Group created successfully",
+        createError: "Error creating group"
     },
     pt: {
         title: "Novo Grupo",
@@ -49,7 +54,9 @@ const translations = {
         spanish: "Espanhol",
         english: "Inglês",
         portuguese: "Português",
-        french: "Francês"
+        french: "Francês",
+        groupCreated: "Grupo criado com sucesso",
+        createError: "Erro ao criar grupo"
     },
     fr: {
         title: "Nouveau Groupe",
@@ -65,7 +72,9 @@ const translations = {
         spanish: "Espagnol",
         english: "Anglais",
         portuguese: "Portugais",
-        french: "Français"
+        french: "Français",
+        groupCreated: "Groupe créé avec succès",
+        createError: "Erreur lors de la création du groupe"
     }
 };
 
@@ -77,10 +86,11 @@ export default function Crear_Grupo({ onGroupCreated, onCancel, language: propLa
     const [schoolName, setSchoolName] = useState('');
     const [lang, setLang] = useState('es');
     const [selectedCourse, setSelectedCourse] = useState('');
+    const [isCreating, setIsCreating] = useState(false);
 
     const courses = ['Super Peque', 'Peque', 'Benjamin', 'Cadete', 'Junior', 'Senior'];
 
-    const handleCreate = () => {
+    const handleCreate = async () => {
         if (!groupName.trim()) {
             toast.info(t.groupRequired);
             return;
@@ -94,21 +104,47 @@ export default function Crear_Grupo({ onGroupCreated, onCancel, language: propLa
             return;
         }
 
-        const newGroup = {
-            id: Date.now().toString(),
-            name: groupName,
-            school: schoolName,
-            language: lang === 'es' ? t.spanish : lang === 'en' ? t.english : lang === 'pt' ? t.portuguese : t.french,
-            course: selectedCourse,
-            students: [],
-            challengeClosed: false,
+        setIsCreating(true);
+
+        // Enviar el nombre del curso (el backend lo mapeará al ID correspondiente)
+        const groupData = {
+            group_name: groupName.trim(),
+            school: schoolName.trim(),
+            language: lang,
+            category_id: selectedCourse  // Enviamos el nombre del nivel
         };
 
-        onGroupCreated(newGroup);
-        setGroupName('');
-        setSchoolName('');
-        setLang('es');
-        setSelectedCourse('');
+        console.log('Enviando datos al servidor:', groupData);
+
+        try {
+            const response = await api.post('/groups', groupData);
+            console.log('Respuesta del servidor:', response.data);
+
+            const newGroup = {
+                id: response.data.id || Date.now().toString(),
+                name: groupName,
+                school: schoolName,
+                language: lang === 'es' ? t.spanish : lang === 'en' ? t.english : lang === 'pt' ? t.portuguese : t.french,
+                course: selectedCourse,
+                students: [],
+                challengeClosed: false,
+            };
+
+            toast.success(t.groupCreated);
+            onGroupCreated(newGroup);
+
+            setGroupName('');
+            setSchoolName('');
+            setLang('es');
+            setSelectedCourse('');
+        } catch (error) {
+            console.error('Error detallado:', error.response?.data);
+
+            const errorMessage = error.response?.data?.message || t.createError;
+            toast.error(errorMessage);
+        } finally {
+            setIsCreating(false);
+        }
     };
 
     const handleCancel = () => {
@@ -126,7 +162,6 @@ export default function Crear_Grupo({ onGroupCreated, onCancel, language: propLa
     return (
         <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-100 to-sky-100 p-4 font-sans">
             <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl p-8 relative animate-[fadeInUp_.4s_ease-out]">
-                {/* Selector de idioma */}
                 <div className="absolute top-4 right-4 flex gap-1 bg-slate-100 p-1 rounded-full border border-slate-200">
                     <button className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'es' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('es')}>ES</button>
                     <button className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'en' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('en')}>EN</button>
@@ -173,7 +208,9 @@ export default function Crear_Grupo({ onGroupCreated, onCancel, language: propLa
                 </div>
 
                 <div className="flex gap-4 pt-4 border-t border-slate-100">
-                    <button onClick={handleCreate} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-md hover:shadow-lg transition-all"><Save size={18} /> {t.create}</button>
+                    <button onClick={handleCreate} disabled={isCreating} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                        <Save size={18} /> {isCreating ? '...' : t.create}
+                    </button>
                     <button onClick={handleCancel} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-slate-200 text-slate-700 font-medium hover:bg-slate-300 transition-all"><X size={18} /> {t.cancel}</button>
                 </div>
             </div>

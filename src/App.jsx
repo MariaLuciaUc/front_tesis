@@ -7,7 +7,7 @@ function App() {
   return (
     <div>
       <Toaster richColors/>
-        <Panel_Coordinador_Nacional/>
+        <Activacion/>
 
         {/*<Login_Estudiante/>*/}
     </div>

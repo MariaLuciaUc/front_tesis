@@ -9,6 +9,7 @@ import Exportar_diploma_alumno from './Exportar_diploma_alumno';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import api from '../../api/axios.js';
 
 const translations = {
     es: {
@@ -24,7 +25,6 @@ const translations = {
         deleteGroup: "Eliminar grupo",
         students: "Estudiantes",
         createAccounts: "Crear cuentas",
-        removeAllPermissions: "Quitar todos permisos",
         monitorParticipants: "Monitorear participantes",
         closeChallenge: "Cerrar desafío y publicar puntuaciones",
         exportDiplomas: "Exportar diplomas de participación de estudiantes",
@@ -99,7 +99,6 @@ const translations = {
         deleteGroup: "Delete group",
         students: "Students",
         createAccounts: "Create accounts",
-        removeAllPermissions: "Remove all permissions",
         monitorParticipants: "Monitor participants",
         closeChallenge: "Close challenge and publish scores",
         exportDiplomas: "Export student participation diplomas",
@@ -174,7 +173,6 @@ const translations = {
         deleteGroup: "Excluir grupo",
         students: "Estudantes",
         createAccounts: "Criar contas",
-        removeAllPermissions: "Remover todas as permissões",
         monitorParticipants: "Monitorar participantes",
         closeChallenge: "Encerrar desafio e publicar pontuações",
         exportDiplomas: "Exportar diplomas de participação dos estudantes",
@@ -249,7 +247,6 @@ const translations = {
         deleteGroup: "Supprimer le groupe",
         students: "Élèves",
         createAccounts: "Créer des comptes",
-        removeAllPermissions: "Supprimer toutes les autorisations",
         monitorParticipants: "Suivre les participants",
         closeChallenge: "Clôturer le défi et publier les scores",
         exportDiplomas: "Exporter les diplômes de participation des élèves",
@@ -330,6 +327,77 @@ const Gestion_grupos_estudiantes = () => {
     const [editGroupData, setEditGroupData] = useState({ name: '', school: '', course: '', language: 'es' });
     const [teacherWelcomeMessage, setTeacherWelcomeMessage] = useState('');
 
+    // Cargar grupos desde la API
+    useEffect(() => {
+        const loadGroups = async () => {
+            try {
+                const response = await api.get('/groups');
+                console.log('Grupos cargados:', response.data);
+
+                const formattedGroups = response.data.map(group => ({
+                    id: group.id.toString(),
+                    name: group.group_name,
+                    school: group.school || '',
+                    language: group.language === 'es' ? 'Español' : group.language === 'en' ? 'English' : group.language === 'pt' ? 'Português' : 'Français',
+                    languageCode: group.language,
+                    course: (() => {
+                        const categoryMap = { 1: 'Super Peque', 2: 'Peque', 3: 'Benjamin', 4: 'Cadete', 5: 'Junior', 6: 'Senior' };
+                        return categoryMap[group.category_id] || 'Super Peque';
+                    })(),
+                    students: [],
+                    challengeClosed: false
+                }));
+
+                setGroups(formattedGroups);
+
+                if (formattedGroups.length > 0) {
+                    setSelectedGroupId(formattedGroups[0].id);
+                }
+            } catch (error) {
+                console.error('Error al cargar grupos:', error);
+                toast.error('Error al cargar los grupos');
+            }
+        };
+
+        loadGroups();
+    }, []);
+
+    // Cargar la información completa del grupo seleccionado usando el método show
+    useEffect(() => {
+        const loadSelectedGroupInfo = async () => {
+            if (!selectedGroupId) return;
+
+            try {
+                const response = await api.get(`/groups/${selectedGroupId}`);
+                console.log('Información del grupo desde backend:', response.data);
+
+                if (response.data) {
+                    setGroups(prevGroups => prevGroups.map(group =>
+                        group.id === selectedGroupId
+                            ? {
+                                ...group,
+                                school: response.data.school || group.school || '',
+                                languageCode: response.data.language || group.languageCode || 'es',
+                                language: response.data.language === 'es' ? 'Español' :
+                                    response.data.language === 'en' ? 'English' :
+                                        response.data.language === 'pt' ? 'Português' : 'Français',
+                                course: (() => {
+                                    const categoryMap = { 1: 'Super Peque', 2: 'Peque', 3: 'Benjamin', 4: 'Cadete', 5: 'Junior', 6: 'Senior' };
+                                    return categoryMap[response.data.category_id] || group.course || 'Super Peque';
+                                })(),
+                                students: response.data.students || group.students || []
+                            }
+                            : group
+                    ));
+                }
+            } catch (error) {
+                console.error('Error al cargar información del grupo:', error);
+            }
+        };
+
+        loadSelectedGroupInfo();
+    }, [selectedGroupId]);
+
     // Cargar mensaje de bienvenida del profesor desde localStorage
     useEffect(() => {
         const savedConfig = localStorage.getItem('bebrasContestConfig');
@@ -361,17 +429,28 @@ const Gestion_grupos_estudiantes = () => {
         toast.success(t.groupUpdated);
     };
 
-    const handleDeleteGroup = () => {
-        if (selectedGroup && window.confirm(t.deleteGroupConfirm)) {
-            setGroups(groups.filter(g => g.id !== selectedGroupId));
-            setSelectedGroupId(groups.length > 1 ? groups.find(g => g.id !== selectedGroupId)?.id || '' : '');
-            toast.success(t.groupDeleted);
+    const handleDeleteGroup = async () => {
+        if (!selectedGroup) return;
+
+        if (window.confirm(t.deleteGroupConfirm)) {
+            try {
+                
+                await api.delete(`/groups/${selectedGroupId}`);
+
+                setGroups(groups.filter(g => g.id !== selectedGroupId));
+                setSelectedGroupId(groups.length > 1 ? groups.find(g => g.id !== selectedGroupId)?.id || '' : '');
+                toast.success(t.groupDeleted);
+            } catch (error) {
+                console.error('Error al eliminar grupo:', error);
+                const errorMessage = error.response?.data?.message || 'Error al eliminar el grupo';
+                toast.error(errorMessage);
+            }
         }
     };
 
     const openEditModal = () => {
         if (selectedGroup) {
-            setEditGroupData({ name: selectedGroup.name, school: selectedGroup.school || '', course: selectedGroup.course, language: selectedGroup.language });
+            setEditGroupData({ name: selectedGroup.name, school: selectedGroup.school || '', course: selectedGroup.course, language: selectedGroup.languageCode || 'es' });
             setShowEditGroup(true);
         }
     };
@@ -504,14 +583,6 @@ const Gestion_grupos_estudiantes = () => {
         setGroups(groups.map(group => group.id === selectedGroup.id ? { ...group, students: group.students.map(student => student.id === studentId ? { ...student, researchPermission: !student.researchPermission } : student) } : group));
     };
 
-    const removeAllResearchPermissions = () => {
-        if (!selectedGroup) return;
-        if (selectedGroup.students.length === 0) { toast.warning(t.noStudentsWarning); return; }
-        if (window.confirm(t.importantCuba)) {
-            setGroups(groups.map(group => group.id === selectedGroup.id ? { ...group, students: group.students.map(student => ({ ...student, researchPermission: false })) } : group));
-        }
-    };
-
     const handleSaveEdit = (studentId) => {
         if (!selectedGroup) return;
         setGroups(groups.map(group => group.id === selectedGroup.id ? { ...group, students: group.students.map(student => student.id === studentId ? { ...student, ...editFormData } : student) } : group));
@@ -573,7 +644,7 @@ const Gestion_grupos_estudiantes = () => {
                         <div className="text-center py-12"><p className="text-slate-500 mb-4">{t.noGroups}</p><button onClick={() => setShowCreateGroup(true)} className="px-6 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all">{t.createFirstGroup}</button></div>
                     ) : (
                         <>
-                            <div className="mb-6"><label className="block text-sm font-semibold text-slate-700 mb-2">{t.selectGroup}</label><select value={selectedGroupId} onChange={(e) => setSelectedGroupId(e.target.value)} className="w-full md:w-64 px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none">{groups.map(group => <option key={group.id} value={group.id}>{group.name}</option>)}</select></div>
+                            <div className="mb-6"><label className="block text-sm font-semibold text-slate-700 mb-2">{t.selectGroup}</label><select value={selectedGroupId} onChange={(e) => setSelectedGroupId(e.target.value)} className="w-full md:w-64 px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none">{groups.map(group => <option key={group.id} value={group.id}>{group.name}  {group.school}</option>)}</select></div>
 
                             {selectedGroup && (
                                 <>
@@ -591,7 +662,7 @@ const Gestion_grupos_estudiantes = () => {
                                     </div>
 
                                     <div>
-                                        <div className="flex flex-wrap justify-between items-center mb-4"><h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Users size={18} className="text-blue-600" /> {t.students}</h2><div className="flex gap-2"><button onClick={() => setShowCrearCuentas(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-600 text-white font-medium hover:bg-yellow-700 transition-all shadow-md"><UserPlus size={16} /> {t.createAccounts}</button><button onClick={removeAllResearchPermissions} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition-all shadow-md"><ShieldOff size={16} /> {t.removeAllPermissions}</button></div></div>
+                                        <div className="flex flex-wrap justify-between items-center mb-4"><h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Users size={18} className="text-blue-600" /> {t.students}</h2><div className="flex gap-2"><button onClick={() => setShowCrearCuentas(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-600 text-white font-medium hover:bg-yellow-700 transition-all shadow-md"><UserPlus size={16} /> {t.createAccounts}</button></div></div>
                                         <div className="overflow-x-auto"><table className="w-full border-collapse"><thead className="bg-slate-100"><tr><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.username}</th><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.student}</th><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.gender}</th><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.score}</th><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.permission}</th><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.status}</th><th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.actions}</th></tr></thead><tbody>{selectedGroup.students.map(student => (editingStudentId === student.id ? (<tr key={student.id}><td className="px-4 py-2"><input value={editFormData.username} onChange={(e) => setEditFormData({...editFormData, username: e.target.value})} className="w-full px-2 py-1 rounded border" /></td><td className="px-4 py-2"><input value={editFormData.name} onChange={(e) => setEditFormData({...editFormData, name: e.target.value})} className="w-full px-2 py-1 rounded border" /></td><td className="px-4 py-2">{student.genero || '—'}</td><td className="px-4 py-2">{student.score !== undefined && student.score !== null ? student.score : '—'}</td><td className="px-4 py-2"><input type="checkbox" checked={editFormData.researchPermission} onChange={(e) => setEditFormData({...editFormData, researchPermission: e.target.checked})} className="w-4 h-4" /></td><td className="px-4 py-2">{getStatusBadge(student.status)}</td><td className="px-4 py-2 flex gap-2"><button onClick={() => handleSaveEdit(student.id)} className="p-1 text-green-600 hover:bg-green-50 rounded"><Save size={16} /></button><button onClick={() => setEditingStudentId(null)} className="p-1 text-red-600 hover:bg-red-50 rounded"><X size={16} /></button></td></tr>) : (<tr key={student.id}><td className="px-4 py-2 text-sm">{student.username}</td><td className="px-4 py-2 text-sm font-medium">{student.name}</td><td className="px-4 py-2 text-sm">{student.genero || '—'}</td><td className="px-4 py-2 text-sm font-bold">{student.score !== undefined && student.score !== null ? student.score : '—'}</td><td className="px-4 py-2"><input type="checkbox" checked={student.researchPermission} onChange={() => toggleResearchPermission(student.id)} className="w-4 h-4" /></td><td className="px-4 py-2">{getStatusBadge(student.status)}</td><td className="px-4 py-2 flex gap-2"><button onClick={() => handleEditStudent(student)} className="p-1 text-blue-600 hover:bg-blue-50 rounded"><Edit size={16} /></button><button onClick={() => handleDeleteStudent(student.id)} className="p-1 text-red-600 hover:bg-red-50 rounded"><Trash2 size={16} /></button></td></tr>)))}</tbody></table>{selectedGroup.students.length === 0 && <div className="text-center py-8 text-slate-500">{t.noStudentsTable}</div>}</div>
                                     </div>
                                 </>

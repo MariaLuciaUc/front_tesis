@@ -54,7 +54,8 @@ const translations = {
         pointsConfig: "Configuración de puntos",
         studentWelcome: "Bienvenida al estudiante",
         generalInfo: "Información General",
-        bebrasCategory: "Categoría Bebras"
+        bebrasCategory: "Categoría Bebras",
+        saveFirst:  "Debes guardar la configuración general del Desafío en el panel izquierdo antes de asignar preguntas."
     },
     en: {
         title: "Challenge Configuration",
@@ -90,7 +91,8 @@ const translations = {
         pointsConfig: "Points configuration",
         studentWelcome: "Student welcome message",
         generalInfo: "General Information",
-        bebrasCategory: "Bebras Category"
+        bebrasCategory: "Bebras Category",
+        saveFirst: "You must save challenge general configuration in the left panel before assign questions",
     },
     pt: {
         title: "Configuração do Desafio",
@@ -126,7 +128,8 @@ const translations = {
         pointsConfig: "Configuração de pontos",
         studentWelcome: "Boas-vindas ao estudante",
         generalInfo: "Informações Gerais",
-        bebrasCategory: "Categoria Bebras"
+        bebrasCategory: "Categoria Bebras",
+        saveFirst: "Voce deve salvar as configuraçoes gerais do desafio no painel esquerdo antes de atribuir preguntas"
     },
     fr: {
         title: "Configuration du Défi",
@@ -162,7 +165,8 @@ const translations = {
         pointsConfig: "Configuration des points",
         studentWelcome: "Bienvenue à l'étudiant",
         generalInfo: "Informations Générales",
-        bebrasCategory: "Catégorie Bebras"
+        bebrasCategory: "Catégorie Bebras",
+        saveFirst: "Vous devez enregister les parametres généraux du défi dans le panneau de gauche avant d'attribuer des questions"
     }
 };
 
@@ -616,7 +620,7 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
 
                                             {String(config.id).length > 7 && (
                                                 <p className="text-xs text-amber-600 font-semibold mt-2 text-center bg-amber-50 py-1.5 rounded-lg border border-amber-200">
-                                                    ⚠️ Debes guardar el Desafío en el panel izquierdo antes de asignar preguntas.
+
                                                 </p>
                                             )}
                                         </>
