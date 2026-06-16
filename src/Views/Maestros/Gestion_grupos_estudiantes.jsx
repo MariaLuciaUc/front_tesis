@@ -3,7 +3,7 @@ import Crear_Grupo from './Crear_Grupo';
 import Crear_cuentas_alumnos from './Crear_cuentas_alumnos';
 import Monitoreo_participantes from './Monitoreo_participantes.jsx';
 import castorcubasi from '/src/castorcubasi.jpg';
-import { Users, Plus, Globe, BookOpen, Lock, X, Trash2, Save, CheckCircle, UserPlus, Clock, BarChart3, AlertCircle, ShieldOff, Play, Download, FileDown, FileText, FileSpreadsheet, School, Edit } from 'lucide-react';
+import { Users, Plus, Globe, BookOpen, Lock, X, Trash2, Save, CheckCircle, UserPlus, Clock, BarChart3, AlertCircle, ShieldOff, Play, Download, FileDown, FileText, FileSpreadsheet, School, Edit, Key } from 'lucide-react';
 import { toast } from "sonner";
 import Exportar_diploma_alumno from './Exportar_diploma_alumno';
 import * as XLSX from 'xlsx';
@@ -29,6 +29,7 @@ const translations = {
         closeChallenge: "Cerrar desafío y publicar puntuaciones",
         exportDiplomas: "Exportar diplomas de participación de estudiantes",
         exportReport: "Exportar reporte de participación de grupo",
+        exportCredentials: "Exportar credenciales de los alumnos",
         welcomeTitle: "Bienvenidos al Desafío Bebras",
         welcomeText1: "Ahora está ubicado en la vista del maestro donde puede crear y administrar grupos, crear y modificar cuentas de estudiantes y ver los resultados del desafío. También podrá imprimir los certificados de los estudiantes después del desafío.",
         welcomeText2: "Hay un menú desplegable aquí en la parte superior de la página. Allí podrá seleccionar el grupo que desea ver y administrar. Desde allí también puede agregar nuevos grupos.",
@@ -84,7 +85,8 @@ const translations = {
         studentUpdated: "Estudiante actualizado exitosamente",
         updateError: "Error al actualizar el estudiante",
         nameRequired: "El nombre del estudiante es obligatorio",
-        scoresPublished: "Puntuaciones publicadas exitosamente"
+        scoresPublished: "Puntuaciones publicadas exitosamente",
+        credentialsExported: "Credenciales exportadas exitosamente"
     },
     en: {
         logout: "Logout",
@@ -103,6 +105,7 @@ const translations = {
         closeChallenge: "Close challenge and publish scores",
         exportDiplomas: "Export student participation diplomas",
         exportReport: "Export group participation report",
+        exportCredentials: "Export student credentials",
         welcomeTitle: "Welcome to the Bebras Challenge",
         welcomeText1: "You are now in the teacher view where you can create and manage groups, create and modify student accounts, and view challenge results. You can also print student certificates after the challenge.",
         welcomeText2: "There is a dropdown menu at the top of the page. There you can select the group you want to view and manage. From there you can also add new groups.",
@@ -158,7 +161,8 @@ const translations = {
         studentUpdated: "Student updated successfully",
         updateError: "Error updating student",
         nameRequired: "Student name is required",
-        scoresPublished: "Scores published successfully"
+        scoresPublished: "Scores published successfully",
+        credentialsExported: "Credentials exported successfully"
     },
     pt: {
         logout: "Sair",
@@ -177,6 +181,7 @@ const translations = {
         closeChallenge: "Encerrar desafio e publicar pontuações",
         exportDiplomas: "Exportar diplomas de participação dos estudantes",
         exportReport: "Exportar relatório de participação do grupo",
+        exportCredentials: "Exportar credenciais dos alunos",
         welcomeTitle: "Bem-vindo ao Desafio Bebras",
         welcomeText1: "Agora você está na visão do professor, onde pode criar e gerenciar grupos, criar e modificar contas de alunos e ver os resultados do desafio. Você também pode imprimir os certificados dos alunos após o desafio.",
         welcomeText2: "Há um menu suspenso no topo da página. Lá você pode selecionar o grupo que deseja visualizar e gerenciar. A partir daí, você também pode adicionar novos grupos.",
@@ -232,7 +237,8 @@ const translations = {
         studentUpdated: "Estudante atualizado com sucesso",
         updateError: "Erro ao atualizar estudante",
         nameRequired: "O nome do estudante é obrigatório",
-        scoresPublished: "Pontuações publicadas com sucesso"
+        scoresPublished: "Pontuações publicadas com sucesso",
+        credentialsExported: "Credenciais exportadas com sucesso"
     },
     fr: {
         logout: "Déconnexion",
@@ -251,6 +257,7 @@ const translations = {
         closeChallenge: "Clôturer le défi et publier les scores",
         exportDiplomas: "Exporter les diplômes de participation des élèves",
         exportReport: "Exporter le rapport de participation du groupe",
+        exportCredentials: "Exporter les identifiants des élèves",
         welcomeTitle: "Bienvenue au Défi Bebras",
         welcomeText1: "Vous êtes maintenant dans la vue enseignant où vous pouvez créer et gérer des groupes, créer et modifier des comptes d'élèves et voir les résultats du défi. Vous pouvez également imprimer les certificats des élèves après le défi.",
         welcomeText2: "Il y a un menu déroulant en haut de la page. Vous pouvez y sélectionner le groupe que vous souhaitez voir et gérer. À partir de là, vous pouvez également ajouter de nouveaux groupes.",
@@ -306,7 +313,8 @@ const translations = {
         studentUpdated: "Étudiant mis à jour avec succès",
         updateError: "Erreur lors de la mise à jour",
         nameRequired: "Le nom de l'étudiant est requis",
-        scoresPublished: "Scores publiés avec succès"
+        scoresPublished: "Scores publiés avec succès",
+        credentialsExported: "Identifiants exportés avec succès"
     }
 };
 
@@ -322,6 +330,9 @@ const Gestion_grupos_estudiantes = () => {
     const [showExportDiplomas, setShowExportDiplomas] = useState(false);
     const [showExportOptions, setShowExportOptions] = useState(false);
     const [teacherWelcomeMessage, setTeacherWelcomeMessage] = useState('');
+
+    // Almacenar todas las credenciales de todos los estudiantes del grupo
+    const [allCredentials, setAllCredentials] = useState({});
 
     // Estados para editar estudiante
     const [editingStudentId, setEditingStudentId] = useState(null);
@@ -367,26 +378,34 @@ const Gestion_grupos_estudiantes = () => {
     useEffect(() => {
         const loadGroupStudents = async () => {
             if (!selectedGroupId) return;
-
             try {
                 const response = await api.get(`/groups/${selectedGroupId}/students`);
-                console.log('Estudiantes del grupo:', response.data);
-
                 if (response.data && response.data.students) {
                     setGroups(prevGroups => prevGroups.map(group =>
                         group.id === selectedGroupId
-                            ? {
-                                ...group,
-                                students: response.data.students
-                            }
+                            ? { ...group, students: response.data.students }
                             : group
                     ));
+                    // Cargar credenciales desde localStorage, y depurar entradas obsoletas
+                    // (de estudiantes que ya no existen, p.ej. tras un reseteo de la BD)
+                    const savedCredentials = localStorage.getItem(`credentials_group_${selectedGroupId}`);
+                    if (savedCredentials) {
+                        const parsed = JSON.parse(savedCredentials);
+                        const currentUsernames = new Set(
+                            response.data.students.map(s => s.username)
+                        );
+                        const pruned = Object.fromEntries(
+                            Object.entries(parsed).filter(([username]) => currentUsernames.has(username))
+                        );
+                        setAllCredentials(pruned);
+                        localStorage.setItem(`credentials_group_${selectedGroupId}`, JSON.stringify(pruned));
+                        console.log('🔄 Credenciales cargadas (depuradas) desde localStorage:', pruned);
+                    }
                 }
             } catch (error) {
-                console.error('Error al cargar estudiantes del grupo:', error);
+                console.error('Error al cargar estudiantes:', error);
             }
         };
-
         loadGroupStudents();
     }, [selectedGroupId]);
 
@@ -420,6 +439,8 @@ const Gestion_grupos_estudiantes = () => {
                 setGroups(groups.filter(g => g.id !== selectedGroupId));
                 setSelectedGroupId(groups.length > 1 ? groups.find(g => g.id !== selectedGroupId)?.id || '' : '');
                 toast.success(t.groupDeleted);
+                // Limpiar credenciales del grupo eliminado
+                localStorage.removeItem(`credentials_group_${selectedGroupId}`);
             } catch (error) {
                 console.error('Error al eliminar grupo:', error);
                 const errorMessage = error.response?.data?.message || 'Error al eliminar el grupo';
@@ -428,30 +449,104 @@ const Gestion_grupos_estudiantes = () => {
         }
     };
 
-    const handleStudentsCreated = () => {
+
+    const handleStudentsCreated = (estudiantesCreados) => {
         if (!selectedGroup) return;
 
-        const loadUpdatedStudents = async () => {
-            try {
-                const response = await api.get(`/groups/${selectedGroupId}/students`);
-                if (response.data && response.data.students) {
-                    setGroups(prevGroups => prevGroups.map(group =>
-                        group.id === selectedGroupId
-                            ? {
-                                ...group,
-                                students: response.data.students
-                            }
-                            : group
-                    ));
-                }
-            } catch (error) {
-                console.error('Error al recargar estudiantes:', error);
-            }
-        };
+        console.log('📥 Estudiantes creados recibidos:', estudiantesCreados);
 
-        loadUpdatedStudents();
+        if (estudiantesCreados && estudiantesCreados.length > 0) {
+            // 1. Guardar contraseñas en allCredentials usando el USERNAME (es único y no
+            //    colisiona si se resetea la BD y los id auto-increment se reutilizan)
+            const nuevasCredenciales = {};
+            estudiantesCreados.forEach(est => {
+                if (est.username && est.generated_password) {
+                    nuevasCredenciales[est.username] = est.generated_password;
+                    console.log(`✅ Guardando credencial para ${est.username}: ${est.generated_password}`);
+                } else {
+                    console.warn('⚠️ Estudiante sin username o sin password:', est);
+                }
+            });
+
+            // 2. Actualizar allCredentials y localStorage
+            setAllCredentials(prev => {
+                const updated = { ...prev, ...nuevasCredenciales };
+                localStorage.setItem(`credentials_group_${selectedGroupId}`, JSON.stringify(updated));
+                return updated;
+            });
+
+            // 3. Agregar estudiantes al grupo (sin la contraseña, solo datos básicos)
+            const nuevosEstudiantes = estudiantesCreados.map(est => ({
+                id: est.id,
+                full_name: est.full_name,
+                username: est.username,
+                score: null,
+                status: 'not_started'
+            }));
+
+            setGroups(prevGroups =>
+                prevGroups.map(group =>
+                    group.id === selectedGroupId
+                        ? { ...group, students: [...group.students, ...nuevosEstudiantes] }
+                        : group
+                )
+            );
+        }
         setShowCrearCuentas(false);
     };
+
+// Modifica exportCredentials así:
+    const exportCredentials = () => {
+        if (!selectedGroup) return;
+        if (selectedGroup.students.length === 0) {
+            toast.warning(t.noStudentsWarning);
+            return;
+        }
+
+        // Asegurar que allCredentials esté sincronizado con localStorage
+        const saved = localStorage.getItem(`credentials_group_${selectedGroupId}`);
+        const currentCredentials = saved ? JSON.parse(saved) : allCredentials;
+        console.log('📄 Credenciales actuales para exportar:', currentCredentials);
+
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        doc.setFontSize(22);
+        doc.setTextColor(41, 128, 185);
+        doc.setFont('helvetica', 'bold');
+        doc.text("CREDENCIALES DE ACCESO", 105, 25, { align: 'center' });
+
+        doc.setFontSize(12);
+        doc.setTextColor(100, 100, 100);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Grupo: ${selectedGroup.name} - ${selectedGroup.course}`, 105, 38, { align: 'center' });
+        doc.text(`Fecha de emisión: ${new Date().toLocaleDateString('es-ES')}`, 105, 48, { align: 'center' });
+        doc.setDrawColor(41, 128, 185);
+        doc.line(20, 55, 190, 55);
+
+        const tableData = selectedGroup.students.map((student, idx) => {
+            const password = currentCredentials[student.username] || 'No disponible';
+            console.log(`🔐 ${student.full_name} (${student.username}) -> ${password}`);
+            return [
+                (idx + 1).toString(),
+                student.full_name || '—',
+                student.username || '—',
+                password
+            ];
+        });
+
+        autoTable(doc, {
+            startY: 62,
+            head: [['#', 'Nombre Completo', 'Usuario', 'Contraseña']],
+            body: tableData,
+            theme: 'striped',
+            headStyles: { fillColor: [41, 128, 185], textColor: [255, 255, 255], fontStyle: 'bold' },
+            columnStyles: { 0: { cellWidth: 15 }, 1: { cellWidth: 70 }, 2: { cellWidth: 50 }, 3: { cellWidth: 45 } },
+            styles: { fontSize: 9, cellPadding: 4 }
+        });
+
+        doc.save(`Credenciales_${selectedGroup.name}_${new Date().toISOString().split('T')[0]}.pdf`);
+        toast.success(t.credentialsExported);
+    };
+
 
     const handleUpdateStudentStatus = (updatedStudents) => {
         if (!selectedGroup) return;
@@ -572,7 +667,6 @@ const Gestion_grupos_estudiantes = () => {
         setShowExportOptions(false);
     };
 
-    // Función para editar estudiante (abrir formulario)
     const handleEditStudent = (student) => {
         setEditingStudentId(student.id);
         setEditFormData({
@@ -581,7 +675,6 @@ const Gestion_grupos_estudiantes = () => {
         });
     };
 
-    // Función para actualizar estudiante (guardar cambios)
     const handleUpdateStudent = async (studentId) => {
         if (!editFormData.full_name.trim()) {
             toast.error(t.nameRequired);
@@ -640,6 +733,14 @@ const Gestion_grupos_estudiantes = () => {
                             ? { ...group, students: response.data.students }
                             : group
                     ));
+                    // También eliminar la credencial del estudiante (clave = username)
+                    const studentToDelete = selectedGroup.students.find(s => s.id === studentId);
+                    const updatedCredentials = { ...allCredentials };
+                    if (studentToDelete) {
+                        delete updatedCredentials[studentToDelete.username];
+                    }
+                    setAllCredentials(updatedCredentials);
+                    localStorage.setItem(`credentials_group_${selectedGroupId}`, JSON.stringify(updatedCredentials));
                 }
                 toast.success('Estudiante eliminado exitosamente');
             } catch (error) {
@@ -760,6 +861,18 @@ const Gestion_grupos_estudiantes = () => {
                                         )}
                                     </div>
 
+                                    {/* Botón Exportar Credenciales */}
+                                    {selectedGroup.students.length > 0 && (
+                                        <div className="mb-6">
+                                            <button
+                                                onClick={exportCredentials}
+                                                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 transition-all shadow-md"
+                                            >
+                                                <Key size={16} /> {t.exportCredentials}
+                                            </button>
+                                        </div>
+                                    )}
+
                                     {/* TABLA DE ESTUDIANTES */}
                                     <div>
                                         <div className="flex flex-wrap justify-between items-center mb-4">
@@ -786,7 +899,7 @@ const Gestion_grupos_estudiantes = () => {
                                                 </thead>
                                                 <tbody>
                                                 {selectedGroup.students && selectedGroup.students.length > 0 ? (
-                                                    selectedGroup.students.map((student, index) => (
+                                                    selectedGroup.students.map((student) => (
                                                         editingStudentId === student.id ? (
                                                             <tr key={student.id} className="border-b border-slate-100 bg-blue-50">
                                                                 <td className="px-4 py-2">

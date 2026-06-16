@@ -232,7 +232,6 @@ const Exportar_diploma_alumno = ({ group, onClose, language = 'es' }) => {
         }
 
         setIsGenerating(true);
-        toast.loading(`Generando diploma para ${student.full_name || student.name}...`);
 
         try {
             await generateDiplomaPDF(student, true);

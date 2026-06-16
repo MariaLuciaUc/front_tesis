@@ -1,42 +1,53 @@
+// Panel_Estudiante.jsx
 import React, { useState, useEffect } from 'react';
 import Desafio_Estudiantes from './Desafio_Estudiantes';
-import { LogOut} from 'lucide-react';
+import { LogOut, BookOpen, ChevronRight, Trophy, Star } from 'lucide-react';
 
 const translations = {
     es: {
         logout: "Salir",
-        challengeButton: "Desafío BebrasCuba - Nivel Benjamin",
         welcome: "¡Bienvenido al Desafío Bebras!",
-        ready: "¿Estás listo para ponerte a prueba?",
-        success: "¡Éxitos!"
+        ready: "Selecciona tu categoría para ponerte a prueba:",
+        success: "¡Muchos Éxitos!",
+        categoriesTitle: "Categorías del Desafío"
     },
     en: {
         logout: "Logout",
-        challengeButton: "BebrasCuba Challenge - Benjamin Level",
         welcome: "Welcome to the Bebras Challenge!",
-        ready: "Are you ready to test yourself?",
-        success: "Good luck!"
+        ready: "Select your category to test yourself:",
+        success: "Good luck!",
+        categoriesTitle: "Challenge Categories"
     },
     pt: {
         logout: "Sair",
-        challengeButton: "Desafio BebrasCuba - Nível Benjamin",
         welcome: "Bem-vindo ao Desafio Bebras!",
-        ready: "Você está pronto para se testar?",
-        success: "Boa sorte!"
+        ready: "Selecione sua categoria para se testar:",
+        success: "Boa sorte!",
+        categoriesTitle: "Categorias do Desafio"
     },
     fr: {
         logout: "Déconnexion",
-        challengeButton: "Défi BebrasCuba - Niveau Benjamin",
         welcome: "Bienvenue au Défi Bebras !",
-        ready: "Êtes-vous prêt à vous mettre à l'épreuve ?",
-        success: "Bonne chance !"
+        ready: "Sélectionnez votre catégorie pour vous mettre à l'épreuve :",
+        success: "Bonne chance !",
+        categoriesTitle: "Catégories du Défi"
     }
 };
 
 const Panel_Estudiante = ({ student, onLogout, language = 'es', setLanguage }) => {
-    const t = translations[language];
-    const [desafioIniciado, setDesafioIniciado] = useState(false);
+    const t = translations[language] || translations.es;
+    const [view, setView] = useState('panel');
+    const [selectedCategory, setSelectedCategory] = useState(null);
     const [contestConfig, setContestConfig] = useState(null);
+
+    const categories = [
+        { id: 1, name: "Super Peque (Pre-Escolar a 2do)" },
+        { id: 2, name: "Peque (3ro y 4to)" },
+        { id: 3, name: "Benjamin (5to y 6to)" },
+        { id: 4, name: "Cadete (7mo y 8vo)" },
+        { id: 5, name: "Junior (9no y 10mo)" },
+        { id: 6, name: "Senior (11no y 12mo)" }
+    ];
 
     useEffect(() => {
         const savedConfig = localStorage.getItem('bebrasContestConfig');
@@ -44,60 +55,150 @@ const Panel_Estudiante = ({ student, onLogout, language = 'es', setLanguage }) =
             setContestConfig(JSON.parse(savedConfig));
         } else {
             setContestConfig({
+                id: 1,
                 contestName: 'Desafío Bebras Cuba 2026',
                 executionTime: 45,
-                welcomeMessageStudent: '¡Bienvenido al Desafío Bebras! Lee cada pregunta cuidadosamente y selecciona la respuesta correcta.'
+                welcomeMessageStudent: '¡Bienvenido al Desafío Bebras! Lee cada pregunta cuidadosamente y selecciona la respuesta correcta. Pon a prueba tus habilidades de pensamiento computacional.'
             });
         }
     }, []);
 
-    const handleIniciarDesafio = () => setDesafioIniciado(true);
+    const handleIniciarDesafio = (category) => {
+        setSelectedCategory(category);
+        setView('desafio');
+    };
 
-    if (desafioIniciado) {
-        return <Desafio_Estudiantes
-            studentData={student}
-            onBackToPanel={() => setDesafioIniciado(false)}
-            language={language}
-            setLanguage={setLanguage}
-            contestConfig={contestConfig}
-        />;
+    const handleVolverAlPanel = () => {
+        setView('panel');
+        setSelectedCategory(null);
+    };
+
+    if (view === 'desafio' && selectedCategory) {
+        return (
+            <Desafio_Estudiantes
+                studentData={student}
+                onBackToPanel={handleVolverAlPanel}
+                language={language}
+                setLanguage={setLanguage}
+                contestConfig={contestConfig}
+                categoryId={selectedCategory.id}
+                categoryName={selectedCategory.name}
+            />
+        );
     }
 
     return (
-        <div className="min-h-screen bg-gray-100 p-8 font-sans">
-            <div className="max-w-6xl mx-auto">
-                <div className="flex justify-between items-center mb-8">
-                    <div className="flex gap-2 bg-slate-100 p-1 rounded-full border border-slate-200">
-                        <button className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'es' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('es')}>ES</button>
-                        <button className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'en' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('en')}>EN</button>
-                        <button className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'pt' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('pt')}>PT</button>
-                        <button className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'fr' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('fr')}>FR</button>
+        <div className="w-full h-screen flex flex-col bg-slate-50 font-sans overflow-hidden">
+
+            {/* Header Superior Fijo */}
+            <header className="w-full bg-white border-b border-slate-200 px-6 py-4 flex flex-shrink-0 justify-between items-center z-10 shadow-xs">
+                <div className="flex items-center gap-3">
+                    <div className="bg-blue-600 text-white p-2 rounded-xl shadow-xs">
+                        <Star size={20} className="fill-white" />
                     </div>
-                    <button onClick={onLogout} className="flex items-center gap-2 px-4 py-2 rounded bg-red-500 text-white text-sm hover:bg-red-600 transition-all">
+                    <div>
+                        <h2 className="text-xl font-extrabold text-slate-800 tracking-tight">
+                            {contestConfig?.contestName || "Desafío Bebras"}
+                        </h2>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                    {/* Selector de Idiomas (Corregido y con acento Azul) */}
+                    <div className="flex gap-1 bg-slate-100 p-1 rounded-full border border-slate-200">
+                        {['es', 'en', 'pt', 'fr'].map((lng) => (
+                            <button
+                                key={lng}
+                                type="button"
+                                className={`px-2.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                                    language === lng
+                                        ? 'bg-white text-blue-600 shadow-sm'
+                                        : 'text-slate-500 hover:text-slate-800'
+                                }`}
+                                onClick={() => {
+                                    if (typeof setLanguage === 'function') {
+                                        setLanguage(lng);
+                                    }
+                                }}
+                            >
+                                {lng.toUpperCase()}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Botón Salir */}
+                    <button
+                        onClick={onLogout}
+                        className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 font-semibold text-sm transition-colors cursor-pointer"
+                    >
                         <LogOut size={16} /> {t.logout}
                     </button>
                 </div>
+            </header>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-0 bg-white rounded-lg shadow-lg overflow-hidden">
-                    <div>
-                        <button
-                            onClick={handleIniciarDesafio}
-                            className="flex items-left p-5 bg-white hover:bg-orange-100 transition-colors border border-gray-200 min-h-[5px] w-full text-left cursor-pointer"
-                        >
-                            <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0 mt-0.5 mr-2">
-                                <div className="w-2 h-2 bg-white rounded-full"></div>
-                            </div>
-                            <p className="text-gray-600 text-l">{contestConfig?.contestName || t.challengeButton}</p>
-                        </button>
+            {/* Contenedor Principal dividido 50/50 */}
+            <main className="w-full flex-1 flex flex-col md:flex-row overflow-hidden">
+
+                {/* MITAD IZQUIERDA: Niveles Bebras */}
+                <section className="w-full md:w-1/2 h-1/2 md:h-full bg-white p-6 md:p-10 flex flex-col border-r border-slate-200 overflow-y-auto">
+                    <div className="mb-4">
+                        <h3 className="text-xl font-extrabold text-slate-800 flex items-center gap-2">
+                            <BookOpen size={22} className="text-blue-600" /> {t.categoriesTitle}
+                        </h3>
+                        <p className="text-sm text-slate-500 mt-1">{t.ready}</p>
                     </div>
 
-                    <div className="p-8 bg-white">
-                        <h3 className="text-2xl font-bold text-gray-800 mb-4">{t.welcome}</h3>
-                        <p className="text-gray-600 mb-6">{contestConfig?.welcomeMessageStudent || t.ready}</p>
-                        <div className="text-center"><p className="text-xl font-semibold text-gray-800">{t.success}</p></div>
+                    {/* Lista de Categorías con hover Azul */}
+                    <div className="flex-1 space-y-3 pr-1">
+                        {categories.map((cat) => (
+                            <button
+                                key={cat.id}
+                                onClick={() => handleIniciarDesafio(cat)}
+                                className="w-full flex items-center justify-between p-4 bg-white hover:bg-blue-50/50 border border-slate-200 hover:border-blue-400 rounded-2xl text-left transition-all shadow-xs group cursor-pointer"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-extrabold text-base group-hover:bg-blue-500 group-hover:text-white transition-all transform group-hover:scale-105">
+                                        {cat.id}
+                                    </div>
+                                    <span className="font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">
+                                        {cat.name}
+                                    </span>
+                                </div>
+                                <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-blue-100 transition-all">
+                                    <ChevronRight size={18} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
+                                </div>
+                            </button>
+                        ))}
                     </div>
-                </div>
-            </div>
+                </section>
+
+                {/* MITAD DERECHA: Descripción del Desafío */}
+                <section className="w-full md:w-1/2 h-1/2 md:h-full bg-linear-to-br from-slate-50 to-blue-50/40 p-6 md:p-12 flex flex-col justify-center items-center overflow-y-auto">
+                    <div className="max-w-md text-center animate-[fadeInUp_.4s_ease-out]">
+
+                        {/* Ilustración de trofeo / Decoración Azul */}
+                        <div className="w-24 h-24 bg-blue-100 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-blue-200/50">
+                            <Trophy size={48} className="text-blue-600" />
+                        </div>
+
+                        {/* Textos Informativos */}
+                        <h3 className="text-3xl font-black text-slate-800 tracking-tight mb-4">
+                            {t.welcome}
+                        </h3>
+
+                        <p className="text-slate-600 text-base leading-relaxed mb-8 bg-white/70 backdrop-blur-xs p-5 rounded-2xl border border-slate-200/60 shadow-xs text-left md:text-center">
+                            {contestConfig?.welcomeMessageStudent || t.ready}
+                        </p>
+
+                        {/* Badge de Éxitos */}
+                        <div className="inline-flex items-center gap-2 bg-emerald-500 text-white px-8 py-3.5 rounded-2xl font-bold tracking-wide shadow-md shadow-emerald-500/20 transform hover:scale-102 transition-transform">
+                            <span>{t.success}</span>
+                        </div>
+
+                    </div>
+                </section>
+
+            </main>
         </div>
     );
 };

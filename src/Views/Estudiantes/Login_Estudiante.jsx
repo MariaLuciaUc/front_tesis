@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { User, Lock, LogIn, BookOpen, Shield } from 'lucide-react';
+import { toast } from 'sonner';
 import castorcubasi from '/src/castorcubasi.jpg';
 import Panel_Estudiante from './Panel_Estudiante';
+import api from '../../api/axios.js';
 
 const translations = {
     es: {
@@ -14,7 +16,8 @@ const translations = {
         login: "Ingresar",
         footer: "Desafío Internacional de Pensamiento Computacional",
         errorEmpty: "Ingresa usuario y contraseña",
-        errorInvalid: "Usuario o contraseña incorrectos"
+        errorInvalid: "Usuario o contraseña incorrectos",
+        errorServer: "Error de conexión con el servidor"
     },
     en: {
         welcome: "Welcome to the Bebras Challenge",
@@ -26,7 +29,8 @@ const translations = {
         login: "Login",
         footer: "International Computational Thinking Challenge",
         errorEmpty: "Please enter username and password",
-        errorInvalid: "Invalid username or password"
+        errorInvalid: "Invalid username or password",
+        errorServer: "Server connection error"
     },
     pt: {
         welcome: "Bem-vindo ao Desafio Bebras",
@@ -38,7 +42,8 @@ const translations = {
         login: "Entrar",
         footer: "Desafio Internacional de Pensamento Computacional",
         errorEmpty: "Digite usuário e senha",
-        errorInvalid: "Usuário ou senha incorretos"
+        errorInvalid: "Usuário ou senha incorretos",
+        errorServer: "Erro de conexão com o servidor"
     },
     fr: {
         welcome: "Bienvenue au Défi Bebras",
@@ -50,7 +55,8 @@ const translations = {
         login: "Se connecter",
         footer: "Défi International de Pensée Computationnelle",
         errorEmpty: "Veuillez saisir un nom d'utilisateur et un mot de passe",
-        errorInvalid: "Nom d'utilisateur ou mot de passe incorrect"
+        errorInvalid: "Nom d'utilisateur ou mot de passe incorrect",
+        errorServer: "Erreur de conexión au serveur"
     }
 };
 
@@ -63,19 +69,50 @@ const Login_Estudiante = () => {
     const [error, setError] = useState('');
     const [loggedIn, setLoggedIn] = useState(false);
     const [studentData, setStudentData] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!username || !password) {
             setError(t.errorEmpty);
             return;
         }
 
-        if (username === 'ana' && password === '123') {
-            setStudentData({ username, name: 'Ana García', code: username });
-            setLoggedIn(true);
-        } else {
-            setError(t.errorInvalid);
+        setIsLoading(true);
+        setError('');
+
+        try {
+            const response = await api.post('/students/login', {
+                username: username.trim(),
+                password: password.trim()
+            });
+
+            // Si llegamos aquí, el servidor respondió con un estado 200 OK
+            if (response.data.success) {
+                const student = response.data.data;
+                setStudentData({
+                    id: student.id,
+                    username: student.username,
+                    name: student.full_name,
+                    groupId: student.group_id,
+                    categoryId: student.category_id
+                });
+                setLoggedIn(true);
+                toast.success(`Bienvenido, ${student.full_name}`);
+            } else {
+                setError(t.errorInvalid);
+            }
+        } catch (err) {
+            console.error('Error en login:', err);
+
+            // Axios captura respuestas de error (como 401) aquí
+            if (err.response && err.response.status === 401) {
+                setError(t.errorInvalid);
+            } else {
+                setError(t.errorServer);
+            }
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -93,7 +130,6 @@ const Login_Estudiante = () => {
     return (
         <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-100 to-sky-100 p-4 font-sans">
             <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 relative animate-[fadeInUp_.4s_ease-out]">
-                {/* Selector de idioma */}
                 <div className="absolute top-4 right-4 flex gap-1 bg-slate-100 p-1 rounded-full border border-slate-200">
                     <button className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'es' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('es')}>ES</button>
                     <button className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'en' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('en')}>EN</button>
@@ -120,6 +156,7 @@ const Login_Estudiante = () => {
                             onChange={(e) => setUsername(e.target.value)}
                             className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                             placeholder={t.usernamePlaceholder}
+                            disabled={isLoading}
                         />
                     </div>
 
@@ -133,6 +170,7 @@ const Login_Estudiante = () => {
                             onChange={(e) => setPassword(e.target.value)}
                             className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                             placeholder={t.passwordPlaceholder}
+                            disabled={isLoading}
                         />
                     </div>
 
@@ -144,9 +182,10 @@ const Login_Estudiante = () => {
 
                     <button
                         type="submit"
-                        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all shadow-md hover:shadow-lg"
+                        disabled={isLoading}
+                        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <LogIn size={18} /> {t.login}
+                        <LogIn size={18} /> {isLoading ? '...' : t.login}
                     </button>
                 </form>
 

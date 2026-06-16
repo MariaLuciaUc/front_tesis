@@ -113,13 +113,33 @@ export default function Crear_cuentas_alumnos({ onStudentsCreated, onCancel, gro
 
         try {
             const response = await api.post('/students/bulk', estudiantesData);
-            console.log('Estudiantes creados:', response.data);
+            console.log('RESPUESTA DEL BACKEND:', response.data);
+
+            // Crear manualmente los estudiantes con contraseñas generadas en frontend
+            const estudiantesCreados = nombresArray.map((nombre, index) => {
+                // Generar una contraseña simple
+                const palabras = ['casa', 'gato', 'luna', 'flor', 'mano', 'pies', 'boca', 'tren'];
+                const simbolos = ['@', '#', '$', '%', '&'];
+                const palabra = palabras[Math.floor(Math.random() * palabras.length)];
+                const numeros = Math.floor(Math.random() * 900 + 100);
+                const simbolo = simbolos[Math.floor(Math.random() * simbolos.length)];
+                const passwordGenerada = palabra + numeros + simbolo;
+
+                return {
+                    id: response.data.data?.[index]?.id || Date.now() + index,
+                    full_name: nombre,
+                    username: response.data.data?.[index]?.username || `usr${categoryId}${String(index + 1).padStart(4, '0')}`,
+                    generated_password: passwordGenerada
+                };
+            });
+
+            console.log('Estudiantes con contraseñas generadas:', estudiantesCreados);
 
             setMostrarVistaPrevia(true);
-            toast.success(`${nombresArray.length} ${t.studentsAdded}`);
+            toast.success(`${estudiantesCreados.length} ${t.studentsAdded}`);
 
             if (onStudentsCreated) {
-                onStudentsCreated(nombresArray, genero, enviarCorreo);
+                onStudentsCreated(estudiantesCreados, genero, enviarCorreo);
             }
 
             setNombres('');
@@ -231,7 +251,7 @@ export default function Crear_cuentas_alumnos({ onStudentsCreated, onCancel, gro
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto">
                             {listaNombres.map((nombre, index) => (
                                 <div key={index} className="text-sm text-slate-600 py-1 px-2 bg-white rounded border border-slate-100">
-                                    {index + 1}. {nombre} - {genero === 'Femenino' ? t.female : t.male}
+                                    {index + 1}. {nombre}
                                 </div>
                             ))}
                         </div>

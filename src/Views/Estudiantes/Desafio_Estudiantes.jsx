@@ -1,27 +1,23 @@
 // Desafio_Estudiantes.jsx
 import React, { useState, useEffect } from 'react';
-import { Clock, User, LogOut, Flag, CheckCircle, AlertCircle, Trophy, ThumbsUp, Target, List, Star, ArrowLeft } from 'lucide-react';
+import { Clock, LogOut, Flag, CheckCircle, AlertCircle, Trophy, Target, List, ArrowLeft } from 'lucide-react';
 import Pregunta from './Pregunta';
 import { toast } from 'sonner';
+import axios from 'axios';
 
 const translations = {
     es: {
-        challengeName: "Desafío BebrasCuba",
         timeLabel: "Tiempo restante",
-        studentLabel: "Estudiante",
         exitButton: "Salir",
         finishButton: "Finalizar",
-        progressLabel: "Progreso del desafío",
+        progressLabel: "Progreso en la categoría",
         answered: "preguntas respondidas",
-        questionsTitle: "Preguntas del desafío",
+        questionsTitle: "Preguntas del Desafío",
         clickHint: "Haz clic en cualquier pregunta para resolverla",
         evaluateLabel: "Evaluar",
         evaluateNote: "Solo las preguntas que tengan marcado \"Evaluar\" contarán para el resultado final",
         finishModalTitle: "¿Finalizar desafío?",
-        finishModalText: "Antes de finalizar, verifica que:",
-        finishListItem1: "Haz respondido todas las preguntas que deseas",
-        finishListItem2: "Marca con ✓ las preguntas que quieres evaluar",
-        finishListItem3: "Las preguntas no evaluadas no sumarán puntos",
+        finishModalText: "Antes de finalizar, verifica que hayas respondido todo correctamente.",
         cancel: "Cancelar",
         confirmFinish: "Sí, finalizar",
         exitModalTitle: "¿Salir del desafío?",
@@ -29,195 +25,159 @@ const translations = {
         confirmExit: "Sí, salir",
         completedTitle: "Desafío completado",
         congrats: "¡lo hiciste increíble!",
-        perfect: "¡Perfecto! Eres un genio castor",
-        goodWork: "¡Buen trabajo! Sigue así",
-        keepTrying: "¡No te rindas! La práctica hace al maestro",
-        backToList: "Volver a la lista",
+        backToQuestions: "Volver a preguntas",
         answerRequired: "Debes responder la pregunta antes de enviar",
-        scorePrefix: "Puntuación final:",
         answeredLabel: "Respondida"
-    },
-    en: {
-        challengeName: "BebrasCuba Challenge",
-        timeLabel: "Time left",
-        studentLabel: "Student",
-        exitButton: "Exit",
-        finishButton: "Finish",
-        progressLabel: "Challenge progress",
-        answered: "questions answered",
-        questionsTitle: "Challenge questions",
-        clickHint: "Click on any question to solve it",
-        evaluateLabel: "Evaluate",
-        evaluateNote: "Only check questions will count to final score",
-        finishModalTitle: "Finish challenge?",
-        finishModalText: "Before finishing, verify that:",
-        finishListItem1: "You have answered all the questions you want",
-        finishListItem2: "Check the questions you want to evaluate",
-        finishListItem3: "Questions not evaluated will not add points",
-        cancel: "Cancel",
-        confirmFinish: "Yes, finish",
-        exitModalTitle: "Exit challenge?",
-        exitModalText: "If you exit now, you will lose all your progress. Are you sure?",
-        confirmExit: "Yes, exit",
-        completedTitle: "Challenge completed",
-        congrats: "you did amazing!",
-        perfect: "Perfect! You are a beaver genius",
-        goodWork: "Good work! Keep it up",
-        keepTrying: "Don't give up! Practice makes perfect",
-        backToList: "Back to list",
-        answerRequired: "You must answer the question before submitting",
-        scorePrefix: "Final score:",
-        answeredLabel: "Answered"
-    },
-    pt: {
-        challengeName: "Desafio BebrasCuba",
-        timeLabel: "Tempo restante",
-        studentLabel: "Estudante",
-        exitButton: "Sair",
-        finishButton: "Finalizar",
-        progressLabel: "Progresso do desafio",
-        answered: "perguntas respondidas",
-        questionsTitle: "Perguntas do desafio",
-        clickHint: "Clique em qualquer pergunta para resolvê-la",
-        evaluateLabel: "Avaliar",
-        evaluateNote: "Marque 'Avaliar' apenas nas perguntas que você quer que contem para sua pontuação final",
-        finishModalTitle: "Finalizar desafio?",
-        finishModalText: "Antes de finalizar, verifique que:",
-        finishListItem1: "Você respondeu todas as perguntas que deseja",
-        finishListItem2: "Marque as perguntas que você quer avaliar",
-        finishListItem3: "Perguntas não avaliadas não somarão pontos",
-        cancel: "Cancelar",
-        confirmFinish: "Sim, finalizar",
-        exitModalTitle: "Sair do desafio?",
-        exitModalText: "Se você sair agora, perderá todo o seu progresso. Tem certeza?",
-        confirmExit: "Sim, sair",
-        completedTitle: "Desafio concluído",
-        congrats: "você foi incrível!",
-        perfect: "Perfeito! Você é um gênio castor",
-        goodWork: "Bom trabalho! Continue assim",
-        keepTrying: "Não desista! A prática leva à perfeição",
-        backToList: "Voltar à lista",
-        answerRequired: "Você deve responder a pergunta antes de enviar",
-        scorePrefix: "Pontuação final:",
-        answeredLabel: "Respondida"
-    },
-    fr: {
-        challengeName: "Défi BebrasCuba",
-        timeLabel: "Temps restant",
-        studentLabel: "Élève",
-        exitButton: "Quitter",
-        finishButton: "Terminer",
-        progressLabel: "Progression du défi",
-        answered: "questions répondues",
-        questionsTitle: "Questions du défi",
-        clickHint: "Cliquez sur n'importe quelle question pour la résoudre",
-        evaluateLabel: "Évaluer",
-        evaluateNote: "Cochez 'Évaluer' uniquement pour les questions que vous voulez compter dans votre score final",
-        finishModalTitle: "Terminer le défi ?",
-        finishModalText: "Avant de terminer, vérifiez que :",
-        finishListItem1: "Vous avez répondu à toutes les questions souhaitées",
-        finishListItem2: "Cochez les questions que vous voulez évaluer",
-        finishListItem3: "Les questions non évaluées ne rapporteront pas de points",
-        cancel: "Annuler",
-        confirmFinish: "Oui, terminer",
-        exitModalTitle: "Quitter le défi ?",
-        exitModalText: "Si vous quittez maintenant, vous perdrez toute votre progression. Êtes-vous sûr ?",
-        confirmExit: "Oui, quitter",
-        completedTitle: "Défi terminé",
-        congrats: "vous avez fait un travail incroyable !",
-        perfect: "Parfait ! Vous êtes un génie du castor",
-        goodWork: "Bon travail ! Continuez comme ça",
-        keepTrying: "N'abandonnez pas ! La pratique rend parfait",
-        backToList: "Retour à la liste",
-        answerRequired: "Vous devez répondre à la question avant de soumettre",
-        scorePrefix: "Score final :",
-        answeredLabel: "Répondue"
     }
 };
 
 const Desafio_Estudiantes = (props) => {
-    const { studentData, onBackToPanel, language = 'es', setLanguage, contestConfig: propConfig } = props;
-    const t = translations[language];
+    const { studentData, onBackToPanel, language = 'es', contestConfig, categoryId, categoryName } = props;
+    const t = translations[language] || translations.es;
 
     const [name] = useState(studentData?.name || 'Estudiante');
-    const [contestConfig, setContestConfig] = useState(null);
     const [answers, setAnswers] = useState({});
     const [submitted, setSubmitted] = useState({});
     const [showFinishModal, setShowFinishModal] = useState(false);
     const [finished, setFinished] = useState(false);
     const [finalScore, setFinalScore] = useState(null);
     const [showExitModal, setShowExitModal] = useState(false);
+
     const [selectedQuestion, setSelectedQuestion] = useState(null);
-    const [timeLeft, setTimeLeft] = useState(null); // Inicializar como null
+    const [timeLeft, setTimeLeft] = useState(null);
 
-    // Preguntas del desafío (contenido fijo)
-    const questions = [
-        { id: 1, name: "El puente loco de los castores", text: "Los castores construyen un puente con 3 troncos rojos y 2 azules. ¿Cuántos troncos usan en total?", type: "number", answer: "5" },
-        { id: 2, name: "Castor repartidor", text: "Un castor puede transportar 2 ramas por viaje. Si necesita mover 9 ramas, ¿cuántos viajes debe hacer?", type: "number", answer: "5" },
-        { id: 3, name: "La secuencia arcoiris del castor", text: "Observa la secuencia: rojo, amarillo, rojo, amarillo, rojo... ¿De qué color es la posición 10?", type: "text", answer: "amarillo" },
-        { id: 4, name: "El bosque de las intersecciones", text: "En el mapa del bosque, cada camino tiene 3 intersecciones. Si hay 4 caminos, ¿cuántas intersecciones hay en total?", type: "number", answer: "12" },
-        { id: 5, name: "El castor talador experto", text: "Si un castor tarda 5 minutos en talar un árbol, ¿cuántos minutos tardará en talar 4 árboles?", type: "number", answer: "20" }
-    ];
+    // Estados para las preguntas integradas
+    const [questions, setQuestions] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [evaluated, setEvaluated] = useState({});
 
-    // Evaluated: todas marcadas por defecto
-    const [evaluated, setEvaluated] = useState(() => {
-        const initial = {};
-        for (let i = 0; i < questions.length; i++) initial[i] = true;
-        return initial;
-    });
-
-    // Cargar configuración del concurso (desde props o localStorage)
     useEffect(() => {
-        const loadConfig = () => {
-            let config;
-            if (propConfig) {
-                config = propConfig;
-            } else {
-                const savedConfig = localStorage.getItem('bebrasContestConfig');
-                if (savedConfig) {
-                    config = JSON.parse(savedConfig);
-                } else {
-                    config = {
-                        contestName: 'Desafío Bebras Cuba 2026',
-                        executionTime: 45,
-                        welcomeMessageStudent: '¡Bienvenido al Desafío Bebras! Lee cada pregunta cuidadosamente y selecciona la respuesta correcta.'
-                    };
-                }
+        const cargarDatosEIntegrar = async () => {
+            // Salvaguarda por si contestConfig no cargó a tiempo desde el panel
+            const contestId = contestConfig?.id || localStorage.getItem('current_contest_id') || 1;
+
+            console.log("=== ENTRANDO AL DESAFÍO ===");
+            console.log("Contest ID Buscado:", contestId);
+            console.log("Categoría Seleccionada en el Panel (categoryId):", categoryId, "Tipo:", typeof categoryId);
+
+            try {
+                setLoading(true);
+
+                // 1. Petición al Backend de Laravel (Ruta: /api/contest_tasks/{id})
+                const responseBackend = await axios.get(`/api/contest_tasks/${contestId}`);
+                const contestTasks = responseBackend.data.data || responseBackend.data || [];
+
+                console.log("Tareas brutas recibidas de la BD:", contestTasks);
+
+                // 2. Filtrar las tareas de la base de datos que correspondan a la categoría seleccionada
+                // Forzamos comparación numérica robusta
+                const filteredContestTasks = contestTasks.filter(task => {
+                    return Number(task.category_id) === Number(categoryId);
+                });
+
+                console.log("Tareas de la BD filtradas por esta categoría:", filteredContestTasks);
+
+                // 3. Obtener el archivo tasks.json desde la carpeta public del Frontend
+                const responseJSON = await axios.get('/tasks.json');
+                const bancoPreguntasJSON = responseJSON.data;
+
+                console.log("Estructura del archivo tasks.json cargado:", bancoPreguntasJSON);
+
+                // 4. Cruzar la información (Hacer el Match definitivo)
+                const formattedQuestions = [];
+
+                filteredContestTasks.forEach((ct) => {
+                    const codigoLimpio = ct.task_code.trim();
+                    let infoTareaJSON = null;
+
+                    // Escenario A: Si el tasks.json es una lista/array plano: [ {}, {}, {} ]
+                    if (Array.isArray(bancoPreguntasJSON)) {
+                        infoTareaJSON = bancoPreguntasJSON.find(t => {
+                            const codeJSON = (t.code || t.task_code || '').toString().trim();
+                            const catJSON = t.category_id ?? t.categoryId ?? t.category;
+
+                            // Comparamos ignorando mayúsculas/minúsculas y forzando números
+                            return codeJSON.toLowerCase() === codigoLimpio.toLowerCase() && Number(catJSON) === Number(categoryId);
+                        });
+                    }
+                    // Escenario B: Si el tasks.json es un objeto indexado por llaves de códigos: { "TASK01": {}, "TASK02": {} }
+                    else if (bancoPreguntasJSON && typeof bancoPreguntasJSON === 'object') {
+                        // Buscamos directamente por la propiedad o recorremos sus llaves
+                        const todasLasLlaves = Object.keys(bancoPreguntasJSON);
+                        const llaveEncontrada = todasLasLlaves.find(k => k.trim().toLowerCase() === codigoLimpio.toLowerCase());
+
+                        if (llaveEncontrada) {
+                            const tareaCandidata = bancoPreguntasJSON[llaveEncontrada];
+                            const catJSON = tareaCandidata.category_id ?? tareaCandidata.categoryId ?? tareaCandidata.category;
+                            if (Number(catJSON) === Number(categoryId)) {
+                                infoTareaJSON = { ...tareaCandidata, code: llaveEncontrada };
+                            }
+                        }
+                    }
+
+                    // Si hubo match exitoso, estructuramos la pregunta para la interfaz
+                    if (infoTareaJSON) {
+                        formattedQuestions.push({
+                            id: ct.id,
+                            task_code: codigoLimpio,
+                            name: infoTareaJSON.title || infoTareaJSON.name || `Tarea ${codigoLimpio}`,
+                            text: infoTareaJSON.description || infoTareaJSON.text || 'Sin descripción disponible.',
+                            type: infoTareaJSON.type || 'text',
+                            options: infoTareaJSON.options || [],
+                            answer: infoTareaJSON.answer || infoTareaJSON.correct_answer || '',
+                            image: infoTareaJSON.image || null,
+                            display_order: Number(ct.display_order) || 1
+                        });
+                    } else {
+                        console.warn(`⚠️ No se pudo emparejar el código "${codigoLimpio}" de la BD. Revisa si en tu tasks.json este código existe y tiene asignada la categoría numérica ${categoryId}`);
+                    }
+                });
+
+                // Ordenar las preguntas finales según el display_order de la BD
+                formattedQuestions.sort((a, b) => a.display_order - b.display_order);
+
+                console.log("Preguntas finales listas para renderizar en pantalla:", formattedQuestions);
+                setQuestions(formattedQuestions);
+
+                // Inicializar estados de evaluación (Todos en true por defecto)
+                const initEvaluated = {};
+                formattedQuestions.forEach((_, idx) => {
+                    initEvaluated[idx] = true;
+                });
+                setEvaluated(initEvaluated);
+
+            } catch (error) {
+                console.error("Error crítico en la integración:", error);
+                toast.error("Hubo un problema al sincronizar las preguntas del desafío.");
+            } finally {
+                setLoading(false);
             }
-            setContestConfig(config);
         };
-        loadConfig();
-    }, [propConfig]);
 
-    // Inicializar o actualizar el temporizador cuando la configuración esté lista
+        cargarDatosEIntegrar();
+    }, [contestConfig, categoryId]);
+
+    // Control de Tiempos y Temporizador
     useEffect(() => {
-        if (contestConfig && timeLeft === null && !finished) {
-            const savedTime = localStorage.getItem('bebrasRemainingTime');
-            if (savedTime && !finished) {
+        if (timeLeft === null && !finished) {
+            const savedTime = localStorage.getItem(`bebrasTime_cat_${categoryId}`);
+            if (savedTime) {
                 setTimeLeft(parseInt(savedTime));
             } else {
-                // Usar el tiempo de la configuración (en minutos -> segundos)
-                setTimeLeft((contestConfig.executionTime || 45) * 60);
+                setTimeLeft((contestConfig?.executionTime || 45) * 60);
             }
         }
-    }, [contestConfig, finished]);
+    }, [contestConfig, finished, categoryId]);
 
-    // Guardar tiempo restante en localStorage cada segundo
     useEffect(() => {
         if (timeLeft !== null && timeLeft > 0 && !finished) {
-            localStorage.setItem('bebrasRemainingTime', timeLeft);
-        }
-    }, [timeLeft, finished]);
-
-    // Temporizador: solo corre si timeLeft tiene valor y es >0 y no ha finalizado
-    useEffect(() => {
-        if (timeLeft !== null && timeLeft > 0 && !finished) {
+            localStorage.setItem(`bebrasTime_cat_${categoryId}`, timeLeft);
             const timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
             return () => clearInterval(timer);
-        } else if (timeLeft !== null && timeLeft === 0 && !finished) {
+        } else if (timeLeft === 0 && !finished) {
             handleFinalizar();
         }
-    }, [timeLeft, finished]);
+    }, [timeLeft, finished, categoryId]);
 
     const formatTime = (seconds) => {
         if (seconds === null) return "--:--";
@@ -242,211 +202,171 @@ const Desafio_Estudiantes = (props) => {
         }
     };
 
-    const toggleEvaluate = (qIndex) => {
-        setEvaluated(prev => ({ ...prev, [qIndex]: !prev[qIndex] }));
+    const toggleEvaluate = (idx) => {
+        setEvaluated(prev => ({ ...prev, [idx]: !prev[idx] }));
     };
 
     const handleFinalizar = () => {
         let score = 0;
         questions.forEach((q, idx) => {
             if (evaluated[idx] && answers[idx]) {
-                const userAnswer = answers[idx].toString().toLowerCase().trim();
-                const correctAnswer = q.answer.toString().toLowerCase().trim();
-                if (userAnswer === correctAnswer) score++;
+                if (answers[idx].toString().toLowerCase().trim() === q.answer.toString().toLowerCase().trim()) {
+                    score++;
+                }
             }
         });
         setFinalScore(score);
         setFinished(true);
         setShowFinishModal(false);
-        localStorage.removeItem('bebrasRemainingTime');
+        localStorage.removeItem(`bebrasTime_cat_${categoryId}`);
     };
 
-    const handleExit = () => setShowExitModal(true);
     const confirmExit = () => {
-        localStorage.removeItem('bebrasRemainingTime');
+        localStorage.removeItem(`bebrasTime_cat_${categoryId}`);
         onBackToPanel && onBackToPanel();
     };
 
-    const handleSelectQuestion = (index) => setSelectedQuestion(index);
-    const handleBackToList = () => setSelectedQuestion(null);
-
     const answeredCount = Object.keys(submitted).filter(key => submitted[key]).length;
-    const progressPercentage = (answeredCount / questions.length) * 100;
+    const progressPercentage = questions.length > 0 ? (answeredCount / questions.length) * 100 : 0;
 
-    // Pantalla de carga mientras se carga la configuración o el tiempo
-    if (contestConfig === null || timeLeft === null) {
+    if (loading || timeLeft === null) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-sky-100">
-                <div className="text-slate-500">Cargando desafío...</div>
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="text-gray-500 font-medium animate-pulse">Sincronizando preguntas de {categoryName}...</div>
             </div>
         );
     }
 
-    // Pantalla de finalización
     if (finished) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-100 to-sky-100 p-4 font-sans">
-                <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 text-center animate-[fadeInUp_.4s_ease-out]">
-                    <div className="mb-6">
-                        <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Trophy size={40} className="text-yellow-600" />
-                        </div>
-                        <h2 className="text-2xl font-extrabold text-slate-800">{t.completedTitle}</h2>
+            <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+                <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 text-center">
+                    <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Trophy size={40} className="text-blue-600" />
                     </div>
-                    <div className="bg-slate-50 rounded-xl p-6 mb-6">
-                        <p className="text-slate-600 mb-2">{name}, {t.congrats}</p>
-                        <div className="text-5xl font-bold text-blue-600 my-4">{finalScore} / {questions.length}</div>
-                        {finalScore === questions.length ? (
-                            <div className="flex items-center justify-center gap-2 text-green-600 bg-green-50 p-3 rounded-xl"><Star size={20} /> {t.perfect}</div>
-                        ) : finalScore >= questions.length / 2 ? (
-                            <div className="flex items-center justify-center gap-2 text-blue-600 bg-blue-50 p-3 rounded-xl"><ThumbsUp size={20} /> {t.goodWork}</div>
-                        ) : (
-                            <div className="flex items-center justify-center gap-2 text-orange-600 bg-orange-50 p-3 rounded-xl"><Target size={20} /> {t.keepTrying}</div>
-                        )}
+                    <h2 className="text-2xl font-bold text-gray-800 mb-2">{t.completedTitle}</h2>
+                    <p className="text-gray-600 mb-4">{name}, {t.congrats}</p>
+                    <div className="bg-gray-50 rounded-xl p-4 mb-6">
+                        <span className="text-sm text-gray-500 block">Puntuación en {categoryName}:</span>
+                        <span className="text-4xl font-extrabold text-blue-600">{finalScore} / {questions.length}</span>
                     </div>
-                    <button onClick={onBackToPanel} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all shadow-md">
-                        <LogOut size={18} /> {t.exitButton}
+                    <button onClick={onBackToPanel} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors cursor-pointer">
+                        Volver al Panel
                     </button>
                 </div>
             </div>
         );
     }
 
-    // Vista de lista de preguntas
     if (selectedQuestion === null) {
         return (
-            <div className="min-h-screen bg-linear-to-br from-slate-100 to-sky-100 font-sans">
-                {/* Header */}
-                <div className="bg-white shadow-md sticky top-0 z-10">
-                    <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+            <div className="min-h-screen bg-gray-50">
+                {/* Header Superior */}
+                <div className="bg-white shadow-xs border-b border-gray-200 sticky top-0 z-10 px-4 py-3">
+                    <div className="max-w-5xl mx-auto flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <div className="bg-blue-600 text-white p-1.5 rounded-lg">
-                                <Target size={18} />
-                            </div>
-                            <span className="font-bold text-slate-800">{contestConfig.contestName}</span>
+                            <Target className="text-blue-600" size={20} />
+                            <span className="font-bold text-gray-800">{categoryName}</span>
                         </div>
                         <div className="flex items-center gap-4">
-                            <div className="flex gap-1 bg-slate-100 p-1 rounded-full border border-slate-200">
-                                <button className={`px-2 py-0.5 rounded-full text-xs font-semibold transition-all ${language === 'es' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('es')}>ES</button>
-                                <button className={`px-2 py-0.5 rounded-full text-xs font-semibold transition-all ${language === 'en' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('en')}>EN</button>
-                                <button className={`px-2 py-0.5 rounded-full text-xs font-semibold transition-all ${language === 'pt' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('pt')}>PT</button>
-                                <button className={`px-2 py-0.5 rounded-full text-xs font-semibold transition-all ${language === 'fr' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('fr')}>FR</button>
+                            <div className="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-full text-blue-700 font-mono font-bold border border-blue-100">
+                                <Clock size={16} />
+                                {formatTime(timeLeft)}
                             </div>
-                            <div className="flex items-center gap-2 bg-orange-100 px-3 py-1.5 rounded-full">
-                                <Clock size={16} className="text-orange-600" />
-                                <span className="font-mono font-bold text-orange-700">{formatTime(timeLeft)}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-slate-600">
-                                <User size={16} />
-                                <span className="text-sm">{name}</span>
-                            </div>
-                            <button onClick={handleExit} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all text-sm font-medium">
-                                <LogOut size={14} /> {t.exitButton}
+                            <button onClick={() => setShowExitModal(true)} className="px-3 py-1.5 text-sm bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 font-medium cursor-pointer">
+                                {t.exitButton}
                             </button>
-                            <button onClick={() => setShowFinishModal(true)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-all text-sm font-medium shadow-md">
-                                <Flag size={14} /> {t.finishButton}
+                            <button onClick={() => setShowFinishModal(true)} className="px-3 py-1.5 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium shadow-xs cursor-pointer">
+                                {t.finishButton}
                             </button>
                         </div>
                     </div>
                 </div>
 
-                {/* Barra de progreso */}
-                <div className="bg-white border-b border-slate-200 px-4 py-2">
-                    <div className="max-w-7xl mx-auto">
-                        <div className="flex justify-between items-center mb-1">
-                            <span className="text-sm font-medium text-slate-600">{t.progressLabel}</span>
-                            <span className="text-sm font-bold text-green-600">{answeredCount} {t.answered}</span>
+                {/* Progreso */}
+                <div className="bg-white border-b border-gray-100 px-4 py-3">
+                    <div className="max-w-5xl mx-auto">
+                        <div className="flex justify-between text-sm mb-1 font-medium">
+                            <span className="text-gray-500">{t.progressLabel}</span>
+                            <span className="text-green-600">{answeredCount} / {questions.length}</span>
                         </div>
-                        <div className="w-full bg-slate-200 rounded-full h-2.5">
-                            <div className="bg-green-500 rounded-full h-2.5 transition-all duration-500" style={{ width: `${progressPercentage}%` }}></div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div className="bg-green-500 h-2 rounded-full transition-all duration-300" style={{ width: `${progressPercentage}%` }}></div>
                         </div>
                     </div>
                 </div>
 
                 {/* Lista de preguntas */}
-                <div className="max-w-7xl mx-auto p-6">
-                    <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-                        <div className="bg-slate-50 px-5 py-3 border-b border-slate-200">
-                            <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                                <List size={18} className="text-blue-600" /> {t.questionsTitle}
-                            </h3>
-                            <p className="text-xs text-slate-500 mt-1">{t.clickHint}</p>
+                <div className="max-w-3xl mx-auto p-6">
+                    <div className="bg-white rounded-xl shadow-xs border border-gray-200 overflow-hidden">
+                        <div className="p-4 bg-gray-50 border-b border-gray-200">
+                            <h3 className="font-bold text-gray-800 flex items-center gap-2"><List size={18} /> {t.questionsTitle}</h3>
+                            <p className="text-xs text-gray-500">{t.clickHint}</p>
                         </div>
-                        <div className="divide-y divide-slate-100 max-h-[500px] overflow-y-auto">
-                            {questions.map((q, idx) => {
-                                const isAnswered = submitted[idx];
-                                return (
+
+                        {questions.length === 0 ? (
+                            <div className="p-8 text-center text-gray-400 font-medium">
+                                No hay preguntas vinculadas en la base de datos para la categoría: {categoryName}
+                            </div>
+                        ) : (
+                            <div className="divide-y divide-gray-100">
+                                {questions.map((q, idx) => (
                                     <div
                                         key={q.id}
-                                        onClick={() => handleSelectQuestion(idx)}
-                                        className="group flex items-center justify-between p-4 cursor-pointer transition-all hover:bg-slate-50"
+                                        onClick={() => setSelectedQuestion(idx)}
+                                        className="p-4 hover:bg-blue-50/20 flex items-center justify-between cursor-pointer transition-colors group"
                                     >
-                                        <div className="flex items-center gap-3 flex-1">
-                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all flex-shrink-0 ${isAnswered ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
-                                                {isAnswered ? '✓' : idx + 1}
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${submitted[idx] ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500 group-hover:bg-blue-100 group-hover:text-blue-600'}`}>
+                                                {submitted[idx] ? '✓' : q.display_order}
                                             </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium text-slate-700 group-hover:text-blue-600 transition-colors">{q.name}</p>
-                                                {isAnswered && <span className="text-xs text-green-600 flex items-center gap-1 mt-0.5"><CheckCircle size={10} /> {t.answeredLabel}</span>}
+                                            <div>
+                                                {/* MUESTRA EL TITULO DE LA PREGUNTA EXTRAÍDO DEL JSON */}
+                                                <p className="text-sm font-semibold text-gray-700 group-hover:text-blue-900 transition-colors">{q.name}</p>
+                                                <span className="text-xs text-gray-400">Código: {q.task_code}</span>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-2 flex-shrink-0">
-                                            <label className="flex items-center gap-1.5 text-xs cursor-pointer px-2 py-1 rounded-lg hover:bg-slate-100" onClick={(e) => e.stopPropagation()}>
+
+                                        <div onClick={(e) => e.stopPropagation()} className="flex items-center">
+                                            <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer">
                                                 <input
                                                     type="checkbox"
                                                     checked={!!evaluated[idx]}
                                                     onChange={() => toggleEvaluate(idx)}
-                                                    className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                                    className="rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
                                                 />
-                                                <span className="text-slate-500">{t.evaluateLabel}</span>
+                                                {t.evaluateLabel}
                                             </label>
                                         </div>
                                     </div>
-                                );
-                            })}
-                        </div>
-                        <div className="p-4 bg-blue-50 border-t border-blue-100">
-                            <div className="flex items-start gap-2 text-xs text-blue-700">
-                                <AlertCircle size={14} className="flex-shrink-0 mt-0.5" />
-                                <span>{t.evaluateNote}</span>
+                                ))}
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
 
-                {/* Modales (igual que antes) */}
+                {/* Modales */}
                 {showFinishModal && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowFinishModal(false)}>
-                        <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-[fadeInUp_.3s_ease-out]" onClick={(e) => e.stopPropagation()}>
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center"><Flag size={20} className="text-orange-500" /></div>
-                                <h3 className="text-xl font-bold text-slate-800">{t.finishModalTitle}</h3>
-                            </div>
-                            <p className="text-slate-600 mb-2">{t.finishModalText}</p>
-                            <ul className="text-sm text-slate-500 mb-6 ml-5 space-y-1 list-disc">
-                                <li>{t.finishListItem1}</li>
-                                <li>{t.finishListItem2}</li>
-                                <li>{t.finishListItem3}</li>
-                            </ul>
-                            <div className="flex gap-3">
-                                <button onClick={() => setShowFinishModal(false)} className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-medium hover:bg-slate-200 transition-all">{t.cancel}</button>
-                                <button onClick={handleFinalizar} className="flex-1 py-2.5 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 transition-all shadow-md">{t.confirmFinish}</button>
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-xl p-6 max-w-sm w-full">
+                            <h4 className="text-lg font-bold mb-2">{t.finishModalTitle}</h4>
+                            <p className="text-sm text-gray-600 mb-4">{t.finishModalText}</p>
+                            <div className="flex gap-2">
+                                <button onClick={() => setShowFinishModal(false)} className="flex-1 py-2 bg-gray-100 rounded-lg text-sm font-medium cursor-pointer">{t.cancel}</button>
+                                <button onClick={handleFinalizar} className="flex-1 py-2 bg-green-600 text-white rounded-lg text-sm font-medium cursor-pointer">Finalizar</button>
                             </div>
                         </div>
                     </div>
                 )}
 
                 {showExitModal && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowExitModal(false)}>
-                        <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-[fadeInUp_.3s_ease-out]" onClick={(e) => e.stopPropagation()}>
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center"><LogOut size={20} className="text-red-500" /></div>
-                                <h3 className="text-xl font-bold text-slate-800">{t.exitModalTitle}</h3>
-                            </div>
-                            <p className="text-slate-600 mb-6">{t.exitModalText}</p>
-                            <div className="flex gap-3">
-                                <button onClick={() => setShowExitModal(false)} className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-medium hover:bg-slate-200 transition-all">{t.cancel}</button>
-                                <button onClick={confirmExit} className="flex-1 py-2.5 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition-all shadow-md">{t.confirmExit}</button>
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-xl p-6 max-w-sm w-full">
+                            <h4 className="text-lg font-bold mb-2 text-red-600">{t.exitModalTitle}</h4>
+                            <p className="text-sm text-gray-600 mb-4">{t.exitModalText}</p>
+                            <div className="flex gap-2">
+                                <button onClick={() => setShowExitModal(false)} className="flex-1 py-2 bg-gray-100 rounded-lg text-sm font-medium cursor-pointer">{t.cancel}</button>
+                                <button onClick={confirmExit} className="flex-1 py-2 bg-red-600 text-white rounded-lg text-sm font-medium cursor-pointer">{t.confirmExit}</button>
                             </div>
                         </div>
                     </div>
@@ -455,45 +375,12 @@ const Desafio_Estudiantes = (props) => {
         );
     }
 
-    // Vista de pregunta individual
     return (
-        <div className="min-h-screen bg-linear-to-br from-slate-100 to-sky-100 font-sans">
-            <div className="bg-white shadow-md sticky top-0 z-10">
-                <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-                    <button onClick={handleBackToList} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all font-medium">
-                        <ArrowLeft size={18} /> {t.backToList}
-                    </button>
-                    <div className="flex items-center gap-3">
-                        <div className="flex gap-1 bg-slate-100 p-1 rounded-full border border-slate-200">
-                            <button className={`px-2 py-0.5 rounded-full text-xs font-semibold transition-all ${language === 'es' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('es')}>ES</button>
-                            <button className={`px-2 py-0.5 rounded-full text-xs font-semibold transition-all ${language === 'en' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('en')}>EN</button>
-                            <button className={`px-2 py-0.5 rounded-full text-xs font-semibold transition-all ${language === 'pt' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('pt')}>PT</button>
-                            <button className={`px-2 py-0.5 rounded-full text-xs font-semibold transition-all ${language === 'fr' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('fr')}>FR</button>
-                        </div>
-                        <div className="flex items-center gap-2 bg-orange-100 px-3 py-1.5 rounded-full">
-                            <Clock size={16} className="text-orange-600" />
-                            <span className="font-mono font-bold text-orange-700">{formatTime(timeLeft)}</span>
-                        </div>
-                        <button onClick={() => setShowFinishModal(true)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-all text-sm font-medium shadow-md">
-                            <Flag size={14} /> {t.finishButton}
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div className="bg-white border-b border-slate-200 px-4 py-2">
-                <div className="max-w-7xl mx-auto">
-                    <div className="flex justify-between items-center mb-1">
-                        <span className="text-sm font-medium text-slate-600">{t.progressLabel}</span>
-                        <span className="text-sm font-bold text-green-600">{answeredCount} {t.answered}</span>
-                    </div>
-                    <div className="w-full bg-slate-200 rounded-full h-2.5">
-                        <div className="bg-green-500 rounded-full h-2.5 transition-all duration-500" style={{ width: `${progressPercentage}%` }}></div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="max-w-7xl mx-auto p-6">
+        <div className="min-h-screen bg-gray-50 p-6">
+            <div className="max-w-3xl mx-auto">
+                <button onClick={() => setSelectedQuestion(null)} className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 mb-4 cursor-pointer">
+                    <ArrowLeft size={16} /> {t.backToQuestions}
+                </button>
                 <Pregunta
                     question={questions[selectedQuestion]}
                     questionNumber={selectedQuestion + 1}
@@ -509,44 +396,6 @@ const Desafio_Estudiantes = (props) => {
                     language={language}
                 />
             </div>
-
-            {/* Modales de finalizar y salir (igual que en la lista) */}
-            {showFinishModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowFinishModal(false)}>
-                    <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-[fadeInUp_.3s_ease-out]" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center"><Flag size={20} className="text-orange-500" /></div>
-                            <h3 className="text-xl font-bold text-slate-800">{t.finishModalTitle}</h3>
-                        </div>
-                        <p className="text-slate-600 mb-2">{t.finishModalText}</p>
-                        <ul className="text-sm text-slate-500 mb-6 ml-5 space-y-1 list-disc">
-                            <li>{t.finishListItem1}</li>
-                            <li>{t.finishListItem2}</li>
-                            <li>{t.finishListItem3}</li>
-                        </ul>
-                        <div className="flex gap-3">
-                            <button onClick={() => setShowFinishModal(false)} className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-medium hover:bg-slate-200 transition-all">{t.cancel}</button>
-                            <button onClick={handleFinalizar} className="flex-1 py-2.5 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 transition-all shadow-md">{t.confirmFinish}</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {showExitModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowExitModal(false)}>
-                    <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-[fadeInUp_.3s_ease-out]" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center"><LogOut size={20} className="text-red-500" /></div>
-                            <h3 className="text-xl font-bold text-slate-800">{t.exitModalTitle}</h3>
-                        </div>
-                        <p className="text-slate-600 mb-6">{t.exitModalText}</p>
-                        <div className="flex gap-3">
-                            <button onClick={() => setShowExitModal(false)} className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-medium hover:bg-slate-200 transition-all">{t.cancel}</button>
-                            <button onClick={confirmExit} className="flex-1 py-2.5 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition-all shadow-md">{t.confirmExit}</button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
