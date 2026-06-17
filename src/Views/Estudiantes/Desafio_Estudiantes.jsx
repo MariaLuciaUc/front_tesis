@@ -42,7 +42,6 @@ const Desafio_Estudiantes = (props) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // ----- Temporizador -----
     useEffect(() => {
         if (timeLeft === null && !finished) {
             const savedTime = localStorage.getItem(`bebrasTime_cat_${categoryId}`);
