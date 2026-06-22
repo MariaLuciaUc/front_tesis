@@ -468,24 +468,6 @@ const Desafio_Estudiantes = (props) => {
         }));
     };
 
-    const handleSelectAll = () => {
-        const allSelected = {};
-        questions.forEach(q => {
-            allSelected[q.id] = true;
-        });
-        setSelectedQuestions(allSelected);
-        toast.success(t.selectAllTasks);
-    };
-
-    const handleDeselectAll = () => {
-        const allDeselected = {};
-        questions.forEach(q => {
-            allDeselected[q.id] = false;
-        });
-        setSelectedQuestions(allDeselected);
-        toast.success(t.deselectAllTasks);
-    };
-
     const handleLanguageChange = (lang) => {
         setCurrentLanguage(lang);
     };
