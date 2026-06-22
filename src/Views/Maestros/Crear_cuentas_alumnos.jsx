@@ -108,7 +108,7 @@ export default function Crear_cuentas_alumnos({ onStudentsCreated, onCancel, gro
             category_id: categoryId,
             group_id: groupId,
             students: nombresArray,
-            gender: genero
+            gender: genero // 👈 ENVIAR 'M' o 'F' al backend
         };
 
         try {
@@ -128,6 +128,7 @@ export default function Crear_cuentas_alumnos({ onStudentsCreated, onCancel, gro
                 return {
                     id: response.data.data?.[index]?.id || Date.now() + index,
                     full_name: nombre,
+                    gender: genero, // 👈 GUARDAR GÉNERO
                     username: response.data.data?.[index]?.username || `usr${categoryId}${String(index + 1).padStart(4, '0')}`,
                     generated_password: passwordGenerada
                 };
@@ -209,7 +210,7 @@ export default function Crear_cuentas_alumnos({ onStudentsCreated, onCancel, gro
                             className={`px-6 py-2 rounded-xl font-medium transition-all ${genero === 'Femenino' ? 'bg-pink-500 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
                             disabled={isCreating}
                         >
-                            {t.female}
+                            {t.female} ♀
                         </button>
                         <button
                             type="button"
@@ -217,28 +218,18 @@ export default function Crear_cuentas_alumnos({ onStudentsCreated, onCancel, gro
                             className={`px-6 py-2 rounded-xl font-medium transition-all ${genero === 'Masculino' ? 'bg-blue-500 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
                             disabled={isCreating}
                         >
-                            {t.male}
+                            {t.male} ♂
                         </button>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3 mb-6">
-                    <input
-                        type="checkbox"
-                        id="correoCheckbox"
-                        checked={enviarCorreo}
-                        onChange={(e) => setEnviarCorreo(e.target.checked)}
-                        className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                        disabled={isCreating}
-                    />
-                    <label htmlFor="correoCheckbox" className="text-sm text-slate-700">{t.emailCheckbox}</label>
-                </div>
-
                 <div className="flex flex-wrap gap-4 mb-6">
-                    <button onClick={guardarYEnviar} disabled={isCreating} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                        <Send size={18} /> {isCreating ? t.creating : t.saveButton}
+                    <button onClick={guardarYEnviar} disabled={isCreating}
+                            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                        <Send size={18}/> {isCreating ? t.creating : t.saveButton}
                     </button>
-                    <button onClick={limpiarTodo} disabled={isCreating} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-slate-200 text-slate-700 font-medium hover:bg-slate-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                    <button onClick={limpiarTodo} disabled={isCreating}
+                            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-slate-200 text-slate-700 font-medium hover:bg-slate-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                         <Trash2 size={18} /> {t.clearButton}
                     </button>
                 </div>
@@ -250,8 +241,8 @@ export default function Crear_cuentas_alumnos({ onStudentsCreated, onCancel, gro
                         </h4>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto">
                             {listaNombres.map((nombre, index) => (
-                                <div key={index} className="text-sm text-slate-600 py-1 px-2 bg-white rounded border border-slate-100">
-                                    {index + 1}. {nombre}
+                                <div key={index} className="text-sm text-slate-600 py-1 px-2 bg-white rounded border border-slate-100 flex items-center gap-1">
+                                    {genero === 'F' ? '♀' : '♂'} {index + 1}. {nombre}
                                 </div>
                             ))}
                         </div>

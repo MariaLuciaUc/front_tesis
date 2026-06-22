@@ -331,15 +331,16 @@ const Gestion_grupos_estudiantes = () => {
     const [showExportOptions, setShowExportOptions] = useState(false);
     const [teacherWelcomeMessage, setTeacherWelcomeMessage] = useState('');
 
-    // Almacenar todas las credenciales de todos los estudiantes del grupo
     const [allCredentials, setAllCredentials] = useState({});
 
-    // Estados para editar estudiante
     const [editingStudentId, setEditingStudentId] = useState(null);
-    const [editFormData, setEditFormData] = useState({ full_name: '', username: '' });
+    const [editFormData, setEditFormData] = useState({
+        full_name: '',
+        username: '',
+        gender: ''
+    });
     const [isUpdating, setIsUpdating] = useState(false);
 
-    // Cargar grupos desde la API
     useEffect(() => {
         const loadGroups = async () => {
             try {
@@ -374,7 +375,6 @@ const Gestion_grupos_estudiantes = () => {
         loadGroups();
     }, []);
 
-    // Cargar los estudiantes del grupo seleccionado
     useEffect(() => {
         const loadGroupStudents = async () => {
             if (!selectedGroupId) return;
@@ -386,8 +386,6 @@ const Gestion_grupos_estudiantes = () => {
                             ? { ...group, students: response.data.students }
                             : group
                     ));
-                    // Cargar credenciales desde localStorage, y depurar entradas obsoletas
-                    // (de estudiantes que ya no existen, p.ej. tras un reseteo de la BD)
                     const savedCredentials = localStorage.getItem(`credentials_group_${selectedGroupId}`);
                     if (savedCredentials) {
                         const parsed = JSON.parse(savedCredentials);
@@ -409,7 +407,6 @@ const Gestion_grupos_estudiantes = () => {
         loadGroupStudents();
     }, [selectedGroupId]);
 
-    // Cargar mensaje de bienvenida del profesor desde localStorage
     useEffect(() => {
         const savedConfig = localStorage.getItem('bebrasContestConfig');
         if (savedConfig) {
@@ -439,7 +436,6 @@ const Gestion_grupos_estudiantes = () => {
                 setGroups(groups.filter(g => g.id !== selectedGroupId));
                 setSelectedGroupId(groups.length > 1 ? groups.find(g => g.id !== selectedGroupId)?.id || '' : '');
                 toast.success(t.groupDeleted);
-                // Limpiar credenciales del grupo eliminado
                 localStorage.removeItem(`credentials_group_${selectedGroupId}`);
             } catch (error) {
                 console.error('Error al eliminar grupo:', error);
@@ -449,15 +445,12 @@ const Gestion_grupos_estudiantes = () => {
         }
     };
 
-
     const handleStudentsCreated = (estudiantesCreados) => {
         if (!selectedGroup) return;
 
         console.log('📥 Estudiantes creados recibidos:', estudiantesCreados);
 
         if (estudiantesCreados && estudiantesCreados.length > 0) {
-            // 1. Guardar contraseñas en allCredentials usando el USERNAME (es único y no
-            //    colisiona si se resetea la BD y los id auto-increment se reutilizan)
             const nuevasCredenciales = {};
             estudiantesCreados.forEach(est => {
                 if (est.username && est.generated_password) {
@@ -468,17 +461,16 @@ const Gestion_grupos_estudiantes = () => {
                 }
             });
 
-            // 2. Actualizar allCredentials y localStorage
             setAllCredentials(prev => {
                 const updated = { ...prev, ...nuevasCredenciales };
                 localStorage.setItem(`credentials_group_${selectedGroupId}`, JSON.stringify(updated));
                 return updated;
             });
 
-            // 3. Agregar estudiantes al grupo (sin la contraseña, solo datos básicos)
             const nuevosEstudiantes = estudiantesCreados.map(est => ({
                 id: est.id,
                 full_name: est.full_name,
+                gender: est.gender || null,
                 username: est.username,
                 score: null,
                 status: 'not_started'
@@ -495,7 +487,6 @@ const Gestion_grupos_estudiantes = () => {
         setShowCrearCuentas(false);
     };
 
-// Modifica exportCredentials así:
     const exportCredentials = () => {
         if (!selectedGroup) return;
         if (selectedGroup.students.length === 0) {
@@ -503,7 +494,6 @@ const Gestion_grupos_estudiantes = () => {
             return;
         }
 
-        // Asegurar que allCredentials esté sincronizado con localStorage
         const saved = localStorage.getItem(`credentials_group_${selectedGroupId}`);
         const currentCredentials = saved ? JSON.parse(saved) : allCredentials;
         console.log('📄 Credenciales actuales para exportar:', currentCredentials);
@@ -524,10 +514,10 @@ const Gestion_grupos_estudiantes = () => {
 
         const tableData = selectedGroup.students.map((student, idx) => {
             const password = currentCredentials[student.username] || 'No disponible';
-            console.log(`🔐 ${student.full_name} (${student.username}) -> ${password}`);
             return [
                 (idx + 1).toString(),
                 student.full_name || '—',
+                student.gender || '—',
                 student.username || '—',
                 password
             ];
@@ -535,18 +525,17 @@ const Gestion_grupos_estudiantes = () => {
 
         autoTable(doc, {
             startY: 62,
-            head: [['#', 'Nombre Completo', 'Usuario', 'Contraseña']],
+            head: [['#', 'Nombre Completo', 'Género', 'Usuario', 'Contraseña']],
             body: tableData,
             theme: 'striped',
             headStyles: { fillColor: [41, 128, 185], textColor: [255, 255, 255], fontStyle: 'bold' },
-            columnStyles: { 0: { cellWidth: 15 }, 1: { cellWidth: 70 }, 2: { cellWidth: 50 }, 3: { cellWidth: 45 } },
+            columnStyles: { 0: { cellWidth: 15 }, 1: { cellWidth: 60 }, 2: { cellWidth: 25 }, 3: { cellWidth: 45 }, 4: { cellWidth: 45 } },
             styles: { fontSize: 9, cellPadding: 4 }
         });
 
         doc.save(`Credenciales_${selectedGroup.name}_${new Date().toISOString().split('T')[0]}.pdf`);
         toast.success(t.credentialsExported);
     };
-
 
     const handleUpdateStudentStatus = (updatedStudents) => {
         if (!selectedGroup) return;
@@ -603,6 +592,7 @@ const Gestion_grupos_estudiantes = () => {
         if (!selectedGroup) return [];
         return selectedGroup.students.map(student => ({
             [t.student]: student.full_name || student.name || '—',
+            'Género': student.gender || '—',
             [t.username]: student.username || '—',
             [t.school]: selectedGroup.school || t.noSchool,
             [t.level]: selectedGroup.course,
@@ -659,8 +649,8 @@ const Gestion_grupos_estudiantes = () => {
             y += 7;
             doc.text(`${t.completionRate}: ${((selectedGroup.students.filter(s => s.status === 'finished').length / selectedGroup.students.length) * 100).toFixed(1)}%`, 14, y);
             y += 15;
-            const tableData = reportData.map(r => [r[t.student], r[t.username], r[t.school], r[t.level], r[t.language], r[t.status], r[t.score]]);
-            autoTable(doc, { startY: y, head: [[t.student, t.username, t.school, t.level, t.language, t.status, t.score]], body: tableData, theme: 'striped', headStyles: { fillColor: [41,128,185] } });
+            const tableData = reportData.map(r => [r[t.student], r['Género'], r[t.username], r[t.school], r[t.level], r[t.language], r[t.status], r[t.score]]);
+            autoTable(doc, { startY: y, head: [[t.student, 'Género', t.username, t.school, t.level, t.language, t.status, t.score]], body: tableData, theme: 'striped', headStyles: { fillColor: [41,128,185] } });
             doc.save(`Reporte_participacion_${selectedGroup.name}_${new Date().toISOString().split('T')[0]}.pdf`);
             toast.success(`${t.reportGenerated} PDF`);
         } catch (error) { console.error(error); toast.error(t.errorExport); }
@@ -671,7 +661,8 @@ const Gestion_grupos_estudiantes = () => {
         setEditingStudentId(student.id);
         setEditFormData({
             full_name: student.full_name || '',
-            username: student.username || ''
+            username: student.username || '',
+            gender: student.gender || ''
         });
     };
 
@@ -686,7 +677,8 @@ const Gestion_grupos_estudiantes = () => {
         try {
             const updateData = {
                 full_name: editFormData.full_name,
-                username: editFormData.username
+                username: editFormData.username,
+                gender: editFormData.gender
             };
 
             const response = await api.put(`/students/${studentId}`, updateData);
@@ -704,7 +696,7 @@ const Gestion_grupos_estudiantes = () => {
                 }
 
                 setEditingStudentId(null);
-                setEditFormData({ full_name: '', username: '' });
+                setEditFormData({ full_name: '', username: '', gender: '' });
             } else {
                 toast.error(response.data.message || t.updateError);
             }
@@ -719,7 +711,7 @@ const Gestion_grupos_estudiantes = () => {
 
     const handleCancelEdit = () => {
         setEditingStudentId(null);
-        setEditFormData({ full_name: '', username: '' });
+        setEditFormData({ full_name: '', username: '', gender: '' });
     };
 
     const handleDeleteStudent = async (studentId) => {
@@ -733,7 +725,6 @@ const Gestion_grupos_estudiantes = () => {
                             ? { ...group, students: response.data.students }
                             : group
                     ));
-                    // También eliminar la credencial del estudiante (clave = username)
                     const studentToDelete = selectedGroup.students.find(s => s.id === studentId);
                     const updatedCredentials = { ...allCredentials };
                     if (studentToDelete) {
@@ -861,7 +852,6 @@ const Gestion_grupos_estudiantes = () => {
                                         )}
                                     </div>
 
-                                    {/* Botón Exportar Credenciales */}
                                     {selectedGroup.students.length > 0 && (
                                         <div className="mb-6">
                                             <button
@@ -890,6 +880,7 @@ const Gestion_grupos_estudiantes = () => {
                                             <table className="w-full border-collapse">
                                                 <thead className="bg-slate-100">
                                                 <tr>
+                                                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">Género</th>
                                                     <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.username}</th>
                                                     <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.student}</th>
                                                     <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.score}</th>
@@ -902,6 +893,17 @@ const Gestion_grupos_estudiantes = () => {
                                                     selectedGroup.students.map((student) => (
                                                         editingStudentId === student.id ? (
                                                             <tr key={student.id} className="border-b border-slate-100 bg-blue-50">
+                                                                <td className="px-4 py-2">
+                                                                    <select
+                                                                        value={editFormData.gender || ''}
+                                                                        onChange={(e) => setEditFormData({ ...editFormData, gender: e.target.value })}
+                                                                        className="w-full px-2 py-1 rounded border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                                                                    >
+                                                                        <option value="">Seleccionar</option>
+                                                                        <option value="Femenino">♀ Femenino</option>
+                                                                        <option value="Masculino">♂ Masculino</option>
+                                                                    </select>
+                                                                </td>
                                                                 <td className="px-4 py-2">
                                                                     <input
                                                                         type="text"
@@ -933,9 +935,28 @@ const Gestion_grupos_estudiantes = () => {
                                                             </tr>
                                                         ) : (
                                                             <tr key={student.id} className="border-b border-slate-100 hover:bg-slate-50">
-                                                                <td className="px-4 py-2 text-sm">{student.username || '—'}</td>
-                                                                <td className="px-4 py-2 text-sm font-medium">{student.full_name || student.name || '—'}</td>
-                                                                <td className="px-4 py-2 text-sm font-bold">{student.score !== null && student.score !== undefined ? student.score : '—'}</td>
+                                                                <td className="px-4 py-2 text-sm">
+                                                                    {student.gender === 'Femenino' ? (
+                                                                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-pink-100 text-pink-700 text-xs font-medium">
+                                                                                ♀ Femenino
+                                                                            </span>
+                                                                    ) : student.gender === 'Masculino' ? (
+                                                                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
+                                                                                ♂ Masculino
+                                                                            </span>
+                                                                    ) : (
+                                                                        <span className="text-gray-400 text-xs">—</span>
+                                                                    )}
+                                                                </td>
+                                                                <td className="px-4 py-2 text-sm font-medium">
+                                                                    {student.username || '—'}
+                                                                </td>
+                                                                <td className="px-4 py-2 text-sm font-medium">
+                                                                    {student.full_name || student.name || '—'}
+                                                                </td>
+                                                                <td className="px-4 py-2 text-sm font-bold">
+                                                                    {student.score !== null && student.score !== undefined ? student.score : '—'}
+                                                                </td>
                                                                 <td className="px-4 py-2">{getStatusBadge(student.status || 'not_started')}</td>
                                                                 <td className="px-4 py-2 flex gap-2">
                                                                     <button onClick={() => handleEditStudent(student)} className="p-1 text-blue-600 hover:bg-blue-50 rounded" title={t.edit}>
@@ -950,7 +971,7 @@ const Gestion_grupos_estudiantes = () => {
                                                     ))
                                                 ) : (
                                                     <tr>
-                                                        <td colSpan="5" className="px-4 py-8 text-center text-slate-500">
+                                                        <td colSpan="6" className="px-4 py-8 text-center text-slate-500">
                                                             {t.noStudentsTable}
                                                         </td>
                                                     </tr>
