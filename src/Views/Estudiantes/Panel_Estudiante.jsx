@@ -1,7 +1,7 @@
-// Panel_Estudiante.jsx
 import React, { useState, useEffect } from 'react';
 import Desafio_Estudiantes from './Desafio_Estudiantes';
 import { LogOut, BookOpen, ChevronRight, Trophy, Star, Clock } from 'lucide-react';
+import { useMockAuth } from '../../hooks/useMockAuth';
 
 const translations = {
     es: {
@@ -38,20 +38,11 @@ const translations = {
     }
 };
 
-// Mapeo de IDs de categoría a nombres
-const categoryIdToName = {
-    1: 'Super Peque',
-    2: 'Peque',
-    3: 'Benjamin',
-    4: 'Cadete',
-    5: 'Junior',
-    6: 'Senior'
-};
 
-const Panel_Estudiante = ({ student, onLogout }) => {
-    // Estado interno para el idioma
+const Panel_Estudiante = ({ onLogout }) => {
+    const { user, isStudent, getCategory } = useMockAuth();
+
     const [language, setLanguage] = useState(() => {
-        // Cargar idioma guardado en localStorage o usar 'es' por defecto
         return localStorage.getItem('bebrasLanguage') || 'es';
     });
 
@@ -62,7 +53,7 @@ const Panel_Estudiante = ({ student, onLogout }) => {
     const [categoryTimes, setCategoryTimes] = useState({});
 
     const categories = [
-        { id: 1, name: "Super Peque (Pre-Escolar a 2do)" },
+        { id: 1, name: "Super Peque (1ro y 2do)" },
         { id: 2, name: "Peque (3ro y 4to)" },
         { id: 3, name: "Benjamin (5to y 6to)" },
         { id: 4, name: "Cadete (7mo y 8vo)" },
@@ -70,6 +61,7 @@ const Panel_Estudiante = ({ student, onLogout }) => {
         { id: 6, name: "Senior (11no y 12mo)" }
     ];
 
+    // 🔥 SEGUNDO: useEffect y lógica
     useEffect(() => {
         const savedConfig = localStorage.getItem('bebrasContestConfig');
         if (savedConfig) {
@@ -83,7 +75,6 @@ const Panel_Estudiante = ({ student, onLogout }) => {
             });
         }
 
-        // Cargar los tiempos por categoría desde localStorage
         const loadCategoryTimes = () => {
             const times = {};
             categories.forEach(cat => {
@@ -91,7 +82,6 @@ const Panel_Estudiante = ({ student, onLogout }) => {
                 if (storedTime) {
                     times[cat.id] = parseInt(storedTime);
                 } else {
-                    // Si no hay tiempo específico, usar el tiempo general
                     times[cat.id] = savedConfig ? JSON.parse(savedConfig).executionTime : 45;
                 }
             });
@@ -100,12 +90,10 @@ const Panel_Estudiante = ({ student, onLogout }) => {
 
         loadCategoryTimes();
 
-        // Escuchar cambios en localStorage para actualizar tiempos
         const handleStorageChange = (e) => {
             if (e.key === 'bebrasLevelConfigs' || e.key === 'bebrasContestConfig') {
                 const savedConfig = localStorage.getItem('bebrasContestConfig');
                 const config = savedConfig ? JSON.parse(savedConfig) : { executionTime: 45 };
-
                 const times = {};
                 categories.forEach(cat => {
                     const storedTime = localStorage.getItem(`bebrasCategoryTime_${cat.id}`);
@@ -126,7 +114,6 @@ const Panel_Estudiante = ({ student, onLogout }) => {
     useEffect(() => {
         const savedConfig = localStorage.getItem('bebrasContestConfig');
         const config = savedConfig ? JSON.parse(savedConfig) : { executionTime: 45 };
-
         const times = {};
         categories.forEach(cat => {
             const storedTime = localStorage.getItem(`bebrasCategoryTime_${cat.id}`);
@@ -139,6 +126,20 @@ const Panel_Estudiante = ({ student, onLogout }) => {
         setCategoryTimes(times);
     }, [language]);
 
+    // 🔥 TERCERO: Verificaciones condicionales (después de los hooks)
+    if (!isStudent) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-red-50">
+                <div className="text-center p-8 bg-white rounded-2xl shadow-xl">
+                    <h2 className="text-2xl font-bold text-red-600">Acceso Denegado</h2>
+                    <p className="text-gray-600 mt-2">No tienes permisos para ver este panel.</p>
+                </div>
+            </div>
+        );
+    }
+
+    const student = user;
+
     const handleIniciarDesafio = (category) => {
         setSelectedCategory(category);
         setView('desafio');
@@ -149,7 +150,6 @@ const Panel_Estudiante = ({ student, onLogout }) => {
         setSelectedCategory(null);
     };
 
-    // Función para cambiar idioma con persistencia
     const handleLanguageChange = (lng) => {
         setLanguage(lng);
         localStorage.setItem('bebrasLanguage', lng);
@@ -157,7 +157,6 @@ const Panel_Estudiante = ({ student, onLogout }) => {
 
     if (view === 'desafio' && selectedCategory) {
         const categoryExecutionTime = categoryTimes[selectedCategory.id] || contestConfig?.executionTime || 45;
-
         return (
             <Desafio_Estudiantes
                 studentData={student}
@@ -173,8 +172,6 @@ const Panel_Estudiante = ({ student, onLogout }) => {
 
     return (
         <div className="w-full h-screen flex flex-col bg-slate-50 font-sans overflow-hidden">
-
-            {/* Header Superior Fijo */}
             <header className="w-full bg-white border-b border-slate-200 px-6 py-4 flex flex-shrink-0 justify-between items-center z-10 shadow-xs">
                 <div className="flex items-center gap-3">
                     <div className="bg-blue-600 text-white p-2 rounded-xl shadow-xs">
@@ -184,11 +181,13 @@ const Panel_Estudiante = ({ student, onLogout }) => {
                         <h2 className="text-xl font-extrabold text-slate-800 tracking-tight">
                             {contestConfig?.contestName || "Desafío Bebras"}
                         </h2>
+                        <p className="text-xs text-slate-400">
+                            {student?.full_name} • {student?.username}
+                        </p>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-4">
-                    {/* Selector de Idiomas mejorado */}
                     <div className="flex gap-1 bg-slate-100 p-1 rounded-full border border-slate-200">
                         {['es', 'en', 'pt', 'fr'].map((lng) => (
                             <button
@@ -206,7 +205,6 @@ const Panel_Estudiante = ({ student, onLogout }) => {
                         ))}
                     </div>
 
-                    {/* Botón Salir */}
                     <button
                         onClick={onLogout}
                         className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 font-semibold text-sm transition-colors cursor-pointer"
@@ -217,7 +215,6 @@ const Panel_Estudiante = ({ student, onLogout }) => {
             </header>
 
             <main className="w-full flex-1 flex flex-col md:flex-row overflow-hidden">
-
                 <section className="w-full md:w-1/2 h-1/2 md:h-full bg-white p-6 md:p-10 flex flex-col border-r border-slate-200 overflow-y-auto">
                     <div className="mb-4">
                         <h3 className="text-xl font-extrabold text-slate-800 flex items-center gap-2">
@@ -260,26 +257,20 @@ const Panel_Estudiante = ({ student, onLogout }) => {
 
                 <section className="w-full md:w-1/2 h-1/2 md:h-full bg-linear-to-br from-slate-50 to-blue-50/40 p-6 md:p-12 flex flex-col justify-center items-center overflow-y-auto">
                     <div className="max-w-md text-center animate-[fadeInUp_.4s_ease-out]">
-
                         <div className="w-24 h-24 bg-blue-100 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-blue-200/50">
                             <Trophy size={48} className="text-blue-600" />
                         </div>
-
                         <h3 className="text-3xl font-black text-slate-800 tracking-tight mb-4">
                             {t.welcome}
                         </h3>
-
                         <p className="text-slate-600 text-base leading-relaxed mb-8 bg-white/70 backdrop-blur-xs p-5 rounded-2xl border border-slate-200/60 shadow-xs text-left md:text-center">
                             {contestConfig?.welcomeMessageStudent || t.ready}
                         </p>
-
                         <div className="inline-flex items-center gap-2 bg-emerald-500 text-white px-8 py-3.5 rounded-2xl font-bold tracking-wide shadow-md shadow-emerald-500/20 transform hover:scale-102 transition-transform">
                             <span>{t.success}</span>
                         </div>
-
                     </div>
                 </section>
-
             </main>
         </div>
     );

@@ -1,6 +1,6 @@
 // Desafio_Estudiantes.jsx
 import React, { useState, useEffect } from 'react';
-import { Clock, LogOut, Target, List, Trophy, BookOpen, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Clock, LogOut, Target, List, Trophy, BookOpen, CheckCircle, ArrowLeft, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
 import Pregunta from './Pregunta';
@@ -23,6 +23,8 @@ const translations = {
         noTasks: "No hay tareas disponibles para esta categoria.",
         finishModalTitle: "Finalizar desafio?",
         finishModalText: "Estas seguro de que quieres finalizar? La puntuacion se mostrara al finalizar.",
+        timeUpModalTitle: "Tiempo agotado",
+        timeUpModalText: "Se ha acabado el tiempo para este desafio. Tus respuestas seran evaluadas automaticamente.",
         apiError: "Error de conexion con el servidor. Verifica que el backend de Laravel este corriendo en el puerto correcto.",
         selectAll: "Seleccionar todas",
         deselectAll: "Deseleccionar todas",
@@ -64,7 +66,10 @@ const translations = {
         answerRequired: "Respuesta requerida",
         answerSaved: "Respuesta guardada",
         finishConfirm: "Finalizar desafio",
-        evaluating: "Calculando puntuacion..."
+        evaluating: "Calculando puntuacion...",
+        timeUp: "Tiempo agotado",
+        evaluatingAuto: "Evaluando respuestas...",
+        points: "pts"
     },
     en: {
         timeLabel: "Time remaining",
@@ -81,6 +86,8 @@ const translations = {
         noTasks: "No tasks available for this category.",
         finishModalTitle: "Finish challenge?",
         finishModalText: "Are you sure you want to finish? The score will be shown after finishing.",
+        timeUpModalTitle: "Time is up",
+        timeUpModalText: "Time has run out for this challenge. Your answers will be evaluated automatically.",
         apiError: "Connection error with the server. Verify that the Laravel backend is running on the correct port.",
         selectAll: "Select all",
         deselectAll: "Deselect all",
@@ -122,7 +129,10 @@ const translations = {
         answerRequired: "Answer required",
         answerSaved: "Answer saved",
         finishConfirm: "Finish challenge",
-        evaluating: "Calculating score..."
+        evaluating: "Calculating score...",
+        timeUp: "Time is up",
+        evaluatingAuto: "Evaluating answers...",
+        points: "pts"
     },
     pt: {
         timeLabel: "Tempo restante",
@@ -139,6 +149,8 @@ const translations = {
         noTasks: "Nao ha tarefas disponiveis para esta categoria.",
         finishModalTitle: "Finalizar desafio?",
         finishModalText: "Tem certeza que deseja finalizar? A pontuacao sera mostrada ao finalizar.",
+        timeUpModalTitle: "Tempo esgotado",
+        timeUpModalText: "O tempo para este desafio acabou. Suas respostas serao avaliadas automaticamente.",
         apiError: "Erro de conexao com o servidor. Verifique se o backend Laravel esta rodando na porta correta.",
         selectAll: "Selecionar todas",
         deselectAll: "Desmarcar todas",
@@ -180,7 +192,10 @@ const translations = {
         answerRequired: "Resposta obrigatoria",
         answerSaved: "Resposta salva",
         finishConfirm: "Finalizar desafio",
-        evaluating: "Calculando pontuacao..."
+        evaluating: "Calculando pontuacao...",
+        timeUp: "Tempo esgotado",
+        evaluatingAuto: "Avaliando respostas...",
+        points: "pts"
     },
     fr: {
         timeLabel: "Temps restant",
@@ -197,6 +212,8 @@ const translations = {
         noTasks: "Aucune tache disponible pour cette categorie.",
         finishModalTitle: "Terminer le defi?",
         finishModalText: "Etes-vous sur de vouloir terminer? Le score sera affiche apres la fin.",
+        timeUpModalTitle: "Temps ecoule",
+        timeUpModalText: "Le temps est ecoule pour ce defi. Vos reponses seront evaluees automatiquement.",
         apiError: "Erreur de connexion au serveur. Verifiez que le backend Laravel tourne sur le bon port.",
         selectAll: "Tout selectionner",
         deselectAll: "Tout deselectionner",
@@ -238,7 +255,10 @@ const translations = {
         answerRequired: "Reponse requise",
         answerSaved: "Reponse enregistree",
         finishConfirm: "Terminer le defi",
-        evaluating: "Calcul du score..."
+        evaluating: "Calcul du score...",
+        timeUp: "Temps ecoule",
+        evaluatingAuto: "Evaluation des reponses...",
+        points: "pts"
     }
 };
 
@@ -258,6 +278,7 @@ const Desafio_Estudiantes = (props) => {
 
     const [name] = useState(studentData?.name || 'Estudiante');
     const [showFinishModal, setShowFinishModal] = useState(false);
+    const [showTimeUpModal, setShowTimeUpModal] = useState(false);
     const [finished, setFinished] = useState(false);
     const [finalScore, setFinalScore] = useState(null);
     const [finalScoreData, setFinalScoreData] = useState(null);
@@ -293,7 +314,7 @@ const Desafio_Estudiantes = (props) => {
             const timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
             return () => clearInterval(timer);
         } else if (timeLeft === 0 && !finished) {
-            handleFinalizar();
+            setShowTimeUpModal(true);
         }
     }, [timeLeft, finished, categoryId]);
 
@@ -395,6 +416,7 @@ const Desafio_Estudiantes = (props) => {
             const questionId = q.id;
             if (selectedQuestions[questionId]) {
                 totalEvaluated++;
+                // 🔥 Usar los puntos de la pregunta (configurados por el coordinador)
                 const points = q.points || 10;
                 totalPossibleScore += points;
 
@@ -444,6 +466,7 @@ const Desafio_Estudiantes = (props) => {
         setIsFinishing(true);
         setFinished(true);
         setShowFinishModal(false);
+        setShowTimeUpModal(false);
         localStorage.removeItem(`bebrasTime_cat_${categoryId}`);
 
         const scoreData = calculateScore();
@@ -466,6 +489,24 @@ const Desafio_Estudiantes = (props) => {
             ...prev,
             [questionId]: !prev[questionId]
         }));
+    };
+
+    const handleSelectAll = () => {
+        const allSelected = {};
+        questions.forEach(q => {
+            allSelected[q.id] = true;
+        });
+        setSelectedQuestions(allSelected);
+        toast.success(t.selectAllTasks);
+    };
+
+    const handleDeselectAll = () => {
+        const allDeselected = {};
+        questions.forEach(q => {
+            allDeselected[q.id] = false;
+        });
+        setSelectedQuestions(allDeselected);
+        toast.success(t.deselectAllTasks);
     };
 
     const handleLanguageChange = (lang) => {
@@ -639,6 +680,7 @@ const Desafio_Estudiantes = (props) => {
                 const rawTasks = jsonData.tasks || [];
                 setAllTasksData(rawTasks);
 
+                // 🔥 IMPORTANTE: Los puntos del servidor (serverTask.points) son los que configuró el coordinador
                 const formattedQuestions = filteredByCategory.map((serverTask) => {
                     const codigoLimpio = trimString(serverTask.task_code);
 
@@ -649,11 +691,21 @@ const Desafio_Estudiantes = (props) => {
                         return codeMatch && catIdJSON === Number(categoryId);
                     });
 
+                    // 🔥 OBTENER LOS PUNTOS DEL SERVIDOR (configurados por el coordinador nacional)
                     const serverPoints = serverTask.points;
 
-                    if (taskDetails) {
-                        const points = (serverPoints !== undefined && serverPoints !== null) ? serverPoints : 10;
+                    // Usar los puntos del servidor si existen, si no usar los del tasks.json o valor por defecto
+                    let points = 10;
 
+                    if (serverPoints !== undefined && serverPoints !== null) {
+                        points = parseInt(serverPoints);
+                        console.log(`📌 Usando puntos del servidor para ${codigoLimpio}: ${points}`);
+                    } else if (taskDetails?.evaluation?.score) {
+                        points = taskDetails.evaluation.score;
+                        console.log(`📌 Usando puntos de tasks.json para ${codigoLimpio}: ${points}`);
+                    }
+
+                    if (taskDetails) {
                         return {
                             id: serverTask.id,
                             task_code: serverTask.task_code,
@@ -687,11 +739,9 @@ const Desafio_Estudiantes = (props) => {
                             evaluation: taskDetails.evaluation || {},
                             display_order: Number(serverTask.display_order) || 1,
                             instructions: taskDetails.instructions || '',
-                            points: points
+                            points: points // 🔥 Mostrar los puntos del servidor
                         };
                     } else {
-                        const points = (serverPoints !== undefined && serverPoints !== null) ? serverPoints : 10;
-
                         return {
                             id: serverTask.id,
                             task_code: serverTask.task_code,
@@ -715,7 +765,7 @@ const Desafio_Estudiantes = (props) => {
                             evaluation: {},
                             display_order: Number(serverTask.display_order) || 1,
                             instructions: '',
-                            points: points
+                            points: points // 🔥 Mostrar los puntos del servidor
                         };
                     }
                 });
@@ -723,6 +773,10 @@ const Desafio_Estudiantes = (props) => {
                 formattedQuestions.sort((a, b) => a.display_order - b.display_order);
                 setQuestions(formattedQuestions);
                 setLoading(false);
+
+                // Mostrar resumen de puntos cargados
+                const pointsSummary = formattedQuestions.map(q => `${q.task_code}: ${q.points}pts`).join(', ');
+                console.log('📊 Resumen de puntos:', pointsSummary);
 
             } catch (error) {
                 console.error("Error:", error);
@@ -984,8 +1038,9 @@ const Desafio_Estudiantes = (props) => {
                                                         {t.submitted}
                                                     </span>
                                                 )}
+                                                {/* 🔥 Mostrar los puntos configurados por el coordinador */}
                                                 <span className="flex-shrink-0 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
-                                                    {q.points || 10} pts
+                                                    {q.points || 10} {t.points}
                                                 </span>
                                             </div>
                                         </div>
@@ -1053,6 +1108,43 @@ const Desafio_Estudiantes = (props) => {
                                 {isFinishing ? t.evaluating : t.finishConfirm}
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de Tiempo Agotado */}
+            {showTimeUpModal && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-3xl p-8 max-w-md w-full">
+                        <div className="text-center mb-4">
+                            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <AlertCircle size={40} className="text-red-600" />
+                            </div>
+                            <h4 className="text-2xl font-bold text-red-600">{t.timeUpModalTitle}</h4>
+                        </div>
+                        <p className="text-gray-600 text-center mb-6">{t.timeUpModalText}</p>
+
+                        <div className="bg-blue-50 rounded-xl p-4 mb-6">
+                            <div className="text-center">
+                                <p className="text-sm text-blue-600 font-medium">
+                                    {t.evaluatingAuto}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                    {t.correctAnswers}: {Object.keys(submittedQuestions).filter(id => submittedQuestions[id]).length} / {questions.length}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                    {t.evaluatedQuestions}: {Object.values(selectedQuestions).filter(v => v).length}
+                                </p>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={handleFinalizar}
+                            disabled={isFinishing}
+                            className="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-semibold transition-all shadow-md cursor-pointer disabled:opacity-50"
+                        >
+                            {isFinishing ? t.evaluating : t.timeUp}
+                        </button>
                     </div>
                 </div>
             )}

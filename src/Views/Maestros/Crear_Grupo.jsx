@@ -1,7 +1,8 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import { Save, X, Globe, BookOpen, Users, School } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '../../api/axios.js';
+import { useMockAuth } from '../../hooks/useMockAuth';
 
 const translations = {
     es: {
@@ -15,10 +16,10 @@ const translations = {
         groupRequired: "Por favor ingresa un nombre para el grupo",
         schoolRequired: "Por favor ingresa el nombre de la escuela",
         courseRequired: "Por favor selecciona un Nivel Bebras",
-        spanish: "Español",
-        english: "Inglés",
-        portuguese: "Portugués",
-        french: "Francés",
+        spanish: "Espanol",
+        english: "Ingles",
+        portuguese: "Portugues",
+        french: "Frances",
         groupCreated: "Grupo creado exitosamente",
         createError: "Error al crear el grupo"
     },
@@ -45,40 +46,42 @@ const translations = {
         groupName: "Nome do grupo",
         school: "Escola",
         language: "Idioma",
-        course: "Nível Bebras",
+        course: "Nivel Bebras",
         create: "Criar",
         cancel: "Cancelar",
         groupRequired: "Por favor, insira um nome para o grupo",
         schoolRequired: "Por favor, insira o nome da escola",
-        courseRequired: "Por favor, selecione um Nível Bebras",
+        courseRequired: "Por favor, selecione um Nivel Bebras",
         spanish: "Espanhol",
-        english: "Inglês",
-        portuguese: "Português",
-        french: "Francês",
+        english: "Ingles",
+        portuguese: "Portugues",
+        french: "Frances",
         groupCreated: "Grupo criado com sucesso",
         createError: "Erro ao criar grupo"
     },
     fr: {
         title: "Nouveau Groupe",
         groupName: "Nom du groupe",
-        school: "École",
+        school: "Ecole",
         language: "Langue",
         course: "Niveau Bebras",
-        create: "Créer",
+        create: "Creer",
         cancel: "Annuler",
         groupRequired: "Veuillez saisir un nom pour le groupe",
-        schoolRequired: "Veuillez saisir le nom de l'école",
-        courseRequired: "Veuillez sélectionner un niveau Bebras",
+        schoolRequired: "Veuillez saisir le nom de l'ecole",
+        courseRequired: "Veuillez selectionner un niveau Bebras",
         spanish: "Espagnol",
         english: "Anglais",
         portuguese: "Portugais",
-        french: "Français",
-        groupCreated: "Groupe créé avec succès",
-        createError: "Erreur lors de la création du groupe"
+        french: "Francais",
+        groupCreated: "Groupe cree avec succes",
+        createError: "Erreur lors de la creation du groupe"
     }
 };
 
 export default function Crear_Grupo({ onGroupCreated, onCancel, language: propLanguage = 'es' }) {
+    const { user } = useMockAuth();
+
     const [language, setLanguage] = useState(propLanguage);
     const t = translations[language];
 
@@ -106,12 +109,19 @@ export default function Crear_Grupo({ onGroupCreated, onCancel, language: propLa
 
         setIsCreating(true);
 
-        // Enviar el nombre del curso (el backend lo mapeará al ID correspondiente)
+        const teacherId = user?.id;
+        if (!teacherId) {
+            toast.error('No se pudo identificar al maestro. Inicia sesion nuevamente.');
+            setIsCreating(false);
+            return;
+        }
+
         const groupData = {
             group_name: groupName.trim(),
             school: schoolName.trim(),
             language: lang,
-            category_id: selectedCourse  // Enviamos el nombre del nivel
+            category_id: selectedCourse,
+            teacher_id: teacherId
         };
 
         console.log('Enviando datos al servidor:', groupData);
@@ -121,7 +131,7 @@ export default function Crear_Grupo({ onGroupCreated, onCancel, language: propLa
             console.log('Respuesta del servidor:', response.data);
 
             const newGroup = {
-                id: response.data.id || Date.now().toString(),
+                id: response.data.id.toString(),
                 name: groupName,
                 school: schoolName,
                 language: lang === 'es' ? t.spanish : lang === 'en' ? t.english : lang === 'pt' ? t.portuguese : t.french,
@@ -140,7 +150,13 @@ export default function Crear_Grupo({ onGroupCreated, onCancel, language: propLa
         } catch (error) {
             console.error('Error detallado:', error.response?.data);
 
-            const errorMessage = error.response?.data?.message || t.createError;
+            let errorMessage = t.createError;
+            if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            } else if (error.response?.data?.errors) {
+                const errors = Object.values(error.response.data.errors).flat();
+                errorMessage = errors.join(', ');
+            }
             toast.error(errorMessage);
         } finally {
             setIsCreating(false);
@@ -180,16 +196,31 @@ export default function Crear_Grupo({ onGroupCreated, onCancel, language: propLa
 
                 <div className="mb-6">
                     <label className="block text-sm font-semibold text-slate-700 mb-2">{t.groupName}</label>
-                    <input type="text" value={groupName} onChange={(e) => setGroupName(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" placeholder="Ej: 5to A" />
+                    <input
+                        type="text"
+                        value={groupName}
+                        onChange={(e) => setGroupName(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                        placeholder="Ej: 5to A"
+                    />
                 </div>
 
                 <div className="mb-6">
-                    <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2"><School size={16} /> {t.school}</label>
-                    <input type="text" value={schoolName} onChange={(e) => setSchoolName(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
+                    <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                        <School size={16} /> {t.school}
+                    </label>
+                    <input
+                        type="text"
+                        value={schoolName}
+                        onChange={(e) => setSchoolName(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                    />
                 </div>
 
                 <div className="mb-6">
-                    <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2"><Globe size={16} /> {t.language}</label>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                        <Globe size={16} /> {t.language}
+                    </label>
                     <div className="flex flex-wrap gap-2">
                         <button onClick={() => setLang('es')} className={`px-4 py-2 rounded-xl font-medium transition-all ${lang === 'es' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>{t.spanish}</button>
                         <button onClick={() => setLang('en')} className={`px-4 py-2 rounded-xl font-medium transition-all ${lang === 'en' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>{t.english}</button>
@@ -199,19 +230,36 @@ export default function Crear_Grupo({ onGroupCreated, onCancel, language: propLa
                 </div>
 
                 <div className="mb-8">
-                    <label className="block text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2"><BookOpen size={16} /> {t.course}</label>
+                    <label className="block text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                        <BookOpen size={16} /> {t.course}
+                    </label>
                     <div className="flex flex-wrap gap-2">
                         {courses.map((course) => (
-                            <button key={course} onClick={() => setSelectedCourse(course)} className={`px-4 py-2 rounded-xl font-medium transition-all ${selectedCourse === course ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>{course}</button>
+                            <button
+                                key={course}
+                                onClick={() => setSelectedCourse(course)}
+                                className={`px-4 py-2 rounded-xl font-medium transition-all ${selectedCourse === course ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+                            >
+                                {course}
+                            </button>
                         ))}
                     </div>
                 </div>
 
                 <div className="flex gap-4 pt-4 border-t border-slate-100">
-                    <button onClick={handleCreate} disabled={isCreating} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                    <button
+                        onClick={handleCreate}
+                        disabled={isCreating}
+                        className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
                         <Save size={18} /> {isCreating ? '...' : t.create}
                     </button>
-                    <button onClick={handleCancel} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-slate-200 text-slate-700 font-medium hover:bg-slate-300 transition-all"><X size={18} /> {t.cancel}</button>
+                    <button
+                        onClick={handleCancel}
+                        className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-slate-200 text-slate-700 font-medium hover:bg-slate-300 transition-all"
+                    >
+                        <X size={18} /> {t.cancel}
+                    </button>
                 </div>
             </div>
         </div>

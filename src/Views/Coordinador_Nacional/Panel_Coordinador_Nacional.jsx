@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import {Flag, Lock, RefreshCw, Mail, BarChart3, BookOpen} from 'lucide-react';
+import { Flag, Lock, RefreshCw, Mail, BarChart3, BookOpen } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import Confeccion_Desafio from './Confeccion_Desafio';
 import Reportes_Estadisticas from './Reportes_Estadisticas';
+import { useMockAuth } from '../../hooks/useMockAuth';
 
 const translations = {
     es: {
@@ -64,6 +65,8 @@ const translations = {
 };
 
 const Panel_Coordinador_Nacional = ({ onLanguageChange: externalLanguageChange, language: externalLanguage }) => {
+    // 🔥 PRIMERO: TODOS los hooks van aquí
+    const { user, isCoordinator } = useMockAuth();
     const [language, setLanguage] = useState(externalLanguage || 'es');
     const t = translations[language];
     const [accessKey, setAccessKey] = useState('');
@@ -72,20 +75,19 @@ const Panel_Coordinador_Nacional = ({ onLanguageChange: externalLanguageChange, 
     const [showConfeccion, setShowConfeccion] = useState(false);
     const [showReportes, setShowReportes] = useState(false);
 
-    // Generar clave: BEBRAS + PAIS + MES + AÑO
+    // 🔥 SEGUNDO: Funciones y lógica
     const generateAccessKey = () => {
         const fecha = new Date();
         const mes = String(fecha.getMonth() + 1).padStart(2, '0');
         const anno = fecha.getFullYear();
-        const pais = 'CUBA'; // PAIS
+        const pais = 'CUBA';
         const key = `BEBRAS${pais}${mes}${anno}`;
         setAccessKey(key);
         setKeyGenerated(true);
-        // Guardar la clave en localStorage para que la use Activacion
         localStorage.setItem('bebrasAccessKey', key);
+        toast.success('Clave generada correctamente');
     };
 
-    // Enviar clave por correo a profesores
     const sendKeyToTeachers = async () => {
         if (!accessKey) {
             toast.warning('Primero genere la clave de acceso');
@@ -94,6 +96,7 @@ const Panel_Coordinador_Nacional = ({ onLanguageChange: externalLanguageChange, 
         setIsSending(true);
         setTimeout(() => {
             setIsSending(false);
+            toast.success('Correo enviado a los profesores');
         }, 1000);
     };
 
@@ -101,6 +104,18 @@ const Panel_Coordinador_Nacional = ({ onLanguageChange: externalLanguageChange, 
         setLanguage(newLang);
         if (externalLanguageChange) externalLanguageChange(newLang);
     };
+
+    // 🔥 TERCERO: Verificaciones condicionales (después de los hooks)
+    if (!isCoordinator) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-red-50">
+                <div className="text-center p-8 bg-white rounded-2xl shadow-xl">
+                    <h2 className="text-2xl font-bold text-red-600">Acceso Denegado</h2>
+                    <p className="text-gray-600 mt-2">No tienes permisos para ver este panel.</p>
+                </div>
+            </div>
+        );
+    }
 
     if (showConfeccion) {
         return <Confeccion_Desafio onBack={() => setShowConfeccion(false)} language={language} onLanguageChange={handleLanguageChange} />;
@@ -114,7 +129,6 @@ const Panel_Coordinador_Nacional = ({ onLanguageChange: externalLanguageChange, 
         <div className="min-h-screen bg-gradient-to-br from-slate-100 to-sky-100 font-sans">
             <Toaster position="top-right" richColors />
 
-            {/* Header */}
             <div className="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto px-6 py-4">
                     <div className="flex justify-between items-center">
@@ -124,41 +138,30 @@ const Panel_Coordinador_Nacional = ({ onLanguageChange: externalLanguageChange, 
                             </div>
                             <div>
                                 <h1 className="text-2xl font-extrabold text-slate-800">{t.title}</h1>
-                                <p className="text-sm text-slate-500">{t.subtitle}</p>
+                                <p className="text-sm text-slate-500">
+                                    {t.subtitle} — {user?.name || 'Coordinador Nacional'}
+                                </p>
                             </div>
                         </div>
                         <div className="flex gap-2 bg-slate-100 p-1 rounded-full border border-slate-200">
-                            <button
-                                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'es' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}
-                                onClick={() => handleLanguageChange('es')}
-                            >
-                                ES
-                            </button>
-                            <button
-                                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'en' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}
-                                onClick={() => handleLanguageChange('en')}
-                            >
-                                EN
-                            </button>
-                            <button
-                                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'pt' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}
-                                onClick={() => handleLanguageChange('pt')}
-                            >
-                                PT
-                            </button>
-                            <button
-                                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'fr' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}
-                                onClick={() => handleLanguageChange('fr')}
-                            >
-                                FR
-                            </button>
+                            {['es', 'en', 'pt', 'fr'].map((lng) => (
+                                <button
+                                    key={lng}
+                                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === lng ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}
+                                    onClick={() => {
+                                        setLanguage(lng);
+                                        if (externalLanguageChange) externalLanguageChange(lng);
+                                    }}
+                                >
+                                    {lng.toUpperCase()}
+                                </button>
+                            ))}
                         </div>
                     </div>
                 </div>
             </div>
 
             <div className="max-w-7xl mx-auto px-6 py-8">
-                {/* Tarjeta de Clave de Acceso */}
                 <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-xl p-6 mb-8 text-white">
                     <div className="flex flex-wrap justify-between items-center gap-4">
                         <div className="flex items-center gap-4">
@@ -195,7 +198,6 @@ const Panel_Coordinador_Nacional = ({ onLanguageChange: externalLanguageChange, 
                     </div>
                 </div>
 
-                {/* Botones de acción principales */}
                 <div className="grid md:grid-cols-1 gap-6">
                     <button
                         onClick={() => setShowConfeccion(true)}
@@ -205,9 +207,7 @@ const Panel_Coordinador_Nacional = ({ onLanguageChange: externalLanguageChange, 
                             <BookOpen size={32} className="text-blue-600 group-hover:text-white transition-colors" />
                         </div>
                         <h2 className="text-xl font-bold text-slate-800 mb-2">{t.confeccionar}</h2>
-                        <p className="text-slate-500 text-sm">
-                            {t.categoryText}
-                        </p>
+                        <p className="text-slate-500 text-sm">{t.categoryText}</p>
                     </button>
                 </div>
                 <div className="grid md:grid-cols-1 gap-6 mb-10">
@@ -219,9 +219,7 @@ const Panel_Coordinador_Nacional = ({ onLanguageChange: externalLanguageChange, 
                             <BarChart3 size={32} className="text-emerald-600 group-hover:text-white transition-colors"/>
                         </div>
                         <h2 className="text-xl font-bold text-slate-800 mb-2">{t.reportes}</h2>
-                        <p className="text-slate-500 text-sm">
-                            {t.statisticsText}
-                        </p>
+                        <p className="text-slate-500 text-sm">{t.statisticsText}</p>
                     </button>
                 </div>
             </div>

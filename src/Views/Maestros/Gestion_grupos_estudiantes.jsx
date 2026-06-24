@@ -1,20 +1,22 @@
+// src/Views/Maestro/Gestion_grupos_estudiantes.jsx
 import React, { useState, useEffect } from 'react';
 import Crear_Grupo from './Crear_Grupo';
 import Crear_cuentas_alumnos from './Crear_cuentas_alumnos';
 import Monitoreo_participantes from './Monitoreo_participantes.jsx';
 import castorcubasi from '/src/castorcubasi.jpg';
-import { Users, Plus, Globe, BookOpen, Lock, X, Trash2, Save, CheckCircle, UserPlus, Clock, BarChart3, AlertCircle, ShieldOff, Play, Download, FileDown, FileText, FileSpreadsheet, School, Edit, Key } from 'lucide-react';
+import { Users, Plus, Globe, BookOpen, Lock, X, Trash2, Save, CheckCircle, UserPlus, Clock, BarChart3, AlertCircle, Play, Download, FileDown, FileText, FileSpreadsheet, Edit, Key, LogOut } from 'lucide-react';
 import { toast } from "sonner";
 import Exportar_diploma_alumno from './Exportar_diploma_alumno';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import api from '../../api/axios.js';
+import { useMockAuth } from '../../hooks/useMockAuth';
 
 const translations = {
     es: {
-        logout: "Cerrar sesión",
-        title: "Desafío BebrasCuba",
+        logout: "Cerrar sesion",
+        title: "Desafio BebrasCuba",
         subtitle: "Vista del Profesor",
         groups: "Grupos",
         createGroup: "Crear Grupo",
@@ -26,27 +28,27 @@ const translations = {
         students: "Estudiantes",
         createAccounts: "Crear cuentas",
         monitorParticipants: "Monitorear participantes",
-        closeChallenge: "Cerrar desafío y publicar puntuaciones",
-        exportDiplomas: "Exportar diplomas de participación de estudiantes",
-        exportReport: "Exportar reporte de participación de grupo",
+        closeChallenge: "Cerrar desafio y publicar puntuaciones",
+        exportDiplomas: "Exportar diplomas de participacion de estudiantes",
+        exportReport: "Exportar reporte de participacion de grupo",
         exportCredentials: "Exportar credenciales de los alumnos",
-        welcomeTitle: "Bienvenidos al Desafío Bebras",
-        welcomeText1: "Ahora está ubicado en la vista del maestro donde puede crear y administrar grupos, crear y modificar cuentas de estudiantes y ver los resultados del desafío. También podrá imprimir los certificados de los estudiantes después del desafío.",
-        welcomeText2: "Hay un menú desplegable aquí en la parte superior de la página. Allí podrá seleccionar el grupo que desea ver y administrar. Desde allí también puede agregar nuevos grupos.",
-        welcomeText3: "Desplácese hacia abajo un botón para crear la cuenta de cada uno de los estudiantes por grupo.",
-        welcomeText4: "Durante el desafío, puedes ver el estado de los estudiantes y las marcas de tiempo para iniciar y cerrar el desafío con el botón Gestionar los estudiantes.",
-        welcomeText5: "Una vez que finalice todo el grupo, puede hacer clic en el botón Cerrar este desafío y publicar las puntuaciones.",
-        importantCuba: "IMPORTANTE (CUBA): Debe quitar la marca de verificación del permiso de investigación a TODOS los estudiantes usando el botón \"Quitar todos permisos\".",
+        welcomeTitle: "Bienvenidos al Desafio Bebras",
+        welcomeText1: "Ahora esta ubicado en la vista del maestro donde puede crear y administrar grupos, crear y modificar cuentas de estudiantes y ver los resultados del desafio. Tambien podra imprimir los certificados de los estudiantes despues del desafio.",
+        welcomeText2: "Hay un menu desplegable aqui en la parte superior de la pagina. Alli podra seleccionar el grupo que desea ver y administrar. Desde alli tambien puede agregar nuevos grupos.",
+        welcomeText3: "Desplacese hacia abajo un boton para crear la cuenta de cada uno de los estudiantes por grupo.",
+        welcomeText4: "Durante el desafio, puedes ver el estado de los estudiantes y las marcas de tiempo para iniciar y cerrar el desafio con el boton Gestionar los estudiantes.",
+        welcomeText5: "Una vez que finalice todo el grupo, puede hacer clic en el boton Cerrar este desafio y publicar las puntuaciones.",
+        importantCuba: "IMPORTANTE (CUBA): Debe quitar la marca de verificacion del permiso de investigacion a TODOS los estudiantes usando el boton Quitar todos permisos.",
         editGroupModalTitle: "Editar Grupo",
         groupNameRequired: "El nombre del grupo es obligatorio",
         groupUpdated: "Grupo actualizado exitosamente",
-        deleteGroupConfirm: "¿Estás seguro de que deseas eliminar este grupo? Se perderán todos los estudiantes y datos asociados.",
+        deleteGroupConfirm: "Estas seguro de que deseas eliminar este grupo? Se perderan todos los estudiantes y datos asociados.",
         groupDeleted: "Grupo eliminado exitosamente",
         noStudentsWarning: "No hay estudiantes inscritos en este grupo",
-        publishConfirm: "¿Cerrar este desafío y publicar las puntuaciones? Los estudiantes no podrán cambiar sus respuestas.",
+        publishConfirm: "Cerrar este desafio y publicar las puntuaciones? Los estudiantes no podran cambiar sus respuestas.",
         noStudentsExport: "No hay estudiantes en este grupo",
         exportFormat: "Exportar Reporte",
-        selectFormat: "Seleccione el formato en el que desea exportar el reporte de participación del grupo.",
+        selectFormat: "Seleccione el formato en el que desea exportar el reporte de participacion del grupo.",
         excel: "Excel (.xlsx)",
         pdf: "PDF (.pdf)",
         cancel: "Cancelar",
@@ -54,7 +56,7 @@ const translations = {
         errorExport: "Error al exportar",
         student: "Estudiante",
         username: "Usuario",
-        score: "Puntuación",
+        score: "Puntuacion",
         status: "Estado",
         actions: "Acciones",
         save: "Guardar",
@@ -67,21 +69,21 @@ const translations = {
         language: "Idioma",
         level: "Nivel",
         studentsCount: "estudiantes",
-        challengeClosedLabel: "Desafío cerrado",
-        noStudentsTable: "No hay estudiantes. Haz clic en \"Crear cuentas\"",
+        challengeClosedLabel: "Desafio cerrado",
+        noStudentsTable: "No hay estudiantes. Haz clic en Crear cuentas",
         summaryReport: "Resumen del Grupo",
         totalStudents: "Total de estudiantes",
         totalFinished: "Total Finalizados",
         totalInProgress: "Total En Progreso",
         totalNotStarted: "Total No Comenzados",
-        averageScore: "Puntuación Promedio",
-        highestScore: "Puntuación Más Alta",
-        lowestScore: "Puntuación Más Baja",
-        completionRate: "Tasa de Finalización",
+        averageScore: "Puntuacion Promedio",
+        highestScore: "Puntuacion Mas Alta",
+        lowestScore: "Puntuacion Mas Baja",
+        completionRate: "Tasa de Finalizacion",
         notSpecified: "No especificado",
         noSchool: "Escuela no especificada",
         teacherMessageTitle: "Mensaje al profesor",
-        defaultTeacherMessage: "Bienvenidos al Desafío Bebras Cuba 2026. Aquí podrán gestionar sus grupos y estudiantes.",
+        defaultTeacherMessage: "Bienvenidos al Desafio Bebras Cuba 2026. Aqui podran gestionar sus grupos y estudiantes.",
         studentUpdated: "Estudiante actualizado exitosamente",
         updateError: "Error al actualizar el estudiante",
         nameRequired: "El nombre del estudiante es obligatorio",
@@ -112,7 +114,7 @@ const translations = {
         welcomeText3: "Scroll down to a button to create an account for each student per group.",
         welcomeText4: "During the challenge, you can see the status of students and timestamps to start and close the challenge with the Manage Students button.",
         welcomeText5: "Once the entire group has finished, you can click the Close this challenge and publish scores button.",
-        importantCuba: "IMPORTANT (CUBA): You must uncheck the research permission for ALL students using the \"Remove all permissions\" button.",
+        importantCuba: "IMPORTANT (CUBA): You must uncheck the research permission for ALL students using the Remove all permissions button.",
         editGroupModalTitle: "Edit Group",
         groupNameRequired: "Group name is required",
         groupUpdated: "Group updated successfully",
@@ -144,7 +146,7 @@ const translations = {
         level: "Level",
         studentsCount: "students",
         challengeClosedLabel: "Challenge closed",
-        noStudentsTable: "No students. Click on \"Create accounts\"",
+        noStudentsTable: "No students. Click on Create accounts",
         summaryReport: "Group Summary",
         totalStudents: "Total students",
         totalFinished: "Total Finished",
@@ -167,7 +169,7 @@ const translations = {
     pt: {
         logout: "Sair",
         title: "Desafio BebrasCuba",
-        subtitle: "Visão do Professor",
+        subtitle: "Visao do Professor",
         groups: "Grupos",
         createGroup: "Criar Grupo",
         noGroups: "Nenhum grupo criado",
@@ -178,109 +180,109 @@ const translations = {
         students: "Estudantes",
         createAccounts: "Criar contas",
         monitorParticipants: "Monitorar participantes",
-        closeChallenge: "Encerrar desafio e publicar pontuações",
-        exportDiplomas: "Exportar diplomas de participação dos estudantes",
-        exportReport: "Exportar relatório de participação do grupo",
+        closeChallenge: "Encerrar desafio e publicar pontuacoes",
+        exportDiplomas: "Exportar diplomas de participacao dos estudantes",
+        exportReport: "Exportar relatorio de participacao do grupo",
         exportCredentials: "Exportar credenciais dos alunos",
         welcomeTitle: "Bem-vindo ao Desafio Bebras",
-        welcomeText1: "Agora você está na visão do professor, onde pode criar e gerenciar grupos, criar e modificar contas de alunos e ver os resultados do desafio. Você também pode imprimir os certificados dos alunos após o desafio.",
-        welcomeText2: "Há um menu suspenso no topo da página. Lá você pode selecionar o grupo que deseja visualizar e gerenciar. A partir daí, você também pode adicionar novos grupos.",
-        welcomeText3: "Role para baixo para um botão que cria uma conta para cada aluno por grupo.",
-        welcomeText4: "Durante o desafio, você pode ver o status dos alunos e os horários de início e fim com o botão Gerenciar alunos.",
-        welcomeText5: "Depois que todo o grupo terminar, você pode clicar no botão Encerrar este desafio e publicar as pontuações.",
-        importantCuba: "IMPORTANTE (CUBA): Você deve desmarcar a permissão de pesquisa para TODOS os alunos usando o botão \"Remover todas as permissões\".",
+        welcomeText1: "Agora voce esta na visao do professor, onde pode criar e gerenciar grupos, criar e modificar contas de alunos e ver os resultados do desafio. Voce tambem pode imprimir os certificados dos alunos apos o desafio.",
+        welcomeText2: "Ha um menu suspenso no topo da pagina. La voce pode selecionar o grupo que deseja visualizar e gerenciar. A partir dai, voce tambem pode adicionar novos grupos.",
+        welcomeText3: "Role para baixo para um botao que cria uma conta para cada aluno por grupo.",
+        welcomeText4: "Durante o desafio, voce pode ver o status dos alunos e os horarios de inicio e fim com o botao Gerenciar alunos.",
+        welcomeText5: "Depois que todo o grupo terminar, voce pode clicar no botao Encerrar este desafio e publicar as pontuacoes.",
+        importantCuba: "IMPORTANTE (CUBA): Voce deve desmarcar a permissao de pesquisa para TODOS os alunos usando o botao Remover todas as permissoes.",
         editGroupModalTitle: "Editar Grupo",
-        groupNameRequired: "O nome do grupo é obrigatório",
+        groupNameRequired: "O nome do grupo e obrigatorio",
         groupUpdated: "Grupo atualizado com sucesso",
-        deleteGroupConfirm: "Tem certeza de que deseja excluir este grupo? Todos os alunos e dados associados serão perdidos.",
-        groupDeleted: "Grupo excluído com sucesso",
-        noStudentsWarning: "Não há alunos matriculados neste grupo",
-        publishConfirm: "Encerrar este desafio e publicar as pontuações? Os alunos não poderão alterar suas respostas.",
-        noStudentsExport: "Não há alunos neste grupo",
-        exportFormat: "Exportar Relatório",
-        selectFormat: "Selecione o formato no qual deseja exportar o relatório de participação do grupo.",
+        deleteGroupConfirm: "Tem certeza de que deseja excluir este grupo? Todos os alunos e dados associados serao perdidos.",
+        groupDeleted: "Grupo excluido com sucesso",
+        noStudentsWarning: "Nao ha alunos matriculados neste grupo",
+        publishConfirm: "Encerrar este desafio e publicar as pontuacoes? Os alunos nao poderao alterar suas respostas.",
+        noStudentsExport: "Nao ha alunos neste grupo",
+        exportFormat: "Exportar Relatorio",
+        selectFormat: "Selecione o formato no qual deseja exportar o relatorio de participacao do grupo.",
         excel: "Excel (.xlsx)",
         pdf: "PDF (.pdf)",
         cancel: "Cancelar",
-        reportGenerated: "Relatório exportado com sucesso em",
+        reportGenerated: "Relatorio exportado com sucesso em",
         errorExport: "Erro ao exportar",
         student: "Estudante",
-        username: "Usuário",
-        score: "Pontuação",
+        username: "Usuario",
+        score: "Pontuacao",
         status: "Status",
-        actions: "Ações",
+        actions: "Acoes",
         save: "Salvar",
         edit: "Editar",
         delete: "Excluir",
         finished: "Finalizado",
         inProgress: "Em andamento",
-        notStarted: "Não iniciado",
+        notStarted: "Nao iniciado",
         school: "Escola",
         language: "Idioma",
-        level: "Nível",
+        level: "Nivel",
         studentsCount: "estudantes",
         challengeClosedLabel: "Desafio encerrado",
-        noStudentsTable: "Nenhum aluno. Clique em \"Criar contas\"",
+        noStudentsTable: "Nenhum aluno. Clique em Criar contas",
         summaryReport: "Resumo do Grupo",
         totalStudents: "Total de alunos",
         totalFinished: "Total Finalizados",
         totalInProgress: "Total Em Andamento",
-        totalNotStarted: "Total Não Iniciados",
-        averageScore: "Pontuação Média",
-        highestScore: "Maior Pontuação",
-        lowestScore: "Menor Pontuação",
-        completionRate: "Taxa de Conclusão",
-        notSpecified: "Não especificado",
-        noSchool: "Escola não especificada",
+        totalNotStarted: "Total Nao Iniciados",
+        averageScore: "Pontuacao Media",
+        highestScore: "Maior Pontuacao",
+        lowestScore: "Menor Pontuacao",
+        completionRate: "Taxa de Conclusao",
+        notSpecified: "Nao especificado",
+        noSchool: "Escola nao especificada",
         teacherMessageTitle: "Mensagem do professor",
-        defaultTeacherMessage: "Bem-vindos ao Desafio Bebras Cuba 2026. Aqui você pode gerenciar seus grupos e alunos.",
+        defaultTeacherMessage: "Bem-vindos ao Desafio Bebras Cuba 2026. Aqui voce pode gerenciar seus grupos e alunos.",
         studentUpdated: "Estudante atualizado com sucesso",
         updateError: "Erro ao atualizar estudante",
-        nameRequired: "O nome do estudante é obrigatório",
-        scoresPublished: "Pontuações publicadas com sucesso",
+        nameRequired: "O nome do estudante e obrigatorio",
+        scoresPublished: "Pontuacoes publicadas com sucesso",
         credentialsExported: "Credenciais exportadas com sucesso"
     },
     fr: {
-        logout: "Déconnexion",
-        title: "Défi BebrasCuba",
+        logout: "Deconnexion",
+        title: "Defi BebrasCuba",
         subtitle: "Vue Enseignant",
         groups: "Groupes",
-        createGroup: "Créer un groupe",
-        noGroups: "Aucun groupe créé",
-        createFirstGroup: "Créer le premier groupe",
-        selectGroup: "Sélectionner un groupe :",
+        createGroup: "Creer un groupe",
+        noGroups: "Aucun groupe cree",
+        createFirstGroup: "Creer le premier groupe",
+        selectGroup: "Selectionner un groupe :",
         editGroup: "Modifier le groupe",
         deleteGroup: "Supprimer le groupe",
-        students: "Élèves",
-        createAccounts: "Créer des comptes",
+        students: "Eleves",
+        createAccounts: "Creer des comptes",
         monitorParticipants: "Suivre les participants",
-        closeChallenge: "Clôturer le défi et publier les scores",
-        exportDiplomas: "Exporter les diplômes de participation des élèves",
+        closeChallenge: "Cloturer le defi et publier les scores",
+        exportDiplomas: "Exporter les diplomes de participation des eleves",
         exportReport: "Exporter le rapport de participation du groupe",
-        exportCredentials: "Exporter les identifiants des élèves",
-        welcomeTitle: "Bienvenue au Défi Bebras",
-        welcomeText1: "Vous êtes maintenant dans la vue enseignant où vous pouvez créer et gérer des groupes, créer et modifier des comptes d'élèves et voir les résultats du défi. Vous pouvez également imprimer les certificats des élèves après le défi.",
-        welcomeText2: "Il y a un menu déroulant en haut de la page. Vous pouvez y sélectionner le groupe que vous souhaitez voir et gérer. À partir de là, vous pouvez également ajouter de nouveaux groupes.",
-        welcomeText3: "Faites défiler vers le bas pour un bouton qui crée un compte pour chaque élève par groupe.",
-        welcomeText4: "Pendant le défi, vous pouvez voir l'état des élèves et les horodatages pour démarrer et clôturer le défi avec le bouton Gérer les élèves.",
-        welcomeText5: "Une fois que tout le groupe a terminé, vous pouvez cliquer sur le bouton Clôturer ce défi et publier les scores.",
-        importantCuba: "IMPORTANT (CUBA) : Vous devez décocher l'autorisation de recherche pour TOUS les élèves à l'aide du bouton \"Supprimer toutes les autorisations\".",
+        exportCredentials: "Exporter les identifiants des eleves",
+        welcomeTitle: "Bienvenue au Defi Bebras",
+        welcomeText1: "Vous etes maintenant dans la vue enseignant ou vous pouvez creer et gerer des groupes, creer et modifier des comptes d'eleves et voir les resultats du defi. Vous pouvez egalement imprimer les certificats des eleves apres le defi.",
+        welcomeText2: "Il y a un menu deroulant en haut de la page. Vous pouvez y selectionner le groupe que vous souhaitez voir et gerer. A partir de la, vous pouvez egalement ajouter de nouveaux groupes.",
+        welcomeText3: "Faites defiler vers le bas pour un bouton qui cree un compte pour chaque eleve par groupe.",
+        welcomeText4: "Pendant le defi, vous pouvez voir l'etat des eleves et les horodatages pour demarrer et cloturer le defi avec le bouton Gerer les eleves.",
+        welcomeText5: "Une fois que tout le groupe a termine, vous pouvez cliquer sur le bouton Cloturer ce defi et publier les scores.",
+        importantCuba: "IMPORTANT (CUBA) : Vous devez decocher l'autorisation de recherche pour TOUS les eleves a l'aide du bouton Supprimer toutes les autorisations.",
         editGroupModalTitle: "Modifier le groupe",
         groupNameRequired: "Le nom du groupe est obligatoire",
-        groupUpdated: "Groupe mis à jour avec succès",
-        deleteGroupConfirm: "Êtes-vous sûr de vouloir supprimer ce groupe ? Tous les élèves et les données associées seront perdus.",
-        groupDeleted: "Groupe supprimé avec succès",
-        noStudentsWarning: "Aucun élève inscrit dans ce groupe",
-        publishConfirm: "Clôturer ce défi et publier les scores ? Les élèves ne pourront pas modifier leurs réponses.",
-        noStudentsExport: "Aucun élève dans ce groupe",
+        groupUpdated: "Groupe mis a jour avec succes",
+        deleteGroupConfirm: "Etes-vous sur de vouloir supprimer ce groupe ? Tous les eleves et les donnees associees seront perdus.",
+        groupDeleted: "Groupe supprime avec succes",
+        noStudentsWarning: "Aucun eleve inscrit dans ce groupe",
+        publishConfirm: "Cloturer ce defi et publier les scores ? Les eleves ne pourront pas modifier leurs reponses.",
+        noStudentsExport: "Aucun eleve dans ce groupe",
         exportFormat: "Exporter le rapport",
-        selectFormat: "Sélectionnez le format dans lequel vous souhaitez exporter le rapport de participation du groupe.",
+        selectFormat: "Selectionnez le format dans lequel vous souhaitez exporter le rapport de participation du groupe.",
         excel: "Excel (.xlsx)",
         pdf: "PDF (.pdf)",
         cancel: "Annuler",
-        reportGenerated: "Rapport exporté avec succès en",
+        reportGenerated: "Rapport exporte avec succes en",
         errorExport: "Erreur lors de l'exportation",
-        student: "Élève",
+        student: "Eleve",
         username: "Nom d'utilisateur",
         score: "Score",
         status: "Statut",
@@ -288,37 +290,39 @@ const translations = {
         save: "Enregistrer",
         edit: "Modifier",
         delete: "Supprimer",
-        finished: "Terminé",
+        finished: "Termine",
         inProgress: "En cours",
-        notStarted: "Non commencé",
-        school: "École",
+        notStarted: "Non commence",
+        school: "Ecole",
         language: "Langue",
         level: "Niveau",
-        studentsCount: "élèves",
-        challengeClosedLabel: "Défi clôturé",
-        noStudentsTable: "Aucun élève. Cliquez sur \"Créer des comptes\"",
-        summaryReport: "Résumé du groupe",
-        totalStudents: "Total d'élèves",
-        totalFinished: "Total Terminés",
+        studentsCount: "eleves",
+        challengeClosedLabel: "Defi cloture",
+        noStudentsTable: "Aucun eleve. Cliquez sur Creer des comptes",
+        summaryReport: "Resume du groupe",
+        totalStudents: "Total d'eleves",
+        totalFinished: "Total Termines",
         totalInProgress: "Total En cours",
-        totalNotStarted: "Total Non commencés",
+        totalNotStarted: "Total Non commences",
         averageScore: "Score moyen",
-        highestScore: "Score le plus élevé",
+        highestScore: "Score le plus eleve",
         lowestScore: "Score le plus bas",
-        completionRate: "Taux d'achèvement",
-        notSpecified: "Non spécifié",
-        noSchool: "École non spécifiée",
+        completionRate: "Taux d'achevement",
+        notSpecified: "Non specifie",
+        noSchool: "Ecole non specifiee",
         teacherMessageTitle: "Message de l'enseignant",
-        defaultTeacherMessage: "Bienvenue au Défi Bebras Cuba 2026. Vous pouvez ici gérer vos groupes et vos élèves.",
-        studentUpdated: "Étudiant mis à jour avec succès",
-        updateError: "Erreur lors de la mise à jour",
-        nameRequired: "Le nom de l'étudiant est requis",
-        scoresPublished: "Scores publiés avec succès",
-        credentialsExported: "Identifiants exportés avec succès"
+        defaultTeacherMessage: "Bienvenue au Defi Bebras Cuba 2026. Vous pouvez ici gerer vos groupes et vos eleves.",
+        studentUpdated: "Etudiant mis a jour avec succes",
+        updateError: "Erreur lors de la mise a jour",
+        nameRequired: "Le nom de l'etudiant est requis",
+        scoresPublished: "Scores publies avec succes",
+        credentialsExported: "Identifiants exportes avec succes"
     }
 };
 
 const Gestion_grupos_estudiantes = () => {
+    const { user, isTeacher } = useMockAuth();
+
     const [language, setLanguage] = useState('es');
     const t = translations[language];
 
@@ -330,6 +334,7 @@ const Gestion_grupos_estudiantes = () => {
     const [showExportDiplomas, setShowExportDiplomas] = useState(false);
     const [showExportOptions, setShowExportOptions] = useState(false);
     const [teacherWelcomeMessage, setTeacherWelcomeMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const [allCredentials, setAllCredentials] = useState({});
 
@@ -341,39 +346,57 @@ const Gestion_grupos_estudiantes = () => {
     });
     const [isUpdating, setIsUpdating] = useState(false);
 
-    useEffect(() => {
-        const loadGroups = async () => {
-            try {
-                const response = await api.get('/groups');
-                console.log('Grupos cargados:', response.data);
+    const teacherId = user?.id;
+    const teacherName = user?.full_name;
+    const teacherEmail = user?.email;
 
-                const formattedGroups = response.data.map(group => ({
-                    id: group.id.toString(),
-                    name: group.group_name,
-                    school: group.school || '',
-                    language: group.language === 'es' ? 'Español' : group.language === 'en' ? 'English' : group.language === 'pt' ? 'Português' : 'Français',
-                    languageCode: group.language,
-                    course: (() => {
-                        const categoryMap = { 1: 'Super Peque', 2: 'Peque', 3: 'Benjamin', 4: 'Cadete', 5: 'Junior', 6: 'Senior' };
-                        return categoryMap[group.category_id] || 'Super Peque';
-                    })(),
-                    students: [],
-                    challengeClosed: false
-                }));
+    const loadGroups = async () => {
+        if (!teacherId) {
+            console.warn('No hay teacher_id disponible');
+            return;
+        }
 
-                setGroups(formattedGroups);
+        setIsLoading(true);
+        try {
+            const response = await api.get(`/groups?teacher_id=${teacherId}`);
 
-                if (formattedGroups.length > 0) {
-                    setSelectedGroupId(formattedGroups[0].id);
-                }
-            } catch (error) {
-                console.error('Error al cargar grupos:', error);
-                toast.error('Error al cargar los grupos');
+            const groupsData = Array.isArray(response.data) ? response.data :
+                (response.data.data ? response.data.data : []);
+
+            const formattedGroups = groupsData.map(group => ({
+                id: group.id.toString(),
+                name: group.group_name,
+                school: group.school || '',
+                language: group.language === 'es' ? 'Espanol' : group.language === 'en' ? 'English' : group.language === 'pt' ? 'Portugues' : 'Frances',
+                languageCode: group.language,
+                course: (() => {
+                    const categoryMap = { 1: 'Super Peque', 2: 'Peque', 3: 'Benjamin', 4: 'Cadete', 5: 'Junior', 6: 'Senior' };
+                    return categoryMap[group.category_id] || 'Super Peque';
+                })(),
+                students: [],
+                challengeClosed: false
+            }));
+
+            setGroups(formattedGroups);
+
+            if (formattedGroups.length > 0) {
+                setSelectedGroupId(formattedGroups[0].id);
+            } else {
+                setSelectedGroupId('');
             }
-        };
+        } catch (error) {
+            console.error('Error al cargar grupos:', error);
+            toast.error('Error al cargar los grupos');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-        loadGroups();
-    }, []);
+    useEffect(() => {
+        if (teacherId) {
+            loadGroups();
+        }
+    }, [teacherId]);
 
     useEffect(() => {
         const loadGroupStudents = async () => {
@@ -397,7 +420,6 @@ const Gestion_grupos_estudiantes = () => {
                         );
                         setAllCredentials(pruned);
                         localStorage.setItem(`credentials_group_${selectedGroupId}`, JSON.stringify(pruned));
-                        console.log('🔄 Credenciales cargadas (depuradas) desde localStorage:', pruned);
                     }
                 }
             } catch (error) {
@@ -421,43 +443,112 @@ const Gestion_grupos_estudiantes = () => {
         }
     }, [t.defaultTeacherMessage]);
 
-    const handleGroupCreated = (newGroup) => {
-        setGroups([...groups, { ...newGroup, students: [], challengeClosed: false }]);
-        setSelectedGroupId(newGroup.id);
-        setShowCreateGroup(false);
+    if (!isTeacher) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-red-50">
+                <div className="text-center p-8 bg-white rounded-2xl shadow-xl">
+                    <h2 className="text-2xl font-bold text-red-600">Acceso Denegado</h2>
+                    <p className="text-gray-600 mt-2">No tienes permisos para ver este panel.</p>
+                </div>
+            </div>
+        );
+    }
+
+    const handleGroupCreated = async (newGroup) => {
+        try {
+            const groupData = {
+                ...newGroup,
+                teacher_id: teacherId
+            };
+
+            const response = await api.post('/groups', groupData);
+
+            await loadGroups();
+
+            if (response.data && response.data.id) {
+                setSelectedGroupId(response.data.id.toString());
+            }
+
+            setShowCreateGroup(false);
+            toast.success('Grupo creado exitosamente');
+
+        } catch (error) {
+            console.error('Error al crear grupo:', error);
+            const errorMessage = error.response?.data?.message || 'Error al crear el grupo';
+            toast.error(errorMessage);
+        }
     };
 
     const handleDeleteGroup = async () => {
-        if (!selectedGroup) return;
+        console.log('🚀 handleDeleteGroup EJECUTADA');
 
+        if (!selectedGroup) {
+            console.warn('❌ selectedGroup es null o undefined');
+            toast.error('No hay un grupo seleccionado');
+            return;
+        }
+
+        console.log('📌 Grupo seleccionado:', selectedGroup);
+        console.log('📌 ID del grupo:', selectedGroupId);
+
+        let canDelete = true;
+
+        try {
+            console.log('🔍 Verificando estudiantes...');
+            const studentsResponse = await api.get(`/groups/${selectedGroupId}/students`);
+            console.log('📊 Respuesta:', studentsResponse.data);
+
+            const studentsCount = studentsResponse.data?.students?.length || 0;
+            console.log('👨‍🎓 Estudiantes:', studentsCount);
+
+            if (studentsCount > 0) {
+                toast.error(`No se puede eliminar el grupo "${selectedGroup.name}" porque tiene ${studentsCount} estudiante(s) asociado(s). Primero debe eliminar los estudiantes del grupo.`);
+                canDelete = false;
+            }
+        } catch (error) {
+            console.error('❌ Error:', error);
+            toast.error('Error al verificar si el grupo tiene estudiantes');
+            canDelete = false;
+        }
+
+        if (!canDelete) {
+            console.log('⛔ No se puede eliminar, saliendo...');
+            return;
+        }
+
+        console.log('✅ Mostrando confirm...');
         if (window.confirm(t.deleteGroupConfirm)) {
+            console.log('✅ Confirmado');
             try {
                 await api.delete(`/groups/${selectedGroupId}`);
-                setGroups(groups.filter(g => g.id !== selectedGroupId));
-                setSelectedGroupId(groups.length > 1 ? groups.find(g => g.id !== selectedGroupId)?.id || '' : '');
                 toast.success(t.groupDeleted);
                 localStorage.removeItem(`credentials_group_${selectedGroupId}`);
+
+                await loadGroups();
+
+                if (groups.length > 1) {
+                    const remainingGroups = groups.filter(g => g.id !== selectedGroupId);
+                    if (remainingGroups.length > 0) {
+                        setSelectedGroupId(remainingGroups[0].id);
+                    }
+                }
             } catch (error) {
-                console.error('Error al eliminar grupo:', error);
-                const errorMessage = error.response?.data?.message || 'Error al eliminar el grupo';
-                toast.error(errorMessage);
+                console.error('❌ Error al eliminar:', error);
+                toast.error(error.response?.data?.message || 'Error al eliminar el grupo');
             }
+        } else {
+            console.log('❌ Cancelado');
         }
     };
 
     const handleStudentsCreated = (estudiantesCreados) => {
         if (!selectedGroup) return;
 
-        console.log('📥 Estudiantes creados recibidos:', estudiantesCreados);
-
         if (estudiantesCreados && estudiantesCreados.length > 0) {
             const nuevasCredenciales = {};
             estudiantesCreados.forEach(est => {
                 if (est.username && est.generated_password) {
                     nuevasCredenciales[est.username] = est.generated_password;
-                    console.log(`✅ Guardando credencial para ${est.username}: ${est.generated_password}`);
-                } else {
-                    console.warn('⚠️ Estudiante sin username o sin password:', est);
                 }
             });
 
@@ -496,7 +587,6 @@ const Gestion_grupos_estudiantes = () => {
 
         const saved = localStorage.getItem(`credentials_group_${selectedGroupId}`);
         const currentCredentials = saved ? JSON.parse(saved) : allCredentials;
-        console.log('📄 Credenciales actuales para exportar:', currentCredentials);
 
         const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
         doc.setFontSize(22);
@@ -508,7 +598,7 @@ const Gestion_grupos_estudiantes = () => {
         doc.setTextColor(100, 100, 100);
         doc.setFont('helvetica', 'normal');
         doc.text(`Grupo: ${selectedGroup.name} - ${selectedGroup.course}`, 105, 38, { align: 'center' });
-        doc.text(`Fecha de emisión: ${new Date().toLocaleDateString('es-ES')}`, 105, 48, { align: 'center' });
+        doc.text(`Fecha de emision: ${new Date().toLocaleDateString('es-ES')}`, 105, 48, { align: 'center' });
         doc.setDrawColor(41, 128, 185);
         doc.line(20, 55, 190, 55);
 
@@ -525,7 +615,7 @@ const Gestion_grupos_estudiantes = () => {
 
         autoTable(doc, {
             startY: 62,
-            head: [['#', 'Nombre Completo', 'Género', 'Usuario', 'Contraseña']],
+            head: [['#', 'Nombre Completo', 'Genero', 'Usuario', 'Contrasena']],
             body: tableData,
             theme: 'striped',
             headStyles: { fillColor: [41, 128, 185], textColor: [255, 255, 255], fontStyle: 'bold' },
@@ -567,7 +657,7 @@ const Gestion_grupos_estudiantes = () => {
     const printDiplomas = () => {
         if (!selectedGroup) return;
         if (!selectedGroup.challengeClosed) {
-            toast.warning("Primero debe cerrar el desafío y publicar las puntuaciones");
+            toast.warning("Primero debe cerrar el desafio y publicar las puntuaciones");
             return;
         }
         if (selectedGroup.students.length === 0) {
@@ -592,7 +682,7 @@ const Gestion_grupos_estudiantes = () => {
         if (!selectedGroup) return [];
         return selectedGroup.students.map(student => ({
             [t.student]: student.full_name || student.name || '—',
-            'Género': student.gender || '—',
+            'Genero': student.gender || '—',
             [t.username]: student.username || '—',
             [t.school]: selectedGroup.school || t.noSchool,
             [t.level]: selectedGroup.course,
@@ -649,8 +739,8 @@ const Gestion_grupos_estudiantes = () => {
             y += 7;
             doc.text(`${t.completionRate}: ${((selectedGroup.students.filter(s => s.status === 'finished').length / selectedGroup.students.length) * 100).toFixed(1)}%`, 14, y);
             y += 15;
-            const tableData = reportData.map(r => [r[t.student], r['Género'], r[t.username], r[t.school], r[t.level], r[t.language], r[t.status], r[t.score]]);
-            autoTable(doc, { startY: y, head: [[t.student, 'Género', t.username, t.school, t.level, t.language, t.status, t.score]], body: tableData, theme: 'striped', headStyles: { fillColor: [41,128,185] } });
+            const tableData = reportData.map(r => [r[t.student], r['Genero'], r[t.username], r[t.school], r[t.level], r[t.language], r[t.status], r[t.score]]);
+            autoTable(doc, { startY: y, head: [[t.student, 'Genero', t.username, t.school, t.level, t.language, t.status, t.score]], body: tableData, theme: 'striped', headStyles: { fillColor: [41,128,185] } });
             doc.save(`Reporte_participacion_${selectedGroup.name}_${new Date().toISOString().split('T')[0]}.pdf`);
             toast.success(`${t.reportGenerated} PDF`);
         } catch (error) { console.error(error); toast.error(t.errorExport); }
@@ -715,7 +805,7 @@ const Gestion_grupos_estudiantes = () => {
     };
 
     const handleDeleteStudent = async (studentId) => {
-        if (window.confirm('¿Estás seguro de que quieres eliminar este estudiante?')) {
+        if (window.confirm('Estas seguro de que quieres eliminar este estudiante?')) {
             try {
                 await api.delete(`/students/${studentId}`);
                 const response = await api.get(`/groups/${selectedGroupId}/students`);
@@ -757,55 +847,112 @@ const Gestion_grupos_estudiantes = () => {
 
     const selectedGroup = groups.find(g => g.id === selectedGroupId);
 
-    if (showCreateGroup) return <Crear_Grupo onGroupCreated={handleGroupCreated} onCancel={()=>setShowCreateGroup(false)} language={language} />;
+    if (showCreateGroup) {
+        return <Crear_Grupo onGroupCreated={handleGroupCreated} onCancel={() => setShowCreateGroup(false)} language={language} />;
+    }
 
-    if (showCrearCuentas) return <Crear_cuentas_alumnos
-        onStudentsCreated={handleStudentsCreated}
-        onCancel={() => setShowCrearCuentas(false)}
-        groupId={selectedGroupId}
-        categoryId={(() => {
-            const categoryMap = { 'Super Peque': 1, 'Peque': 2, 'Benjamin': 3, 'Cadete': 4, 'Junior': 5, 'Senior': 6 };
-            return categoryMap[selectedGroup?.course] || 1;
-        })()}
-        teacherId={1}
-        language={language}
-    />;
+    if (showCrearCuentas) {
+        return <Crear_cuentas_alumnos
+            onStudentsCreated={handleStudentsCreated}
+            onCancel={() => setShowCrearCuentas(false)}
+            groupId={selectedGroupId}
+            categoryId={(() => {
+                const categoryMap = { 'Super Peque': 1, 'Peque': 2, 'Benjamin': 3, 'Cadete': 4, 'Junior': 5, 'Senior': 6 };
+                return categoryMap[selectedGroup?.course] || 1;
+            })()}
+            teacherId={teacherId}
+            language={language}
+        />;
+    }
 
-    if (showGestionParticipantes) return <Monitoreo_participantes group={selectedGroup} onUpdateStudentStatus={handleUpdateStudentStatus} onClose={() => setShowGestionParticipantes(false)} language={language} />;
-    if (showExportDiplomas) return <Exportar_diploma_alumno group={selectedGroup} onClose={handleCloseDiplomas} language={language} />;
+    if (showGestionParticipantes) {
+        return <Monitoreo_participantes group={selectedGroup} onUpdateStudentStatus={handleUpdateStudentStatus} onClose={() => setShowGestionParticipantes(false)} language={language} />;
+    }
+
+    if (showExportDiplomas) {
+        return <Exportar_diploma_alumno group={selectedGroup} onClose={handleCloseDiplomas} language={language} />;
+    }
 
     return (
         <div className="min-h-screen bg-linear-to-br from-slate-100 to-sky-100 p-6 font-sans">
             <div className="max-w-7xl mx-auto">
-                <div className="flex justify-end mb-4 gap-2 bg-slate-100 p-1 rounded-full w-fit ml-auto border border-slate-200">
-                    <button className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'es' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('es')}>ES</button>
-                    <button className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'en' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('en')}>EN</button>
-                    <button className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'pt' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('pt')}>PT</button>
-                    <button className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'fr' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('fr')}>FR</button>
-                    <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all shadow-md" onClick={onLogout}>{t.logout}</button>
+                <div className="flex justify-between items-center mb-4">
+                    <div className="flex items-center gap-3">
+                        <div className="bg-blue-600 p-2 rounded-xl">
+                            <Users className="text-white" size={24} />
+                        </div>
+                        <div>
+                            <h1 className="text-2xl font-extrabold text-slate-800">{t.title}</h1>
+                            <p className="text-sm text-slate-500">
+                                {t.subtitle} — {teacherName || 'Maestro'} ({teacherEmail || 'sin email'})
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex gap-2 bg-slate-100 p-1 rounded-full border border-slate-200">
+                        <button className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'es' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('es')}>ES</button>
+                        <button className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'en' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('en')}>EN</button>
+                        <button className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'pt' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('pt')}>PT</button>
+                        <button className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'fr' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('fr')}>FR</button>
+                        <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all shadow-md" onClick={onLogout}>
+                            <LogOut size={16} /> {t.logout}
+                        </button>
+                    </div>
                 </div>
 
                 <div className="text-center mb-8">
                     <div className="flex items-center justify-center gap-4 mb-2">
                         <img src={castorcubasi} alt="castorcubasi" className="w-30 h-30 shadow-md" />
-                        <div><h1 className="text-3xl font-extrabold text-slate-800">{t.title}</h1><p className="text-slate-500">{t.subtitle}</p></div>
+                        <div>
+                            <h1 className="text-3xl font-extrabold text-slate-800">{t.title}</h1>
+                            <p className="text-slate-500">{t.subtitle}</p>
+                        </div>
                     </div>
                 </div>
 
                 <div className="bg-white rounded-2xl shadow-xl p-6 mb-8">
                     <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-200">
-                        <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Users size={20} className="text-blue-600" /> {t.groups}</h2>
-                        <button onClick={() => setShowCreateGroup(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all shadow-md"><Plus size={18} /> {t.createGroup}</button>
+                        <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <Users size={20} className="text-blue-600" /> {t.groups}
+                            {groups.length > 0 && (
+                                <span className="text-sm font-normal text-slate-500 ml-2">
+                                    ({groups.length} grupos)
+                                </span>
+                            )}
+                        </h2>
+                        <button
+                            onClick={() => setShowCreateGroup(true)}
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all shadow-md"
+                        >
+                            <Plus size={18} /> {t.createGroup}
+                        </button>
                     </div>
 
-                    {groups.length === 0 ? (
-                        <div className="text-center py-12"><p className="text-slate-500 mb-4">{t.noGroups}</p><button onClick={() => setShowCreateGroup(true)} className="px-6 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all">{t.createFirstGroup}</button></div>
+                    {isLoading ? (
+                        <div className="text-center py-12">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                            <p className="text-slate-500 mt-2">Cargando grupos...</p>
+                        </div>
+                    ) : groups.length === 0 ? (
+                        <div className="text-center py-12">
+                            <p className="text-slate-500 mb-4">No tienes grupos creados aun</p>
+                            <button onClick={() => setShowCreateGroup(true)} className="px-6 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all">
+                                Crear tu primer grupo
+                            </button>
+                        </div>
                     ) : (
                         <>
                             <div className="mb-6">
                                 <label className="block text-sm font-semibold text-slate-700 mb-2">{t.selectGroup}</label>
-                                <select value={selectedGroupId} onChange={(e) => setSelectedGroupId(e.target.value)} className="w-full md:w-64 px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none">
-                                    {groups.map(group => <option key={group.id} value={group.id}>{group.name} {group.school}</option>)}
+                                <select
+                                    value={selectedGroupId}
+                                    onChange={(e) => setSelectedGroupId(e.target.value)}
+                                    className="w-full md:w-64 px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none"
+                                >
+                                    {groups.map(group => (
+                                        <option key={group.id} value={group.id}>
+                                            {group.name} {group.school && `(${group.school})`}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
 
@@ -824,7 +971,12 @@ const Gestion_grupos_estudiantes = () => {
                                                 </div>
                                             </div>
                                             <div className="flex gap-2">
-                                                <button onClick={handleDeleteGroup} className="p-2 rounded-lg bg-white text-red-600 hover:bg-red-50 transition-all shadow-sm border border-slate-200" title={t.deleteGroup}>
+                                                <button  onClick={() => {
+                                                    handleDeleteGroup();
+                                                    console.log('🖱️ Botón clickeado');
+                                                    console.log('🔄 Renderizando, selectedGroup:', selectedGroup);
+
+                                                }}  className="p-2 rounded-lg bg-white text-red-600 hover:bg-red-50 transition-all shadow-sm border border-slate-200" title={t.deleteGroup}>
                                                     <Trash2 size={18} />
                                                 </button>
                                             </div>
@@ -863,7 +1015,6 @@ const Gestion_grupos_estudiantes = () => {
                                         </div>
                                     )}
 
-                                    {/* TABLA DE ESTUDIANTES */}
                                     <div>
                                         <div className="flex flex-wrap justify-between items-center mb-4">
                                             <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
@@ -880,7 +1031,7 @@ const Gestion_grupos_estudiantes = () => {
                                             <table className="w-full border-collapse">
                                                 <thead className="bg-slate-100">
                                                 <tr>
-                                                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">Género</th>
+                                                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">Genero</th>
                                                     <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.username}</th>
                                                     <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.student}</th>
                                                     <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.score}</th>
@@ -900,8 +1051,8 @@ const Gestion_grupos_estudiantes = () => {
                                                                         className="w-full px-2 py-1 rounded border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
                                                                     >
                                                                         <option value="">Seleccionar</option>
-                                                                        <option value="Femenino">♀ Femenino</option>
-                                                                        <option value="Masculino">♂ Masculino</option>
+                                                                        <option value="Femenino">Femenino</option>
+                                                                        <option value="Masculino">Masculino</option>
                                                                     </select>
                                                                 </td>
                                                                 <td className="px-4 py-2">
@@ -938,11 +1089,11 @@ const Gestion_grupos_estudiantes = () => {
                                                                 <td className="px-4 py-2 text-sm">
                                                                     {student.gender === 'Femenino' ? (
                                                                         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-pink-100 text-pink-700 text-xs font-medium">
-                                                                                ♀ Femenino
+                                                                                Femenino
                                                                             </span>
                                                                     ) : student.gender === 'Masculino' ? (
                                                                         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
-                                                                                ♂ Masculino
+                                                                                Masculino
                                                                             </span>
                                                                     ) : (
                                                                         <span className="text-gray-400 text-xs">—</span>

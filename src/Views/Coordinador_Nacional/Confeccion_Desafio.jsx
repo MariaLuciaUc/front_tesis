@@ -1,3 +1,4 @@
+// Confeccion_Desafio.jsx
 import api from '../../api/axios';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
@@ -60,7 +61,8 @@ const translations = {
         errorEmptyTime: "❌ Debes configurar el tiempo de ejecución para la categoría antes de guardar. El tiempo no puede estar vacío o ser 0.",
         questionAdded: "Pregunta agregada exitosamente",
         questionRemoved: "Pregunta eliminada exitosamente",
-        editPoints: "Editar puntos"
+        editPoints: "Editar puntos",
+        savingPoints: "Guardando puntos..."
     },
     en: {
         title: "Challenge Configuration",
@@ -102,7 +104,8 @@ const translations = {
         errorEmptyTime: "❌ You must configure the execution time for the category before saving. Time cannot be empty or 0.",
         questionAdded: "Question added successfully",
         questionRemoved: "Question removed successfully",
-        editPoints: "Edit points"
+        editPoints: "Edit points",
+        savingPoints: "Saving points..."
     },
     pt: {
         title: "Configuração do Desafio",
@@ -144,7 +147,8 @@ const translations = {
         errorEmptyTime: "❌ Você deve configurar o tempo de execução para a categoria antes de salvar. O tempo não pode estar vazio ou ser 0.",
         questionAdded: "Questão adicionada com sucesso",
         questionRemoved: "Questão removida com sucesso",
-        editPoints: "Editar pontos"
+        editPoints: "Editar pontos",
+        savingPoints: "Salvando pontos..."
     },
     fr: {
         title: "Configuration du Défi",
@@ -186,13 +190,13 @@ const translations = {
         errorEmptyTime: "❌ Vous devez configurer le temps d'exécution pour la catégorie avant d'enregistrer. Le temps ne peut pas être vide ou égal à 0.",
         questionAdded: "Question ajoutée avec succès",
         questionRemoved: "Question supprimée avec succès",
-        editPoints: "Modifier les points"
+        editPoints: "Modifier les points",
+        savingPoints: "Enregistrement des points..."
     }
 };
 
 const niveles = ['Super Peque', 'Peque', 'Benjamin', 'Cadete', 'Junior', 'Senior'];
 
-// Mapeo de nombres de niveles a IDs
 const levelNameToId = {
     'Super Peque': 1,
     'Peque': 2,
@@ -222,12 +226,12 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
     const [editingQuestion, setEditingQuestion] = useState(null);
     const [editPointsValue, setEditPointsValue] = useState(0);
 
-    // Estados para el banco de preguntas
     const [allTasks, setAllTasks] = useState([]);
     const [availableTasks, setAvailableTasks] = useState([]);
     const [activeTab, setActiveTab] = useState('questions');
     const [isSaving, setIsSaving] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isSavingPoints, setIsSavingPoints] = useState(false);
 
     // Cargar configuraciones guardadas
     useEffect(() => {
@@ -268,7 +272,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
         };
     };
 
-    // Función para cargar todas las tareas del JSON
     const loadAllTasks = useCallback(async () => {
         try {
             const jsonResponse = await fetch('/tasks.json');
@@ -286,14 +289,11 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
         }
     }, []);
 
-    // Función para filtrar tareas disponibles
     const filterAvailableTasks = useCallback((tasks, level, questions) => {
         if (!level) return [];
 
         const normalizedCategoryName = level.replace(' ', '-');
         const existingQuestions = questions[level] || [];
-
-        // Extraer todos los identificadores de las preguntas ya agregadas
         const existingTaskCodes = existingQuestions.map(q => trimString(q.task_code || q.taskCode || q.code));
         const existingIds = existingQuestions.map(q => q.originalId || q.id);
 
@@ -322,7 +322,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                     t => t.contest_id === config.id && t.category_id === currentCategoryId
                 );
 
-                // Cargar tareas del JSON si no están cargadas
                 let tasks = allTasks;
                 if (tasks.length === 0) {
                     tasks = await loadAllTasks();
@@ -336,6 +335,12 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                         r => trimString(r.taskCode) === trimString(serverTask.task_code)
                     ) || {};
 
+                    // 🔥 Usar los puntos del servidor (los que guardó el coordinador)
+                    const pointsFromServer = serverTask.points;
+                    const points = (pointsFromServer !== undefined && pointsFromServer !== null)
+                        ? pointsFromServer
+                        : defaultPoints;
+
                     return {
                         ...taskDetails,
                         id: serverTask.id || Date.now() + Math.random(),
@@ -343,7 +348,7 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                         task_code: serverTask.task_code,
                         text: taskDetails.title || taskDetails.question || "Tarea sin título",
                         correctAnswer: taskDetails.correctOption || taskDetails.correctAnswer || "N/A",
-                        points: serverTask.points || defaultPoints,
+                        points: points, // 🔥 Usar los puntos del servidor
                         display_order: serverTask.display_order
                     };
                 });
@@ -357,7 +362,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                     return updated;
                 });
 
-                // Actualizar availableTasks si el modal está abierto
                 if (showQuestionBank && tasks.length > 0) {
                     const filtered = filterAvailableTasks(tasks, selectedLevel, { [selectedLevel]: matchingQuestions });
                     setAvailableTasks(filtered);
@@ -373,7 +377,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
         fetchSavedQuestionsFromDB();
     }, [selectedLevel, config.id, showQuestionBank, loadAllTasks, filterAvailableTasks]);
 
-    // Efecto para actualizar availableTasks cuando cambian las preguntas seleccionadas
     useEffect(() => {
         if (showQuestionBank && selectedLevel && allTasks.length > 0) {
             const filtered = filterAvailableTasks(allTasks, selectedLevel, selectedQuestions);
@@ -421,13 +424,11 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
         try {
             setIsLoading(true);
 
-            // Cargar tareas si no están cargadas
             let tasks = allTasks;
             if (tasks.length === 0) {
                 tasks = await loadAllTasks();
             }
 
-            // Filtrar tareas disponibles
             const filtered = filterAvailableTasks(tasks, selectedLevel, selectedQuestions);
             setAvailableTasks(filtered);
             setShowQuestionBank(true);
@@ -439,12 +440,24 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
         }
     };
 
+    // 🔥 Función para guardar puntos en el servidor
+    const savePointsToServer = async (taskCode, points) => {
+        try {
+            const response = await api.put(`/contest_tasks/${config.id}/${taskCode}`, {
+                points: points
+            });
+            return response.data;
+        } catch (err) {
+            console.error("Error al guardar puntos en el servidor:", err);
+            throw err;
+        }
+    };
+
     const addQuestionToLevel = async (task) => {
         const existingQuestions = selectedQuestions[selectedLevel] || [];
         const currentTaskCode = task.taskCode || task.task_code || task.code;
         const currentTaskId = task.id;
 
-        // Verificar si la pregunta ya está agregada
         const alreadyAdded = existingQuestions.some(q => {
             const qCode = trimString(q.task_code || q.taskCode || q.code);
             const taskCodeTrimmed = trimString(currentTaskCode);
@@ -459,12 +472,15 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
         const categoryId = getCategoryIdByLevelName(selectedLevel);
         const displayOrder = existingQuestions.length + 1;
 
+        const levelConfig = getLevelConfig(selectedLevel);
+        const pointsToUse = levelConfig.scoringScheme?.basePoints || task.defaultPoints || 10;
+
         const contestTaskData = {
             contest_id: config.id,
             category_id: categoryId,
             task_code: currentTaskCode,
             display_order: displayOrder,
-            points: task.defaultPoints || 10
+            points: pointsToUse // 🔥 Enviar puntos al servidor
         };
 
         try {
@@ -473,13 +489,9 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
 
             const serverTaskId = response.data?.id || response.data?.contest_task?.id;
 
-            const levelConfig = getLevelConfig(selectedLevel);
-            const points = levelConfig.scoringScheme?.basePoints || task.defaultPoints || 10;
-
             const taskTitle = task.title || task.question || task.text || "Tarea sin título";
             const correctAnswerDisplay = task.correctOption || task.correctAnswer || "N/A";
 
-            // Crear la nueva pregunta
             const newQuestion = {
                 ...task,
                 id: serverTaskId || Date.now() + Math.random(),
@@ -487,12 +499,11 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                 task_code: currentTaskCode,
                 text: taskTitle,
                 correctAnswer: correctAnswerDisplay,
-                points: points,
+                points: pointsToUse,
                 display_order: displayOrder,
                 server_id: serverTaskId
             };
 
-            // Actualizar las preguntas seleccionadas
             setSelectedQuestions(prev => {
                 const currentQuestions = prev[selectedLevel] || [];
                 const updated = {
@@ -503,7 +514,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                 return updated;
             });
 
-            // Eliminar la pregunta agregada de availableTasks
             setAvailableTasks(prev => prev.filter(q => {
                 const qCode = trimString(q.taskCode || q.code);
                 return qCode !== trimString(currentTaskCode) && q.id !== currentTaskId;
@@ -515,6 +525,49 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
             toast.error(err.response?.data?.message || "Error al agregar la pregunta.");
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    // 🔥 Función modificada para guardar puntos al editar
+    const saveEdit = async (questionId) => {
+        const questionToUpdate = selectedQuestions[selectedLevel]?.find(q => q.id === questionId);
+
+        if (!questionToUpdate) {
+            toast.error('No se encontró la pregunta');
+            return;
+        }
+
+        const taskCode = questionToUpdate.task_code || questionToUpdate.taskCode;
+        const contestId = config.id;
+
+        try {
+            setIsSavingPoints(true);
+
+            // 🔥 Guardar puntos en el servidor
+            await api.put(`/contest_tasks/${contestId}/${taskCode}`, {
+                points: editPointsValue
+            });
+
+            // Actualizar el estado local
+            setSelectedQuestions(prev => ({
+                ...prev,
+                [selectedLevel]: prev[selectedLevel].map(q =>
+                    q.id === questionId ? {
+                        ...q,
+                        points: editPointsValue
+                    } : q
+                )
+            }));
+
+            setEditingQuestion(null);
+            setEditPointsValue(0);
+            toast.success('Puntos actualizados exitosamente en el servidor');
+
+        } catch (err) {
+            console.error("Error al guardar puntos:", err);
+            toast.error(err.response?.data?.message || "Error al guardar los puntos en el servidor");
+        } finally {
+            setIsSavingPoints(false);
         }
     };
 
@@ -543,7 +596,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                 }
             });
 
-            // Actualizar las preguntas seleccionadas
             setSelectedQuestions(prev => {
                 const updated = {
                     ...prev,
@@ -553,7 +605,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                 return updated;
             });
 
-            // Restaurar la pregunta en availableTasks
             const taskToAdd = allTasks.find(t => {
                 const tCode = trimString(t.taskCode || t.code);
                 return tCode === trimString(currentTaskCode) || t.id === originalId;
@@ -592,21 +643,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
     const cancelEditing = () => {
         setEditingQuestion(null);
         setEditPointsValue(0);
-    };
-
-    const saveEdit = (questionId) => {
-        setSelectedQuestions(prev => ({
-            ...prev,
-            [selectedLevel]: prev[selectedLevel].map(q =>
-                q.id === questionId ? {
-                    ...q,
-                    points: editPointsValue
-                } : q
-            )
-        }));
-        setEditingQuestion(null);
-        setEditPointsValue(0);
-        toast.success('Puntos actualizados');
     };
 
     const saveConfiguration = async () => {
@@ -798,8 +834,19 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                                                                             />
                                                                         </div>
                                                                         <div className="flex gap-1">
-                                                                            <button onClick={() => saveEdit(q.id)} className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Guardar</button>
-                                                                            <button onClick={cancelEditing} className="px-3 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500">Cancelar</button>
+                                                                            <button
+                                                                                onClick={() => saveEdit(q.id)}
+                                                                                disabled={isSavingPoints}
+                                                                                className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                                                                            >
+                                                                                {isSavingPoints ? t.savingPoints : 'Guardar'}
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={cancelEditing}
+                                                                                className="px-3 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500"
+                                                                            >
+                                                                                Cancelar
+                                                                            </button>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -815,6 +862,7 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                                                                                 <Edit3 size={10} /> {q.points} {t.points}
                                                                             </button>
                                                                             <span className="text-xs bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md">Código: {q.task_code || q.taskCode}</span>
+                                                                            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-md">Puntos: {q.points}</span>
                                                                         </div>
                                                                         <p className="text-slate-800 font-medium">{q.text}</p>
                                                                         <p className="text-xs text-slate-500 mt-1">{t.answer}: {q.correctAnswer}</p>
