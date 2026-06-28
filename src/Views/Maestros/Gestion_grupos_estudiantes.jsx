@@ -3,10 +3,10 @@ import React, { useState, useEffect } from 'react';
 import Crear_Grupo from './Crear_Grupo';
 import Crear_cuentas_alumnos from './Crear_cuentas_alumnos';
 import Monitoreo_participantes from './Monitoreo_participantes.jsx';
+import Exportar_diploma_alumno from './Exportar_diploma_alumno';
 import castorcubasi from '/src/castorcubasi.jpg';
 import { Users, Plus, Globe, BookOpen, Lock, X, Trash2, Save, CheckCircle, UserPlus, Clock, BarChart3, AlertCircle, Play, Download, FileDown, FileText, FileSpreadsheet, Edit, Key, LogOut } from 'lucide-react';
 import { toast } from "sonner";
-import Exportar_diploma_alumno from './Exportar_diploma_alumno';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -28,7 +28,7 @@ const translations = {
         students: "Estudiantes",
         createAccounts: "Crear cuentas",
         monitorParticipants: "Monitorear participantes",
-        closeChallenge: "Cerrar desafio y publicar puntuaciones",
+        closeChallenge: "Cerrar desafio y mostrar puntuaciones",
         exportDiplomas: "Exportar diplomas de participacion de estudiantes",
         exportReport: "Exportar reporte de participacion de grupo",
         exportCredentials: "Exportar credenciales de los alumnos",
@@ -38,7 +38,6 @@ const translations = {
         welcomeText3: "Desplacese hacia abajo un boton para crear la cuenta de cada uno de los estudiantes por grupo.",
         welcomeText4: "Durante el desafio, puedes ver el estado de los estudiantes y las marcas de tiempo para iniciar y cerrar el desafio con el boton Gestionar los estudiantes.",
         welcomeText5: "Una vez que finalice todo el grupo, puede hacer clic en el boton Cerrar este desafio y publicar las puntuaciones.",
-        importantCuba: "IMPORTANTE (CUBA): Debe quitar la marca de verificacion del permiso de investigacion a TODOS los estudiantes usando el boton Quitar todos permisos.",
         editGroupModalTitle: "Editar Grupo",
         groupNameRequired: "El nombre del grupo es obligatorio",
         groupUpdated: "Grupo actualizado exitosamente",
@@ -104,7 +103,7 @@ const translations = {
         students: "Students",
         createAccounts: "Create accounts",
         monitorParticipants: "Monitor participants",
-        closeChallenge: "Close challenge and publish scores",
+        closeChallenge: "Close challenge and show scores",
         exportDiplomas: "Export student participation diplomas",
         exportReport: "Export group participation report",
         exportCredentials: "Export student credentials",
@@ -114,7 +113,6 @@ const translations = {
         welcomeText3: "Scroll down to a button to create an account for each student per group.",
         welcomeText4: "During the challenge, you can see the status of students and timestamps to start and close the challenge with the Manage Students button.",
         welcomeText5: "Once the entire group has finished, you can click the Close this challenge and publish scores button.",
-        importantCuba: "IMPORTANT (CUBA): You must uncheck the research permission for ALL students using the Remove all permissions button.",
         editGroupModalTitle: "Edit Group",
         groupNameRequired: "Group name is required",
         groupUpdated: "Group updated successfully",
@@ -180,7 +178,7 @@ const translations = {
         students: "Estudantes",
         createAccounts: "Criar contas",
         monitorParticipants: "Monitorar participantes",
-        closeChallenge: "Encerrar desafio e publicar pontuacoes",
+        closeChallenge: "Encerrar desafio e mostrar pontuacoes",
         exportDiplomas: "Exportar diplomas de participacao dos estudantes",
         exportReport: "Exportar relatorio de participacao do grupo",
         exportCredentials: "Exportar credenciais dos alunos",
@@ -190,7 +188,6 @@ const translations = {
         welcomeText3: "Role para baixo para um botao que cria uma conta para cada aluno por grupo.",
         welcomeText4: "Durante o desafio, voce pode ver o status dos alunos e os horarios de inicio e fim com o botao Gerenciar alunos.",
         welcomeText5: "Depois que todo o grupo terminar, voce pode clicar no botao Encerrar este desafio e publicar as pontuacoes.",
-        importantCuba: "IMPORTANTE (CUBA): Voce deve desmarcar a permissao de pesquisa para TODOS os alunos usando o botao Remover todas as permissoes.",
         editGroupModalTitle: "Editar Grupo",
         groupNameRequired: "O nome do grupo e obrigatorio",
         groupUpdated: "Grupo atualizado com sucesso",
@@ -256,7 +253,7 @@ const translations = {
         students: "Eleves",
         createAccounts: "Creer des comptes",
         monitorParticipants: "Suivre les participants",
-        closeChallenge: "Cloturer le defi et publier les scores",
+        closeChallenge: "Cloturer le defi et montrer les scores",
         exportDiplomas: "Exporter les diplomes de participation des eleves",
         exportReport: "Exporter le rapport de participation du groupe",
         exportCredentials: "Exporter les identifiants des eleves",
@@ -266,7 +263,6 @@ const translations = {
         welcomeText3: "Faites defiler vers le bas pour un bouton qui cree un compte pour chaque eleve par groupe.",
         welcomeText4: "Pendant le defi, vous pouvez voir l'etat des eleves et les horodatages pour demarrer et cloturer le defi avec le bouton Gerer les eleves.",
         welcomeText5: "Une fois que tout le groupe a termine, vous pouvez cliquer sur le bouton Cloturer ce defi et publier les scores.",
-        importantCuba: "IMPORTANT (CUBA) : Vous devez decocher l'autorisation de recherche pour TOUS les eleves a l'aide du bouton Supprimer toutes les autorisations.",
         editGroupModalTitle: "Modifier le groupe",
         groupNameRequired: "Le nom du groupe est obligatoire",
         groupUpdated: "Groupe mis a jour avec succes",
@@ -480,45 +476,34 @@ const Gestion_grupos_estudiantes = () => {
     };
 
     const handleDeleteGroup = async () => {
-        console.log('🚀 handleDeleteGroup EJECUTADA');
 
         if (!selectedGroup) {
-            console.warn('❌ selectedGroup es null o undefined');
             toast.error('No hay un grupo seleccionado');
             return;
         }
 
-        console.log('📌 Grupo seleccionado:', selectedGroup);
-        console.log('📌 ID del grupo:', selectedGroupId);
 
         let canDelete = true;
 
         try {
-            console.log('🔍 Verificando estudiantes...');
             const studentsResponse = await api.get(`/groups/${selectedGroupId}/students`);
-            console.log('📊 Respuesta:', studentsResponse.data);
 
             const studentsCount = studentsResponse.data?.students?.length || 0;
-            console.log('👨‍🎓 Estudiantes:', studentsCount);
 
             if (studentsCount > 0) {
                 toast.error(`No se puede eliminar el grupo "${selectedGroup.name}" porque tiene ${studentsCount} estudiante(s) asociado(s). Primero debe eliminar los estudiantes del grupo.`);
                 canDelete = false;
             }
         } catch (error) {
-            console.error('❌ Error:', error);
             toast.error('Error al verificar si el grupo tiene estudiantes');
             canDelete = false;
         }
 
         if (!canDelete) {
-            console.log('⛔ No se puede eliminar, saliendo...');
             return;
         }
 
-        console.log('✅ Mostrando confirm...');
         if (window.confirm(t.deleteGroupConfirm)) {
-            console.log('✅ Confirmado');
             try {
                 await api.delete(`/groups/${selectedGroupId}`);
                 toast.success(t.groupDeleted);
@@ -533,12 +518,9 @@ const Gestion_grupos_estudiantes = () => {
                     }
                 }
             } catch (error) {
-                console.error('❌ Error al eliminar:', error);
                 toast.error(error.response?.data?.message || 'Error al eliminar el grupo');
             }
-        } else {
-            console.log('❌ Cancelado');
-        }
+       }
     };
 
     const handleStudentsCreated = (estudiantesCreados) => {
@@ -882,7 +864,6 @@ const Gestion_grupos_estudiantes = () => {
                             <Users className="text-white" size={24} />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-extrabold text-slate-800">{t.title}</h1>
                             <p className="text-sm text-slate-500">
                                 {t.subtitle} — {teacherName || 'Maestro'} ({teacherEmail || 'sin email'})
                             </p>
@@ -904,7 +885,6 @@ const Gestion_grupos_estudiantes = () => {
                         <img src={castorcubasi} alt="castorcubasi" className="w-30 h-30 shadow-md" />
                         <div>
                             <h1 className="text-3xl font-extrabold text-slate-800">{t.title}</h1>
-                            <p className="text-slate-500">{t.subtitle}</p>
                         </div>
                     </div>
                 </div>

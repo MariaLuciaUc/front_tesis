@@ -7,40 +7,43 @@ const translations = {
     es: {
         logout: "Salir",
         welcome: "¡Bienvenido al Desafío Bebras!",
-        ready: "Selecciona tu categoría para ponerte a prueba:",
         success: "¡Muchos Éxitos!",
-        categoriesTitle: "Categorías del Desafío",
-        timePerCategory: "Tiempo asignado"
+        categoriesTitle: "Desafíos Bebras",
+        timePerCategory: "Tiempo asignado",
+        yourCategory: "Tu categoría",
+        startChallenge: "Comenzar Desafío"
     },
     en: {
         logout: "Logout",
         welcome: "Welcome to the Bebras Challenge!",
-        ready: "Select your category to test yourself:",
         success: "Good luck!",
-        categoriesTitle: "Challenge Categories",
-        timePerCategory: "Time assigned"
+        categoriesTitle: "Bebras Challenges",
+        timePerCategory: "Time assigned",
+        yourCategory: "Your category",
+        startChallenge: "Start Challenge"
     },
     pt: {
         logout: "Sair",
         welcome: "Bem-vindo ao Desafio Bebras!",
-        ready: "Selecione sua categoria para se testar:",
         success: "Boa sorte!",
-        categoriesTitle: "Categorias do Desafio",
-        timePerCategory: "Tempo designado"
+        categoriesTitle: "Categorias Bebras",
+        timePerCategory: "Tempo designado",
+        yourCategory: "Sua categoria",
+        startChallenge: "Iniciar Desafio"
     },
     fr: {
         logout: "Déconnexion",
         welcome: "Bienvenue au Défi Bebras !",
-        ready: "Sélectionnez votre catégorie pour vous mettre à l'épreuve :",
         success: "Bonne chance !",
-        categoriesTitle: "Catégories du Défi",
-        timePerCategory: "Temps alloué"
+        categoriesTitle: "Catégories Bebras",
+        timePerCategory: "Temps alloué",
+        yourCategory: "Votre catégorie",
+        startChallenge: "Commencer le Défi"
     }
 };
 
-
 const Panel_Estudiante = ({ onLogout }) => {
-    const { user, isStudent, getCategory } = useMockAuth();
+    const { user, isStudent } = useMockAuth();
 
     const [language, setLanguage] = useState(() => {
         return localStorage.getItem('bebrasLanguage') || 'es';
@@ -61,7 +64,6 @@ const Panel_Estudiante = ({ onLogout }) => {
         { id: 6, name: "Senior (11no y 12mo)" }
     ];
 
-    // 🔥 SEGUNDO: useEffect y lógica
     useEffect(() => {
         const savedConfig = localStorage.getItem('bebrasContestConfig');
         if (savedConfig) {
@@ -126,7 +128,6 @@ const Panel_Estudiante = ({ onLogout }) => {
         setCategoryTimes(times);
     }, [language]);
 
-    // 🔥 TERCERO: Verificaciones condicionales (después de los hooks)
     if (!isStudent) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-red-50">
@@ -139,6 +140,8 @@ const Panel_Estudiante = ({ onLogout }) => {
     }
 
     const student = user;
+    const studentCategoryId = student?.category_id;
+    const studentCategory = categories.find(c => c.id === studentCategoryId);
 
     const handleIniciarDesafio = (category) => {
         setSelectedCategory(category);
@@ -181,8 +184,8 @@ const Panel_Estudiante = ({ onLogout }) => {
                         <h2 className="text-xl font-extrabold text-slate-800 tracking-tight">
                             {contestConfig?.contestName || "Desafío Bebras"}
                         </h2>
-                        <p className="text-xs text-slate-400">
-                            {student?.full_name} • {student?.username}
+                        <p className="text-base font-semibold text-slate-700 mt-0.5">
+                           Estudiante: {student?.full_name}
                         </p>
                     </div>
                 </div>
@@ -220,38 +223,44 @@ const Panel_Estudiante = ({ onLogout }) => {
                         <h3 className="text-xl font-extrabold text-slate-800 flex items-center gap-2">
                             <BookOpen size={22} className="text-blue-600" /> {t.categoriesTitle}
                         </h3>
-                        <p className="text-sm text-slate-500 mt-1">{t.ready}</p>
                     </div>
 
                     <div className="flex-1 space-y-3 pr-1">
-                        {categories.map((cat) => {
-                            const timeForCategory = categoryTimes[cat.id] || contestConfig?.executionTime || 45;
-                            return (
-                                <button
-                                    key={cat.id}
-                                    onClick={() => handleIniciarDesafio(cat)}
-                                    className="w-full flex items-center justify-between p-4 bg-white hover:bg-blue-50/50 border border-slate-200 hover:border-blue-400 rounded-2xl text-left transition-all shadow-xs group cursor-pointer"
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-extrabold text-base group-hover:bg-blue-500 group-hover:text-white transition-all transform group-hover:scale-105">
-                                            {cat.id}
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">
-                                                {cat.name}
-                                            </span>
-                                            <span className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
-                                                <Clock size={12} className="text-blue-400" />
-                                                {t.timePerCategory}: {timeForCategory} min
-                                            </span>
-                                        </div>
+                        {studentCategory && (
+                            <button
+                                onClick={() => handleIniciarDesafio(studentCategory)}
+                                className="w-full flex items-center justify-between p-4 bg-white hover:bg-blue-50/50 border-2 border-blue-400 hover:border-blue-500 rounded-2xl text-left transition-all shadow-md group cursor-pointer"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-orange-400 flex items-center justify-center text-white font-extrabold text-base shadow-md">
+                                        <Trophy size={20} className="text-white" />
                                     </div>
-                                    <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-blue-100 transition-all">
-                                        <ChevronRight size={18} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
+                                    <div className="flex flex-col">
+                                        <span className="font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">
+                                            {studentCategory.name}
+                                        </span>
+                                        <span className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
+                                            <Clock size={12} className="text-blue-400" />
+                                            {t.timePerCategory}: {categoryTimes[studentCategory.id] || contestConfig?.executionTime || 45} min
+                                        </span>
                                     </div>
-                                </button>
-                            );
-                        })}
+                                </div>
+                                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center border border-blue-200 group-hover:bg-blue-500 transition-all">
+                                    <ChevronRight size={18} className="text-blue-600 group-hover:text-white transition-colors" />
+                                </div>
+                            </button>
+                        )}
+
+                        {!studentCategory && (
+                            <div className="text-center py-8 bg-red-50 rounded-xl border border-red-200">
+                                <p className="text-red-600 font-medium">
+                                    No se encontró una categoría asignada para este estudiante.
+                                </p>
+                                <p className="text-sm text-red-500 mt-1">
+                                    Contacta a tu profesor para asignarte una categoría.
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </section>
 

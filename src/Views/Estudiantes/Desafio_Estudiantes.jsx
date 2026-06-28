@@ -1,6 +1,6 @@
 // Desafio_Estudiantes.jsx
-import React, { useState, useEffect } from 'react';
-import { Clock, LogOut, Target, List, Trophy, BookOpen, CheckCircle, ArrowLeft, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Clock, LogOut, Target, List, Trophy, BookOpen, CheckCircle, ArrowLeft, AlertCircle, Cloud, CloudOff } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
 import Pregunta from './Pregunta';
@@ -69,7 +69,18 @@ const translations = {
         evaluating: "Calculando puntuacion...",
         timeUp: "Tiempo agotado",
         evaluatingAuto: "Evaluando respuestas...",
-        points: "pts"
+        points: "pts",
+        sessionCreated: "Sesion iniciada correctamente",
+        sessionError: "Error al iniciar la sesion",
+        sessionRecovered: "Sesion existente recuperada",
+        startingChallenge: "Iniciando desafio...",
+        noSession: "Sin sesion activa",
+        answerSavedServer: "Respuesta guardada en el servidor",
+        answerSavedLocal: "Respuesta guardada localmente",
+        pendingSync: "pendiente(s)",
+        syncComplete: "Todas las respuestas sincronizadas",
+        syncing: "Sincronizando respuestas...",
+        restoring: "Restaurando respuestas guardadas..."
     },
     en: {
         timeLabel: "Time remaining",
@@ -132,7 +143,18 @@ const translations = {
         evaluating: "Calculating score...",
         timeUp: "Time is up",
         evaluatingAuto: "Evaluating answers...",
-        points: "pts"
+        points: "pts",
+        sessionCreated: "Session started successfully",
+        sessionError: "Error starting session",
+        sessionRecovered: "Existing session recovered",
+        startingChallenge: "Starting challenge...",
+        noSession: "No active session",
+        answerSavedServer: "Answer saved on server",
+        answerSavedLocal: "Answer saved locally",
+        pendingSync: "pending",
+        syncComplete: "All answers synced",
+        syncing: "Syncing answers...",
+        restoring: "Restoring saved answers..."
     },
     pt: {
         timeLabel: "Tempo restante",
@@ -195,7 +217,18 @@ const translations = {
         evaluating: "Calculando pontuacao...",
         timeUp: "Tempo esgotado",
         evaluatingAuto: "Avaliando respostas...",
-        points: "pts"
+        points: "pts",
+        sessionCreated: "Sessao iniciada com sucesso",
+        sessionError: "Erro ao iniciar sessao",
+        sessionRecovered: "Sessao existente recuperada",
+        startingChallenge: "Iniciando desafio...",
+        noSession: "Sem sessao ativa",
+        answerSavedServer: "Resposta salva no servidor",
+        answerSavedLocal: "Resposta salva localmente",
+        pendingSync: "pendente(s)",
+        syncComplete: "Todas as respostas sincronizadas",
+        syncing: "Sincronizando respostas...",
+        restoring: "Restaurando respostas salvas..."
     },
     fr: {
         timeLabel: "Temps restant",
@@ -258,10 +291,20 @@ const translations = {
         evaluating: "Calcul du score...",
         timeUp: "Temps ecoule",
         evaluatingAuto: "Evaluation des reponses...",
-        points: "pts"
+        points: "pts",
+        sessionCreated: "Session demarree avec succes",
+        sessionError: "Erreur lors du demarrage de la session",
+        sessionRecovered: "Session existante recuperee",
+        startingChallenge: "Demarrage du defi...",
+        noSession: "Pas de session active",
+        answerSavedServer: "Reponse enregistree sur le serveur",
+        answerSavedLocal: "Reponse enregistree localement",
+        pendingSync: "en attente",
+        syncComplete: "Toutes les reponses synchronisees",
+        syncing: "Synchronisation des reponses...",
+        restoring: "Restauration des reponses sauvegardees..."
     }
 };
-
 const categoryMap = {
     "Super-Peque": 1,
     "Peque": 2,
@@ -271,12 +314,26 @@ const categoryMap = {
     "Senior": 6
 };
 
+// ============================================================
+// CLAVES PARA LOCALSTORAGE
+// ============================================================
+const CACHE_KEY = 'bebras_answers_cache';
+const SESSION_KEY = 'bebras_session_id';
+
+// 🔥 Función para obtener la clave de respuestas por estudiante
+const getSubmittedKey = (studentId) => {
+    return `bebras_submitted_answers_${studentId}`;
+};
+
+// ============================================================
+// COMPONENTE PRINCIPAL
+// ============================================================
 const Desafio_Estudiantes = (props) => {
     const { studentData, onBackToPanel, language = 'es', contestConfig, categoryId, categoryName } = props;
     const [currentLanguage, setCurrentLanguage] = useState(language);
     const t = translations[currentLanguage] || translations.es;
 
-    const [name] = useState(studentData?.name || 'Estudiante');
+    const [name] = useState(studentData?.full_name || studentData?.name || 'Estudiante');
     const [showFinishModal, setShowFinishModal] = useState(false);
     const [showTimeUpModal, setShowTimeUpModal] = useState(false);
     const [finished, setFinished] = useState(false);
@@ -295,6 +352,410 @@ const Desafio_Estudiantes = (props) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [answers, setAnswers] = useState({});
     const [allTasksData, setAllTasksData] = useState([]);
+    const [isRestoring, setIsRestoring] = useState(false);
+
+    // 🔥 Obtener el ID del estudiante
+    const studentId = studentData?.id || localStorage.getItem('bebras_student_id');
+
+    // 🔥 Clave de localStorage específica para este estudiante
+    const SUBMITTED_KEY = studentId ? getSubmittedKey(studentId) : 'bebras_submitted_answers';
+
+    // Referencias para la sesión
+    const contestSessionIdRef = useRef(null);
+    const startTimeRef = useRef(null);
+    const [isSessionCreated, setIsSessionCreated] = useState(false);
+    const [isSavingAnswer, setIsSavingAnswer] = useState(false);
+    const [isCreatingSession, setIsCreatingSession] = useState(false);
+    const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+    // ============================================================
+    // FUNCIONES DEL SERVIDOR
+    // ============================================================
+
+    const createStudentSession = async () => {
+        if (isCreatingSession) return false;
+
+        setIsCreatingSession(true);
+        setError(null);
+
+        try {
+            const contestId = contestConfig?.id || localStorage.getItem('current_contest_id') || 1;
+            const studentId = studentData?.id;
+
+            if (!studentId) {
+                setError('No se encontró el ID del estudiante');
+                toast.error('Error: No se encontró el estudiante');
+                return false;
+            }
+
+            const startTime = new Date().toISOString();
+            startTimeRef.current = startTime;
+
+            const sessionData = {
+                student_id: parseInt(studentId),
+                contest_id: parseInt(contestId),
+                start_time: startTime
+            };
+
+            const response = await axios.post(`${API_BASE_URL}/api/contest_sessions`, sessionData);
+
+            if (response.status === 201 || response.status === 200) {
+                const session = response.data;
+                contestSessionIdRef.current = session.id;
+                localStorage.setItem(SESSION_KEY, String(session.id));
+                localStorage.setItem('bebras_student_id', String(studentId));
+                setIsSessionCreated(true);
+                toast.success(t.sessionCreated);
+                return true;
+            } else {
+                setError(response.data.message || 'Error al crear la sesión');
+                toast.error(t.sessionError);
+                return false;
+            }
+        } catch (error) {
+            console.error('Error al crear sesión:', error);
+
+            if (error.response?.status === 409) {
+                try {
+                    const contestId = contestConfig?.id || localStorage.getItem('current_contest_id') || 1;
+                    const studentId = studentData?.id;
+
+                    const response = await axios.get(`${API_BASE_URL}/api/contest_sessions`);
+                    const sessions = response.data || [];
+
+                    const existingSession = sessions.find(
+                        s => s.student_id === parseInt(studentId) &&
+                            s.contest_id === parseInt(contestId) &&
+                            s.status !== 'finished'
+                    );
+
+                    if (existingSession) {
+                        contestSessionIdRef.current = existingSession.id;
+                        localStorage.setItem(SESSION_KEY, String(existingSession.id));
+                        localStorage.setItem('bebras_student_id', String(studentId));
+                        startTimeRef.current = existingSession.start_time;
+                        setIsSessionCreated(true);
+                        toast.info(t.sessionRecovered);
+                        return true;
+                    }
+                } catch (e) {
+                    console.error('Error al buscar sesión existente:', e);
+                }
+            } else if (error.response?.data?.errors) {
+                const errors = error.response.data.errors;
+                const messages = [];
+                if (errors.student_id) messages.push(`Estudiante: ${errors.student_id.join(', ')}`);
+                if (errors.contest_id) messages.push(`Concurso: ${errors.contest_id.join(', ')}`);
+                if (errors.start_time) messages.push(`Fecha: ${errors.start_time.join(', ')}`);
+                if (messages.length) toast.error(`Errores: ${messages.join(' | ')}`);
+            } else if (error.response?.data?.message) {
+                toast.error(`Error: ${error.response.data.message}`);
+            } else {
+                toast.error(`Error: ${error.message}`);
+            }
+
+            setError(error.message || 'Error al crear la sesión');
+            return false;
+        } finally {
+            setIsCreatingSession(false);
+        }
+    };
+
+    const saveAnswerToServer = async (payload) => {
+        try {
+            const response = await axios.post(`${API_BASE_URL}/api/answers`, payload);
+            return response.status === 200 || response.status === 201;
+        } catch (error) {
+            console.error('Error al guardar respuesta en servidor:', error);
+            return false;
+        }
+    };
+
+    const saveAnswerWithServer = async (questionId, answerData, taskCode) => {
+        const sessionId = contestSessionIdRef.current || localStorage.getItem(SESSION_KEY);
+
+        if (!sessionId) {
+            toast.error('Error: No hay sesión activa');
+            return false;
+        }
+
+        setIsSavingAnswer(true);
+        try {
+            const payload = {
+                session_id: parseInt(sessionId),
+                task_code: taskCode || '',
+                answer_data: { answer: answerData },
+                submitted_at: new Date().toISOString()
+            };
+
+            const success = await saveAnswerToServer(payload);
+            return success;
+        } catch (error) {
+            console.error('Error:', error);
+            return false;
+        } finally {
+            setIsSavingAnswer(false);
+        }
+    };
+
+    const updateSessionStatus = async (score) => {
+        const sessionId = contestSessionIdRef.current || localStorage.getItem(SESSION_KEY);
+
+        if (!sessionId) {
+            console.error('No hay sesión activa para actualizar');
+            return false;
+        }
+
+        try {
+            const updateData = {
+                session_ids: [parseInt(sessionId)],
+                status: 'finished',
+                final_score: score || 0
+            };
+
+            const response = await axios.put(
+                `${API_BASE_URL}/api/contest_sessions/update-status`,
+                updateData
+            );
+
+            return response.status === 200;
+        } catch (error) {
+            console.error('Error al actualizar sesión:', error);
+            return false;
+        }
+    };
+
+    // ============================================================
+    // FUNCIONES DE CARGA DE DATOS
+    // ============================================================
+
+    const trimString = (str) => str ? String(str).trim() : '';
+
+    const cargarDatos = async () => {
+        const contestId = contestConfig?.id || localStorage.getItem('current_contest_id') || 1;
+
+        try {
+            const url = `${API_BASE_URL}/api/contest_tasks/${contestId}`;
+            const response = await axios.get(url);
+
+            if (typeof response.data === 'string' && response.data.includes('<!doctype html>')) {
+                throw new Error(t.apiError);
+            }
+
+            let allTasks = [];
+            if (Array.isArray(response.data)) {
+                allTasks = response.data;
+            } else if (response.data?.data) {
+                allTasks = response.data.data;
+            } else if (response.data?.tasks) {
+                allTasks = response.data.tasks;
+            } else {
+                allTasks = Object.values(response.data).filter(item => typeof item === 'object' && item !== null);
+            }
+
+            if (allTasks.length === 0) {
+                setQuestions([]);
+                return;
+            }
+
+            const filteredByCategory = allTasks.filter(task => Number(task.category_id) === Number(categoryId));
+
+            if (filteredByCategory.length === 0) {
+                setQuestions([]);
+                return;
+            }
+
+            const jsonResponse = await fetch('/tasks.json');
+            if (!jsonResponse.ok) {
+                throw new Error(`Error al cargar tasks.json: ${jsonResponse.status}`);
+            }
+            const jsonData = await jsonResponse.json();
+            const rawTasks = jsonData.tasks || [];
+            setAllTasksData(rawTasks);
+
+            const formattedQuestions = filteredByCategory.map((serverTask) => {
+                const codigoLimpio = trimString(serverTask.task_code);
+
+                const taskDetails = rawTasks.find(t => {
+                    const codeMatch = trimString(t.taskCode) === codigoLimpio;
+                    const catTexto = t.category || '';
+                    const catIdJSON = categoryMap[catTexto];
+                    return codeMatch && catIdJSON === Number(categoryId);
+                });
+
+                const serverPoints = serverTask.points;
+                let points = 10;
+
+                if (serverPoints !== undefined && serverPoints !== null) {
+                    points = parseInt(serverPoints);
+                } else if (taskDetails?.evaluation?.score) {
+                    points = taskDetails.evaluation.score;
+                }
+
+                if (taskDetails) {
+                    return {
+                        id: serverTask.id,
+                        task_code: serverTask.task_code,
+                        title: taskDetails.title || taskDetails.name || `${t.task} ${codigoLimpio}`,
+                        name: taskDetails.title || taskDetails.name || `${t.task} ${codigoLimpio}`,
+                        text: taskDetails.description || taskDetails.text || t.noDescription,
+                        question: taskDetails.question || taskDetails.text || t.noDescription,
+                        description: taskDetails.description || taskDetails.text || t.noDescription,
+                        type: taskDetails.type || 'single-choice',
+                        options: Array.isArray(taskDetails.options) ? taskDetails.options.map(opt => {
+                            if (typeof opt === 'string' && opt.match(/\.(jpg|jpeg|png|gif|svg|webp)$/i)) {
+                                return `/images/${opt}`;
+                            }
+                            return opt;
+                        }) : [],
+                        answer: taskDetails.correctOption || taskDetails.correctAnswer || '',
+                        correctOption: taskDetails.correctOption || null,
+                        correctAnswer: taskDetails.correctAnswer || taskDetails.correctOption || '',
+                        image: taskDetails.images?.[0] || null,
+                        images: taskDetails.images ? taskDetails.images.map(img => {
+                            if (img.startsWith('/images/')) {
+                                return img;
+                            }
+                            return `/images/${img}`;
+                        }) : [],
+                        difficulty: taskDetails.difficulty || 'Media',
+                        category: taskDetails.category || categoryName,
+                        ageGroup: taskDetails.ageGroup || '',
+                        explanation: taskDetails.explanation || '',
+                        solution: taskDetails.solution || '',
+                        evaluation: taskDetails.evaluation || {},
+                        display_order: Number(serverTask.display_order) || 1,
+                        instructions: taskDetails.instructions || '',
+                        points: points
+                    };
+                } else {
+                    return {
+                        id: serverTask.id,
+                        task_code: serverTask.task_code,
+                        title: `${t.task} ${codigoLimpio}`,
+                        name: `${t.task} ${codigoLimpio}`,
+                        text: t.infoNotAvailable,
+                        question: t.infoNotAvailable,
+                        description: t.infoNotAvailable,
+                        type: 'single-choice',
+                        options: [],
+                        answer: '',
+                        correctOption: null,
+                        correctAnswer: '',
+                        image: null,
+                        images: [],
+                        difficulty: 'Media',
+                        category: categoryName,
+                        ageGroup: '',
+                        explanation: '',
+                        solution: '',
+                        evaluation: {},
+                        display_order: Number(serverTask.display_order) || 1,
+                        instructions: '',
+                        points: points
+                    };
+                }
+            });
+
+            formattedQuestions.sort((a, b) => a.display_order - b.display_order);
+            setQuestions(formattedQuestions);
+
+        } catch (error) {
+            console.error('Error:', error);
+            setError(error.message || 'Error al cargar los datos.');
+            toast.error(t.apiError);
+        }
+    };
+
+    // ============================================================
+    // RESTAURAR RESPUESTAS DESDE LOCALSTORAGE (POR ESTUDIANTE)
+    // ============================================================
+
+    useEffect(() => {
+        if (questions.length === 0) return;
+
+        const restoreSubmitted = () => {
+            try {
+                // 🔥 Usar la clave específica del estudiante
+                const savedSubmitted = localStorage.getItem(SUBMITTED_KEY);
+                console.log(`🔍 Buscando respuestas para estudiante ${studentId}:`, savedSubmitted);
+
+                if (savedSubmitted) {
+                    const parsed = JSON.parse(savedSubmitted);
+                    console.log('📂 Datos recuperados:', parsed);
+
+                    const validSubmitted = {};
+                    let restoredCount = 0;
+                    questions.forEach(q => {
+                        if (parsed[q.id] === true) {
+                            validSubmitted[q.id] = true;
+                            restoredCount++;
+                        }
+                    });
+
+                    if (restoredCount > 0) {
+                        setSubmittedQuestions(validSubmitted);
+                        console.log(`✅ Restauradas ${restoredCount} respuestas para estudiante ${studentId}`);
+                        toast.info(`Respuestas restauradas: ${restoredCount}`);
+                    } else {
+                        console.log('ℹ️ No hay respuestas guardadas para este estudiante');
+                    }
+                } else {
+                    console.log('ℹ️ No hay datos en localStorage para este estudiante');
+                }
+            } catch (error) {
+                console.error('❌ Error al restaurar respuestas:', error);
+                try {
+                    localStorage.removeItem(SUBMITTED_KEY);
+                } catch (e) {
+                    // Ignorar
+                }
+            }
+        };
+
+        setIsRestoring(true);
+        restoreSubmitted();
+        setIsRestoring(false);
+
+    }, [questions, SUBMITTED_KEY, studentId]);
+
+    // Guardar estado de respuestas en localStorage (por estudiante)
+    useEffect(() => {
+        if (Object.keys(submittedQuestions).length > 0) {
+            try {
+                localStorage.setItem(SUBMITTED_KEY, JSON.stringify(submittedQuestions));
+                console.log(`💾 Estado de respuestas para estudiante ${studentId} guardado:`, submittedQuestions);
+            } catch (error) {
+                console.error('Error al guardar respuestas:', error);
+            }
+        }
+    }, [submittedQuestions, SUBMITTED_KEY, studentId]);
+
+    // ============================================================
+    // EFECTOS DEL TEMPORIZADOR Y OTROS
+    // ============================================================
+
+    const initChallenge = async () => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            await cargarDatos();
+
+            if (studentData?.id && contestConfig?.id && !isSessionCreated) {
+                await createStudentSession();
+            }
+        } catch (err) {
+            console.error('Error inicializando el desafío:', err);
+            setError('Error al inicializar el desafío');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        initChallenge();
+    }, []);
 
     useEffect(() => {
         if (timeLeft === null && !finished) {
@@ -328,6 +789,29 @@ const Desafio_Estudiantes = (props) => {
         }
     }, [questions]);
 
+    useEffect(() => {
+        const handleOnline = () => {
+            setIsOnline(true);
+            toast.info('Conexión restablecida.');
+        };
+        const handleOffline = () => {
+            setIsOnline(false);
+            toast.warning('Sin conexión. Las respuestas se guardarán localmente.');
+        };
+
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
+    }, []);
+
+    // ============================================================
+    // FUNCIONES DE UTILIDAD
+    // ============================================================
+
     const formatTime = (seconds) => {
         if (seconds === null) return "--:--";
         const mins = Math.floor(seconds / 60);
@@ -335,40 +819,24 @@ const Desafio_Estudiantes = (props) => {
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
 
-    // Funcion mejorada para comparar respuestas (incluyendo imagenes)
     const isAnswerCorrect = (studentAnswer, question) => {
-        if (!studentAnswer || studentAnswer.trim() === '') {
-            return false;
-        }
+        if (!studentAnswer || studentAnswer.trim() === '') return false;
 
         let correctAnswer = question.correctAnswer || question.correctOption || question.answer || '';
-
-        if (!correctAnswer || correctAnswer.trim() === '') {
-            console.warn('Pregunta sin respuesta correcta:', question.id, question.title);
-            return false;
-        }
+        if (!correctAnswer || correctAnswer.trim() === '') return false;
 
         const studentTrimmed = studentAnswer.trim();
         const correctTrimmed = correctAnswer.trim();
 
-        // Para preguntas numericas
         if (question.type === 'numeric') {
             const studentNum = parseFloat(studentTrimmed);
             const correctNum = parseFloat(correctTrimmed);
-            if (isNaN(studentNum) || isNaN(correctNum)) {
-                return false;
-            }
+            if (isNaN(studentNum) || isNaN(correctNum)) return false;
             return studentNum === correctNum;
         }
 
-        // Para preguntas con imagenes: normalizar nombres de archivos
         const normalizeFileName = (str) => {
-            return str
-                .toLowerCase()
-                .replace(/^.*[\\\/]/, '')
-                .replace(/\.[^.]+$/, '')
-                .replace(/\s+/g, ' ')
-                .trim();
+            return str.toLowerCase().replace(/^.*[\\\/]/, '').replace(/\.[^.]+$/, '').replace(/\s+/g, ' ').trim();
         };
 
         const looksLikeImage = (str) => {
@@ -382,24 +850,18 @@ const Desafio_Estudiantes = (props) => {
 
         if (isLetter(correctTrimmed) && isImageOption(studentTrimmed)) {
             const letterMatch = studentTrimmed.match(/[a-d]/i);
-            if (letterMatch) {
-                return letterMatch[0].toLowerCase() === correctTrimmed.toLowerCase();
-            }
+            if (letterMatch) return letterMatch[0].toLowerCase() === correctTrimmed.toLowerCase();
             return false;
         }
 
         if (isLetter(studentTrimmed) && isImageOption(correctTrimmed)) {
             const letterMatch = correctTrimmed.match(/[a-d]/i);
-            if (letterMatch) {
-                return studentTrimmed.toLowerCase() === letterMatch[0].toLowerCase();
-            }
+            if (letterMatch) return studentTrimmed.toLowerCase() === letterMatch[0].toLowerCase();
             return false;
         }
 
         if (looksLikeImage(studentTrimmed) || looksLikeImage(correctTrimmed)) {
-            const studentNormalized = normalizeFileName(studentTrimmed);
-            const correctNormalized = normalizeFileName(correctTrimmed);
-            return studentNormalized === correctNormalized;
+            return normalizeFileName(studentTrimmed) === normalizeFileName(correctTrimmed);
         }
 
         return studentTrimmed.toLowerCase() === correctTrimmed.toLowerCase();
@@ -416,7 +878,6 @@ const Desafio_Estudiantes = (props) => {
             const questionId = q.id;
             if (selectedQuestions[questionId]) {
                 totalEvaluated++;
-                // 🔥 Usar los puntos de la pregunta (configurados por el coordinador)
                 const points = q.points || 10;
                 totalPossibleScore += points;
 
@@ -462,49 +923,154 @@ const Desafio_Estudiantes = (props) => {
         };
     };
 
-    const handleFinalizar = () => {
-        setIsFinishing(true);
-        setFinished(true);
-        setShowFinishModal(false);
-        setShowTimeUpModal(false);
-        localStorage.removeItem(`bebrasTime_cat_${categoryId}`);
+    // ============================================================
+    // MANEJADORES DE EVENTOS
+    // ============================================================
 
-        const scoreData = calculateScore();
-        setFinalScore(scoreData.totalScore);
-        setFinalScoreData(scoreData);
-        setIsFinishing(false);
+    const handleSubmitAnswer = async (questionId) => {
+        if (submittedQuestions[questionId]) {
+            toast.warning(t.alreadySubmitted);
+            return;
+        }
+
+        try {
+            const savedSubmitted = localStorage.getItem(SUBMITTED_KEY);
+            if (savedSubmitted) {
+                const parsed = JSON.parse(savedSubmitted);
+                if (parsed[questionId] === true) {
+                    setSubmittedQuestions(prev => ({ ...prev, [questionId]: true }));
+                    toast.warning(t.alreadySubmitted);
+                    return;
+                }
+            }
+        } catch (error) {
+            console.error('Error al verificar localStorage:', error);
+        }
+
+        const currentQuestion = questions.find(q => q.id === questionId);
+        if (!currentQuestion) {
+            toast.error('Error: No se encontró la pregunta');
+            return;
+        }
+
+        const studentAnswer = answers[questionId] || '';
+        const type = currentQuestion.type || 'single-choice';
+
+        if (type === 'numeric') {
+            if (studentAnswer.trim() === '') {
+                toast.warning(t.emptyAnswer);
+                return;
+            }
+            const numValue = Number(studentAnswer.trim());
+            if (isNaN(numValue)) {
+                toast.warning(t.invalidNumber);
+                return;
+            }
+        } else if (type === 'text' || type === 'open') {
+            if (studentAnswer.trim() === '') {
+                toast.warning(t.emptyAnswer);
+                return;
+            }
+        } else {
+            if (studentAnswer.trim() === '') {
+                toast.warning(t.selectOption);
+                return;
+            }
+        }
+
+        if (isOnline) {
+            const saved = await saveAnswerWithServer(
+                questionId,
+                studentAnswer,
+                currentQuestion.task_code
+            );
+
+            if (!saved) {
+                setSubmittedQuestions(prev => ({ ...prev, [questionId]: true }));
+                localStorage.setItem(SUBMITTED_KEY, JSON.stringify({ ...submittedQuestions, [questionId]: true }));
+                toast.warning('Respuesta guardada localmente. Se sincronizará cuando haya conexión.');
+                return;
+            }
+        } else {
+            setSubmittedQuestions(prev => ({ ...prev, [questionId]: true }));
+            localStorage.setItem(SUBMITTED_KEY, JSON.stringify({ ...submittedQuestions, [questionId]: true }));
+            toast.warning('Sin conexión. Respuesta guardada localmente.');
+            return;
+        }
+
+        setSubmittedQuestions(prev => ({ ...prev, [questionId]: true }));
+        localStorage.setItem(SUBMITTED_KEY, JSON.stringify({ ...submittedQuestions, [questionId]: true }));
+        toast.success(t.answerSavedServer || t.answerSaved);
     };
 
-    const confirmExit = () => {
+    const handleFinalizar = async () => {
+        setIsFinishing(true);
+
+        try {
+            const scoreData = calculateScore();
+            const finalScoreValue = scoreData.totalScore || 0;
+
+            const pendingQuestions = questions.filter(q =>
+                answers[q.id] && !submittedQuestions[q.id]
+            );
+
+            if (pendingQuestions.length > 0) {
+                toast.info(`Guardando ${pendingQuestions.length} respuestas...`);
+                for (const q of pendingQuestions) {
+                    await saveAnswerWithServer(q.id, answers[q.id], q.task_code);
+                }
+            }
+
+            await updateSessionStatus(finalScoreValue);
+
+            setFinished(true);
+            setShowFinishModal(false);
+            setShowTimeUpModal(false);
+            localStorage.removeItem(`bebrasTime_cat_${categoryId}`);
+
+            setFinalScore(finalScoreValue);
+            setFinalScoreData(scoreData);
+
+            toast.success(`Desafío completado! Puntuación: ${finalScoreValue} pts`);
+
+        } catch (error) {
+            console.error('Error al finalizar:', error);
+            toast.error('Error al finalizar el desafío. Por favor, inténtalo de nuevo.');
+        } finally {
+            setIsFinishing(false);
+        }
+    };
+
+    const confirmExit = async () => {
+        const pendingQuestions = questions.filter(q =>
+            answers[q.id] && !submittedQuestions[q.id]
+        );
+
+        if (pendingQuestions.length > 0) {
+            toast.info('Guardando respuestas...');
+            for (const q of pendingQuestions) {
+                await saveAnswerWithServer(q.id, answers[q.id], q.task_code);
+            }
+        }
+
         localStorage.removeItem(`bebrasTime_cat_${categoryId}`);
         onBackToPanel && onBackToPanel();
     };
 
-    const trimString = (str) => {
-        return str ? String(str).trim() : '';
-    };
-
     const handleQuestionToggle = (questionId) => {
-        setSelectedQuestions(prev => ({
-            ...prev,
-            [questionId]: !prev[questionId]
-        }));
+        setSelectedQuestions(prev => ({ ...prev, [questionId]: !prev[questionId] }));
     };
 
     const handleSelectAll = () => {
         const allSelected = {};
-        questions.forEach(q => {
-            allSelected[q.id] = true;
-        });
+        questions.forEach(q => { allSelected[q.id] = true; });
         setSelectedQuestions(allSelected);
         toast.success(t.selectAllTasks);
     };
 
     const handleDeselectAll = () => {
         const allDeselected = {};
-        questions.forEach(q => {
-            allDeselected[q.id] = false;
-        });
+        questions.forEach(q => { allDeselected[q.id] = false; });
         setSelectedQuestions(allDeselected);
         toast.success(t.deselectAllTasks);
     };
@@ -524,16 +1090,12 @@ const Desafio_Estudiantes = (props) => {
                 serverId: task.id,
                 points: task.points || 10,
                 images: fullTaskData.images ? fullTaskData.images.map(img => {
-                    if (img.startsWith('/images/')) {
-                        return img;
-                    }
+                    if (img.startsWith('/images/')) return img;
                     return `/images/${img}`;
                 }) : [],
                 options: fullTaskData.options ? fullTaskData.options.map(opt => {
                     if (typeof opt === 'string' && opt.match(/\.(jpg|jpeg|png|gif|svg|webp)$/i)) {
-                        if (opt.startsWith('/images/')) {
-                            return opt;
-                        }
+                        if (opt.startsWith('/images/')) return opt;
                         return `/images/${opt}`;
                     }
                     return opt;
@@ -573,54 +1135,7 @@ const Desafio_Estudiantes = (props) => {
     };
 
     const handleAnswerChange = (questionId, value) => {
-        setAnswers(prev => ({
-            ...prev,
-            [questionId]: value
-        }));
-    };
-
-    const handleSubmitAnswer = (questionId) => {
-        if (submittedQuestions[questionId]) {
-            toast.warning(t.alreadySubmitted);
-            return;
-        }
-
-        const currentQuestion = questions.find(q => q.id === questionId);
-        if (!currentQuestion) {
-            toast.error('Error: No se encontro la pregunta');
-            return;
-        }
-
-        const studentAnswer = answers[questionId] || '';
-        const type = currentQuestion.type || 'single-choice';
-
-        if (type === 'numeric') {
-            if (studentAnswer.trim() === '') {
-                toast.warning(t.emptyAnswer);
-                return;
-            }
-            const numValue = Number(studentAnswer.trim());
-            if (isNaN(numValue)) {
-                toast.warning(t.invalidNumber);
-                return;
-            }
-        } else if (type === 'text' || type === 'open') {
-            if (studentAnswer.trim() === '') {
-                toast.warning(t.emptyAnswer);
-                return;
-            }
-        } else {
-            if (studentAnswer.trim() === '') {
-                toast.warning(t.selectOption);
-                return;
-            }
-        }
-
-        setSubmittedQuestions(prev => ({
-            ...prev,
-            [questionId]: true
-        }));
-        toast.success(t.answerSaved);
+        setAnswers(prev => ({ ...prev, [questionId]: value }));
     };
 
     const cardColors = [
@@ -628,170 +1143,12 @@ const Desafio_Estudiantes = (props) => {
         '#EAB308', '#EF4444', '#6366F1', '#14B8A6'
     ];
 
-    // Carga de datos
-    useEffect(() => {
-        const cargarDatos = async () => {
-            const contestId = contestConfig?.id || localStorage.getItem('current_contest_id') || 1;
-
-            try {
-                setLoading(true);
-                setError(null);
-
-                const url = `${API_BASE_URL}/api/contest_tasks/${contestId}`;
-                console.log(`Cargando tareas del concurso ID: ${contestId}`);
-                const response = await axios.get(url);
-
-                if (typeof response.data === 'string' && response.data.includes('<!doctype html>')) {
-                    throw new Error(t.apiError);
-                }
-
-                let allTasks = [];
-                if (Array.isArray(response.data)) {
-                    allTasks = response.data;
-                } else if (response.data && typeof response.data === 'object') {
-                    if (Array.isArray(response.data.data)) {
-                        allTasks = response.data.data;
-                    } else if (Array.isArray(response.data.tasks)) {
-                        allTasks = response.data.tasks;
-                    } else {
-                        allTasks = Object.values(response.data).filter(item => typeof item === 'object' && item !== null);
-                    }
-                }
-
-                if (allTasks.length === 0) {
-                    setQuestions([]);
-                    setLoading(false);
-                    return;
-                }
-
-                const filteredByCategory = allTasks.filter(task => Number(task.category_id) === Number(categoryId));
-
-                if (filteredByCategory.length === 0) {
-                    setQuestions([]);
-                    setLoading(false);
-                    return;
-                }
-
-                const jsonResponse = await fetch('/tasks.json');
-                if (!jsonResponse.ok) {
-                    throw new Error(`Error al cargar tasks.json: ${jsonResponse.status}`);
-                }
-                const jsonData = await jsonResponse.json();
-                const rawTasks = jsonData.tasks || [];
-                setAllTasksData(rawTasks);
-
-                // 🔥 IMPORTANTE: Los puntos del servidor (serverTask.points) son los que configuró el coordinador
-                const formattedQuestions = filteredByCategory.map((serverTask) => {
-                    const codigoLimpio = trimString(serverTask.task_code);
-
-                    const taskDetails = rawTasks.find(t => {
-                        const codeMatch = trimString(t.taskCode) === codigoLimpio;
-                        const catTexto = t.category || '';
-                        const catIdJSON = categoryMap[catTexto];
-                        return codeMatch && catIdJSON === Number(categoryId);
-                    });
-
-                    // 🔥 OBTENER LOS PUNTOS DEL SERVIDOR (configurados por el coordinador nacional)
-                    const serverPoints = serverTask.points;
-
-                    // Usar los puntos del servidor si existen, si no usar los del tasks.json o valor por defecto
-                    let points = 10;
-
-                    if (serverPoints !== undefined && serverPoints !== null) {
-                        points = parseInt(serverPoints);
-                        console.log(`📌 Usando puntos del servidor para ${codigoLimpio}: ${points}`);
-                    } else if (taskDetails?.evaluation?.score) {
-                        points = taskDetails.evaluation.score;
-                        console.log(`📌 Usando puntos de tasks.json para ${codigoLimpio}: ${points}`);
-                    }
-
-                    if (taskDetails) {
-                        return {
-                            id: serverTask.id,
-                            task_code: serverTask.task_code,
-                            title: taskDetails.title || taskDetails.name || `${t.task} ${codigoLimpio}`,
-                            name: taskDetails.title || taskDetails.name || `${t.task} ${codigoLimpio}`,
-                            text: taskDetails.description || taskDetails.text || t.noDescription,
-                            question: taskDetails.question || taskDetails.text || t.noDescription,
-                            description: taskDetails.description || taskDetails.text || t.noDescription,
-                            type: taskDetails.type || 'single-choice',
-                            options: Array.isArray(taskDetails.options) ? taskDetails.options.map(opt => {
-                                if (typeof opt === 'string' && opt.match(/\.(jpg|jpeg|png|gif|svg|webp)$/i)) {
-                                    return `/images/${opt}`;
-                                }
-                                return opt;
-                            }) : [],
-                            answer: taskDetails.correctOption || taskDetails.correctAnswer || '',
-                            correctOption: taskDetails.correctOption || null,
-                            correctAnswer: taskDetails.correctAnswer || taskDetails.correctOption || '',
-                            image: taskDetails.images?.[0] || null,
-                            images: taskDetails.images ? taskDetails.images.map(img => {
-                                if (img.startsWith('/images/')) {
-                                    return img;
-                                }
-                                return `/images/${img}`;
-                            }) : [],
-                            difficulty: taskDetails.difficulty || 'Media',
-                            category: taskDetails.category || categoryName,
-                            ageGroup: taskDetails.ageGroup || '',
-                            explanation: taskDetails.explanation || '',
-                            solution: taskDetails.solution || '',
-                            evaluation: taskDetails.evaluation || {},
-                            display_order: Number(serverTask.display_order) || 1,
-                            instructions: taskDetails.instructions || '',
-                            points: points // 🔥 Mostrar los puntos del servidor
-                        };
-                    } else {
-                        return {
-                            id: serverTask.id,
-                            task_code: serverTask.task_code,
-                            title: `${t.task} ${codigoLimpio}`,
-                            name: `${t.task} ${codigoLimpio}`,
-                            text: t.infoNotAvailable,
-                            question: t.infoNotAvailable,
-                            description: t.infoNotAvailable,
-                            type: 'single-choice',
-                            options: [],
-                            answer: '',
-                            correctOption: null,
-                            correctAnswer: '',
-                            image: null,
-                            images: [],
-                            difficulty: 'Media',
-                            category: categoryName,
-                            ageGroup: '',
-                            explanation: '',
-                            solution: '',
-                            evaluation: {},
-                            display_order: Number(serverTask.display_order) || 1,
-                            instructions: '',
-                            points: points // 🔥 Mostrar los puntos del servidor
-                        };
-                    }
-                });
-
-                formattedQuestions.sort((a, b) => a.display_order - b.display_order);
-                setQuestions(formattedQuestions);
-                setLoading(false);
-
-                // Mostrar resumen de puntos cargados
-                const pointsSummary = formattedQuestions.map(q => `${q.task_code}: ${q.points}pts`).join(', ');
-                console.log('📊 Resumen de puntos:', pointsSummary);
-
-            } catch (error) {
-                console.error("Error:", error);
-                setError(error.message || "Error al cargar los datos.");
-                toast.error(t.apiError);
-                setLoading(false);
-            }
-        };
-
-        cargarDatos();
-    }, [contestConfig, categoryId, t]);
-
     const submittedCount = Object.keys(submittedQuestions).filter(key => submittedQuestions[key] === true).length;
 
-    // Renderizado de la pregunta detallada
+    // ============================================================
+    // RENDERIZADO (igual que antes)
+    // ============================================================
+
     if (selectedTask) {
         const currentTask = selectedTask;
         const questionId = currentTask.serverId || currentTask.id;
@@ -803,16 +1160,17 @@ const Desafio_Estudiantes = (props) => {
                 <div className="bg-blue-600 shadow-lg sticky top-0 z-10 px-4 py-3">
                     <div className="max-w-7xl mx-auto flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <button
-                                onClick={handleBackToTasks}
-                                className="flex items-center gap-2 text-white hover:bg-white/20 px-3 py-2 rounded-lg transition-all"
-                            >
+                            <button onClick={handleBackToTasks} className="flex items-center gap-2 text-white hover:bg-white/20 px-3 py-2 rounded-lg transition-all">
                                 <ArrowLeft size={20} />
                                 <span className="text-sm font-medium">{t.backToTasks}</span>
                             </button>
-                            <span className="text-white font-medium">
-                                {t.taskDetails}
-                            </span>
+                            <span className="text-white font-medium">{t.taskDetails}</span>
+                            {isSubmitted && (
+                                <span className="text-xs text-green-300 bg-green-500/30 px-2 py-1 rounded-full flex items-center gap-1">
+                                    <CheckCircle size={12} />
+                                    {t.submitted}
+                                </span>
+                            )}
                         </div>
                         <div className="flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full text-white font-mono font-bold">
                             <Clock size={18} className="text-yellow-300" />
@@ -851,9 +1209,9 @@ const Desafio_Estudiantes = (props) => {
             <div className="min-h-screen flex items-center justify-center bg-blue-50">
                 <div className="text-center">
                     <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <div className="text-blue-600 font-medium text-lg">
-                        {t.loading} {categoryName}...
-                    </div>
+                    <div className="text-blue-600 font-medium text-lg">{t.loading} {categoryName}...</div>
+                    {isCreatingSession && <div className="text-sm text-blue-400 mt-2">{t.startingChallenge}</div>}
+                    {isRestoring && <div className="text-sm text-green-400 mt-2">Restaurando respuestas...</div>}
                 </div>
             </div>
         );
@@ -868,34 +1226,19 @@ const Desafio_Estudiantes = (props) => {
                             <Trophy size={48} className="text-white" />
                         </div>
                     </div>
-                    <h2 className="text-3xl font-bold text-blue-600 mb-2">
-                        {t.completedTitle}
-                    </h2>
-                    <p className="text-gray-600 mb-4 text-lg">
-                        {name}, {t.congrats}
-                    </p>
+                    <h2 className="text-3xl font-bold text-blue-600 mb-2">{t.completedTitle}</h2>
+                    <p className="text-gray-600 mb-4 text-lg">{name}, {t.congrats}</p>
                     <div className="bg-blue-50 rounded-2xl p-6 mb-6 border-2 border-blue-100">
-                        <span className="text-sm text-gray-600 block font-medium">
-                            {t.totalScore}:
-                        </span>
-                        <span className="text-5xl font-extrabold text-blue-600">
-                            {finalScore || 0}
-                        </span>
+                        <span className="text-sm text-gray-600 block font-medium">{t.totalScore}:</span>
+                        <span className="text-5xl font-extrabold text-blue-600">{finalScore || 0}</span>
                         {finalScoreData && (
                             <>
-                                <span className="text-sm text-gray-500 block mt-1">
-                                    {t.correctAnswers}: {finalScoreData.correctCount} / {finalScoreData.totalEvaluated}
-                                </span>
-                                <span className="text-sm text-gray-500 block">
-                                    {t.evaluatedQuestions}: {finalScoreData.totalEvaluated}
-                                </span>
+                                <span className="text-sm text-gray-500 block mt-1">{t.correctAnswers}: {finalScoreData.correctCount} / {finalScoreData.totalEvaluated}</span>
+                                <span className="text-sm text-gray-500 block">{t.evaluatedQuestions}: {finalScoreData.totalEvaluated}</span>
                             </>
                         )}
                     </div>
-                    <button
-                        onClick={onBackToPanel}
-                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all shadow-lg cursor-pointer"
-                    >
+                    <button onClick={onBackToPanel} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all shadow-lg cursor-pointer">
                         {t.backToPanel}
                     </button>
                 </div>
@@ -911,36 +1254,25 @@ const Desafio_Estudiantes = (props) => {
                         <div className="bg-white/20 p-2 rounded-full">
                             <Target className="text-white" size={24} />
                         </div>
-                        <span className="font-bold text-white text-lg">
-                            {categoryName}
-                        </span>
+                        <span className="font-bold text-white text-lg">{categoryName}</span>
+                        {!isOnline && (
+                            <span className="text-xs text-red-300 bg-red-500/30 px-2 py-1 rounded-full flex items-center gap-1">
+                                <CloudOff size={14} />
+                                Offline
+                            </span>
+                        )}
                     </div>
                     <div className="flex items-center gap-3 flex-wrap">
                         <div className="flex gap-1 bg-white/20 p-1 rounded-full border border-white/30">
-                            <button
-                                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${currentLanguage === 'es' ? 'bg-white text-blue-600' : 'text-white/70 hover:text-white'}`}
-                                onClick={() => handleLanguageChange('es')}
-                            >
-                                ES
-                            </button>
-                            <button
-                                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${currentLanguage === 'en' ? 'bg-white text-blue-600' : 'text-white/70 hover:text-white'}`}
-                                onClick={() => handleLanguageChange('en')}
-                            >
-                                EN
-                            </button>
-                            <button
-                                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${currentLanguage === 'pt' ? 'bg-white text-blue-600' : 'text-white/70 hover:text-white'}`}
-                                onClick={() => handleLanguageChange('pt')}
-                            >
-                                PT
-                            </button>
-                            <button
-                                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${currentLanguage === 'fr' ? 'bg-white text-blue-600' : 'text-white/70 hover:text-white'}`}
-                                onClick={() => handleLanguageChange('fr')}
-                            >
-                                FR
-                            </button>
+                            {['es', 'en', 'pt', 'fr'].map((lang) => (
+                                <button
+                                    key={lang}
+                                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${currentLanguage === lang ? 'bg-white text-blue-600' : 'text-white/70 hover:text-white'}`}
+                                    onClick={() => handleLanguageChange(lang)}
+                                >
+                                    {lang.toUpperCase()}
+                                </button>
+                            ))}
                         </div>
                         <div className="flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full text-white font-mono font-bold border border-white/30">
                             <Clock size={18} className="text-yellow-300" />
@@ -954,9 +1286,10 @@ const Desafio_Estudiantes = (props) => {
                         </button>
                         <button
                             onClick={() => setShowFinishModal(true)}
-                            className="px-4 py-2 text-sm bg-green-500 hover:bg-green-600 text-white rounded-full font-medium shadow-md transition-all cursor-pointer"
+                            disabled={!isSessionCreated || isFinishing || isSavingAnswer || isCreatingSession}
+                            className="px-4 py-2 text-sm bg-green-500 hover:bg-green-600 text-white rounded-full font-medium shadow-md transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {t.finishButton}
+                            {isFinishing || isSavingAnswer ? t.evaluating : t.finishButton}
                         </button>
                     </div>
                 </div>
@@ -986,6 +1319,12 @@ const Desafio_Estudiantes = (props) => {
             </div>
 
             <div className="max-w-4xl mx-auto p-6">
+                {error && (
+                    <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
+                        {error}
+                    </div>
+                )}
+
                 <div className="bg-white rounded-3xl shadow-xl border border-blue-100 overflow-hidden">
                     <div className="p-6 bg-blue-50 border-b border-blue-100">
                         <h3 className="font-bold text-2xl text-gray-800 flex items-center gap-3">
@@ -996,12 +1335,6 @@ const Desafio_Estudiantes = (props) => {
                             </span>
                         </h3>
                     </div>
-
-                    {error && (
-                        <div className="p-4 text-red-600 bg-red-50 border-b border-red-200 text-sm m-4 rounded-xl">
-                            {error}
-                        </div>
-                    )}
 
                     {questions.length === 0 ? (
                         <div className="p-12 text-center">
@@ -1028,7 +1361,7 @@ const Desafio_Estudiantes = (props) => {
                                             {q.display_order || idx + 1}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2 flex-wrap">
                                                 <p className="text-base font-semibold text-gray-800 truncate">
                                                     {q.title || q.name}
                                                 </p>
@@ -1038,7 +1371,6 @@ const Desafio_Estudiantes = (props) => {
                                                         {t.submitted}
                                                     </span>
                                                 )}
-                                                {/* 🔥 Mostrar los puntos configurados por el coordinador */}
                                                 <span className="flex-shrink-0 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
                                                     {q.points || 10} {t.points}
                                                 </span>
@@ -1070,7 +1402,7 @@ const Desafio_Estudiantes = (props) => {
                 )}
             </div>
 
-            {/* Modal de Finalizacion - SIN mostrar puntuacion */}
+            {/* Modal de Finalización */}
             {showFinishModal && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-3xl p-8 max-w-md w-full">
@@ -1081,9 +1413,7 @@ const Desafio_Estudiantes = (props) => {
 
                         <div className="bg-blue-50 rounded-xl p-4 mb-6">
                             <div className="text-center">
-                                <p className="text-sm text-blue-600 font-medium">
-                                    {t.evaluating}
-                                </p>
+                                <p className="text-sm text-blue-600 font-medium">{t.evaluating}</p>
                                 <p className="text-xs text-gray-500 mt-1">
                                     {t.correctAnswers}: {Object.keys(submittedQuestions).filter(id => submittedQuestions[id]).length} / {questions.length}
                                 </p>
@@ -1102,10 +1432,10 @@ const Desafio_Estudiantes = (props) => {
                             </button>
                             <button
                                 onClick={handleFinalizar}
-                                disabled={isFinishing}
+                                disabled={isFinishing || isSavingAnswer}
                                 className="flex-1 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-semibold transition-all shadow-md cursor-pointer disabled:opacity-50"
                             >
-                                {isFinishing ? t.evaluating : t.finishConfirm}
+                                {isFinishing || isSavingAnswer ? t.evaluating : t.finishConfirm}
                             </button>
                         </div>
                     </div>
@@ -1126,9 +1456,7 @@ const Desafio_Estudiantes = (props) => {
 
                         <div className="bg-blue-50 rounded-xl p-4 mb-6">
                             <div className="text-center">
-                                <p className="text-sm text-blue-600 font-medium">
-                                    {t.evaluatingAuto}
-                                </p>
+                                <p className="text-sm text-blue-600 font-medium">{t.evaluatingAuto}</p>
                                 <p className="text-xs text-gray-500 mt-1">
                                     {t.correctAnswers}: {Object.keys(submittedQuestions).filter(id => submittedQuestions[id]).length} / {questions.length}
                                 </p>
@@ -1140,15 +1468,16 @@ const Desafio_Estudiantes = (props) => {
 
                         <button
                             onClick={handleFinalizar}
-                            disabled={isFinishing}
+                            disabled={isFinishing || isSavingAnswer}
                             className="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-semibold transition-all shadow-md cursor-pointer disabled:opacity-50"
                         >
-                            {isFinishing ? t.evaluating : t.timeUp}
+                            {isFinishing || isSavingAnswer ? t.evaluating : t.timeUp}
                         </button>
                     </div>
                 </div>
             )}
 
+            {/* Modal de Salir */}
             {showExitModal && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-3xl p-8 max-w-md w-full">

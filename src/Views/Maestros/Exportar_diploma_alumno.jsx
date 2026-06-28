@@ -167,7 +167,7 @@ const Exportar_diploma_alumno = ({ group, onClose, language = 'es' }) => {
                 doc.setFontSize(12);
                 doc.setTextColor(80, 80, 80);
                 doc.setFont('helvetica', 'normal');
-                doc.text("por su destacada participación en el", 105, 125 + alturaNombre, { align: 'center' });
+                doc.text("por su destacada participación", 105, 125 + alturaNombre, { align: 'center' });
 
                 // Información del grupo
                 doc.setFontSize(14);
@@ -180,13 +180,6 @@ const Exportar_diploma_alumno = ({ group, onClose, language = 'es' }) => {
                 doc.setFont('helvetica', 'normal');
                 doc.text(`Nivel: ${group.course}`, 105, 160 + alturaNombre, { align: 'center' });
 
-                // Puntuación
-                if (student.score !== null && student.score !== undefined) {
-                    doc.setFontSize(13);
-                    doc.setTextColor(0, 42, 143);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(`Puntuación obtenida: ${student.score} puntos`, 105, 180 + alturaNombre, { align: 'center' });
-                }
 
                 // Fecha
                 const fecha = new Date().toLocaleDateString(language === 'es' ? 'es-ES' : language === 'en' ? 'en-US' : language === 'pt' ? 'pt-PT' : 'fr-FR', {

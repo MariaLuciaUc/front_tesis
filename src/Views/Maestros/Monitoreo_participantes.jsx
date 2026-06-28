@@ -70,7 +70,7 @@ const translations = {
 
 const Monitoreo_participantes = ({ group, onUpdateStudentStatus, onClose, language = 'es' }) => {
     const t = translations[language];
-    const [students, setStudents] = useState(group.students);
+    const [students, setStudents] = useState(group?.students || []);
 
     const handleStatusChange = (studentId, newStatus) => {
         const updatedStudents = students.map(student => {
@@ -112,12 +112,30 @@ const Monitoreo_participantes = ({ group, onUpdateStudentStatus, onClose, langua
         return <RotateCcw size={14} />;
     };
 
+    if (!students || students.length === 0) {
+        return (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 font-sans">
+                <div className="bg-white rounded-2xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-hidden">
+                    <div className="flex justify-between items-center p-6 border-b border-slate-200">
+                        <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <Users size={20} className="text-blue-600" /> {t.title} {group?.name || ''}
+                        </h2>
+                        <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-100"><X size={20} /></button>
+                    </div>
+                    <div className="p-6 text-center text-slate-500">
+                        No hay estudiantes en este grupo.
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 font-sans">
             <div className="bg-white rounded-2xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-hidden">
                 <div className="flex justify-between items-center p-6 border-b border-slate-200">
                     <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                        <Users size={20} className="text-blue-600" /> {t.title} {group.name}
+                        <Users size={20} className="text-blue-600" /> {t.title} {group?.name || ''}
                     </h2>
                     <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-100"><X size={20} /></button>
                 </div>
@@ -136,30 +154,23 @@ const Monitoreo_participantes = ({ group, onUpdateStudentStatus, onClose, langua
                             <tbody>
                             {students.map(student => (
                                 <tr key={student.id} className="border-b border-slate-100 hover:bg-slate-50">
-                                    {/* Estudiante */}
-                                    <td className="px-4 py-3 font-medium text-slate-800">{student.name}</td>
-
-                                    {/* Estado (clic para cambiar) */}
-                                    <td className="px-4 py-3">
-                                            <span
-                                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium cursor-pointer ${getStatusClass(student.status)}`}
-                                                onClick={() => handleStatusChange(student.id, getNextStatus(student.status))}
-                                            >
-                                                {getStatusText(student.status)}
-                                            </span>
+                                    <td className="px-4 py-3 font-medium text-slate-800">
+                                        {student.full_name || student.name || 'Sin nombre'}
                                     </td>
-
-                                    {/* SOLO hora de inicio */}
+                                    <td className="px-4 py-3">
+                                        <span
+                                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium cursor-pointer ${getStatusClass(student.status)}`}
+                                            onClick={() => handleStatusChange(student.id, getNextStatus(student.status))}
+                                        >
+                                            {getStatusText(student.status)}
+                                        </span>
+                                    </td>
                                     <td className="px-4 py-3 text-sm text-slate-500">
                                         {student.startTime || '—'}
                                     </td>
-
-                                    {/* SOLO hora de finalización */}
                                     <td className="px-4 py-3 text-sm text-slate-500">
                                         {student.endTime || '—'}
                                     </td>
-
-                                    {/* Botón cambiar estado */}
                                     <td className="px-4 py-3">
                                         <button
                                             onClick={() => handleStatusChange(student.id, getNextStatus(student.status))}

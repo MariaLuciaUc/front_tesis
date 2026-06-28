@@ -6,7 +6,8 @@ import {
     getCurrentRole,
     getAllStudents,
     getAllTeachers,
-    getStudentById
+    getStudentById,
+    getStudentCategory
 } from '../mock';
 
 export const useMockAuth = () => {
@@ -39,7 +40,8 @@ export const useMockAuth = () => {
         isStudent,
         getAllTeachers,
         getAllStudents,
-        getStudent: getStudentById
+        getStudent: getStudentById,
+        getStudentCategory
     };
 };
 
