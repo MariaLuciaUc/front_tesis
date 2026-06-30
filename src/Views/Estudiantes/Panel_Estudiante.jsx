@@ -54,6 +54,7 @@ const Panel_Estudiante = ({ onLogout }) => {
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [contestConfig, setContestConfig] = useState(null);
     const [categoryTimes, setCategoryTimes] = useState({});
+    const [categoryWelcomeMessages, setCategoryWelcomeMessages] = useState({});
 
     const categories = [
         { id: 1, name: "Super Peque (1ro y 2do)" },
@@ -63,6 +64,15 @@ const Panel_Estudiante = ({ onLogout }) => {
         { id: 5, name: "Junior (9no y 10mo)" },
         { id: 6, name: "Senior (11no y 12mo)" }
     ];
+
+    const levelNameToId = {
+        'Super Peque': 1,
+        'Peque': 2,
+        'Benjamin': 3,
+        'Cadete': 4,
+        'Junior': 5,
+        'Senior': 6
+    };
 
     useEffect(() => {
         const savedConfig = localStorage.getItem('bebrasContestConfig');
@@ -77,26 +87,44 @@ const Panel_Estudiante = ({ onLogout }) => {
             });
         }
 
-        const loadCategoryTimes = () => {
+        // Cargar tiempos y mensajes por categoría
+        const loadCategoryData = () => {
             const times = {};
+            const messages = {};
+
             categories.forEach(cat => {
+                // Cargar tiempo
                 const storedTime = localStorage.getItem(`bebrasCategoryTime_${cat.id}`);
                 if (storedTime) {
                     times[cat.id] = parseInt(storedTime);
                 } else {
                     times[cat.id] = savedConfig ? JSON.parse(savedConfig).executionTime : 45;
                 }
+
+                // Cargar mensaje de bienvenida por categoría
+                const levelConfigs = localStorage.getItem('bebrasLevelConfigs');
+                if (levelConfigs) {
+                    const configs = JSON.parse(levelConfigs);
+                    const levelName = Object.keys(levelNameToId).find(key => levelNameToId[key] === cat.id);
+                    if (levelName && configs[levelName]) {
+                        messages[cat.id] = configs[levelName].welcomeMessageStudent || '';
+                    }
+                }
             });
+
             setCategoryTimes(times);
+            setCategoryWelcomeMessages(messages);
         };
 
-        loadCategoryTimes();
+        loadCategoryData();
 
         const handleStorageChange = (e) => {
             if (e.key === 'bebrasLevelConfigs' || e.key === 'bebrasContestConfig') {
                 const savedConfig = localStorage.getItem('bebrasContestConfig');
                 const config = savedConfig ? JSON.parse(savedConfig) : { executionTime: 45 };
                 const times = {};
+                const messages = {};
+
                 categories.forEach(cat => {
                     const storedTime = localStorage.getItem(`bebrasCategoryTime_${cat.id}`);
                     if (storedTime) {
@@ -104,8 +132,19 @@ const Panel_Estudiante = ({ onLogout }) => {
                     } else {
                         times[cat.id] = config.executionTime || 45;
                     }
+
+                    const levelConfigs = localStorage.getItem('bebrasLevelConfigs');
+                    if (levelConfigs) {
+                        const configs = JSON.parse(levelConfigs);
+                        const levelName = Object.keys(levelNameToId).find(key => levelNameToId[key] === cat.id);
+                        if (levelName && configs[levelName]) {
+                            messages[cat.id] = configs[levelName].welcomeMessageStudent || '';
+                        }
+                    }
                 });
+
                 setCategoryTimes(times);
+                setCategoryWelcomeMessages(messages);
             }
         };
 
@@ -113,10 +152,13 @@ const Panel_Estudiante = ({ onLogout }) => {
         return () => window.removeEventListener('storage', handleStorageChange);
     }, []);
 
+    // Actualizar cuando cambia el idioma
     useEffect(() => {
         const savedConfig = localStorage.getItem('bebrasContestConfig');
         const config = savedConfig ? JSON.parse(savedConfig) : { executionTime: 45 };
         const times = {};
+        const messages = {};
+
         categories.forEach(cat => {
             const storedTime = localStorage.getItem(`bebrasCategoryTime_${cat.id}`);
             if (storedTime) {
@@ -124,8 +166,19 @@ const Panel_Estudiante = ({ onLogout }) => {
             } else {
                 times[cat.id] = config.executionTime || 45;
             }
+
+            const levelConfigs = localStorage.getItem('bebrasLevelConfigs');
+            if (levelConfigs) {
+                const configs = JSON.parse(levelConfigs);
+                const levelName = Object.keys(levelNameToId).find(key => levelNameToId[key] === cat.id);
+                if (levelName && configs[levelName]) {
+                    messages[cat.id] = configs[levelName].welcomeMessageStudent || '';
+                }
+            }
         });
+
         setCategoryTimes(times);
+        setCategoryWelcomeMessages(messages);
     }, [language]);
 
     if (!isStudent) {
@@ -173,6 +226,11 @@ const Panel_Estudiante = ({ onLogout }) => {
         );
     }
 
+    // Obtener el mensaje de bienvenida específico de la categoría del estudiante
+    const studentWelcomeMessage = studentCategoryId
+        ? categoryWelcomeMessages[studentCategoryId] || contestConfig?.welcomeMessageStudent || '¡Bienvenido al Desafío Bebras!'
+        : contestConfig?.welcomeMessageStudent || '¡Bienvenido al Desafío Bebras!';
+
     return (
         <div className="w-full h-screen flex flex-col bg-slate-50 font-sans overflow-hidden">
             <header className="w-full bg-white border-b border-slate-200 px-6 py-4 flex flex-shrink-0 justify-between items-center z-10 shadow-xs">
@@ -185,7 +243,7 @@ const Panel_Estudiante = ({ onLogout }) => {
                             {contestConfig?.contestName || "Desafío Bebras"}
                         </h2>
                         <p className="text-base font-semibold text-slate-700 mt-0.5">
-                           Estudiante: {student?.full_name}
+                            Estudiante: {student?.full_name}
                         </p>
                     </div>
                 </div>
@@ -218,6 +276,7 @@ const Panel_Estudiante = ({ onLogout }) => {
             </header>
 
             <main className="w-full flex-1 flex flex-col md:flex-row overflow-hidden">
+                {/* Columna Izquierda - Categorías */}
                 <section className="w-full md:w-1/2 h-1/2 md:h-full bg-white p-6 md:p-10 flex flex-col border-r border-slate-200 overflow-y-auto">
                     <div className="mb-4">
                         <h3 className="text-xl font-extrabold text-slate-800 flex items-center gap-2">
@@ -264,6 +323,7 @@ const Panel_Estudiante = ({ onLogout }) => {
                     </div>
                 </section>
 
+                {/* Columna Derecha - Mensaje de Bienvenida */}
                 <section className="w-full md:w-1/2 h-1/2 md:h-full bg-linear-to-br from-slate-50 to-blue-50/40 p-6 md:p-12 flex flex-col justify-center items-center overflow-y-auto">
                     <div className="max-w-md text-center animate-[fadeInUp_.4s_ease-out]">
                         <div className="w-24 h-24 bg-blue-100 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-blue-200/50">
@@ -272,8 +332,9 @@ const Panel_Estudiante = ({ onLogout }) => {
                         <h3 className="text-3xl font-black text-slate-800 tracking-tight mb-4">
                             {t.welcome}
                         </h3>
+                        {/* Mensaje de bienvenida específico de la categoría */}
                         <p className="text-slate-600 text-base leading-relaxed mb-8 bg-white/70 backdrop-blur-xs p-5 rounded-2xl border border-slate-200/60 shadow-xs text-left md:text-center">
-                            {contestConfig?.welcomeMessageStudent || t.ready}
+                            {studentWelcomeMessage}
                         </p>
                         <div className="inline-flex items-center gap-2 bg-emerald-500 text-white px-8 py-3.5 rounded-2xl font-bold tracking-wide shadow-md shadow-emerald-500/20 transform hover:scale-102 transition-transform">
                             <span>{t.success}</span>

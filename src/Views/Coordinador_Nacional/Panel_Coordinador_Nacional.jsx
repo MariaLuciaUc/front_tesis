@@ -4,6 +4,8 @@ import { toast, Toaster } from 'sonner';
 import Confeccion_Desafio from './Confeccion_Desafio';
 import Reportes_Estadisticas from './Reportes_Estadisticas';
 import { useMockAuth } from '../../hooks/useMockAuth';
+import api from '../../api/axios.js';
+
 
 const translations = {
     es: {
@@ -152,11 +154,38 @@ const Panel_Coordinador_Nacional = ({ onLanguageChange: externalLanguageChange, 
             toast.warning('Primero genere la clave de acceso');
             return;
         }
+
         setIsSending(true);
-        setTimeout(() => {
+        try {
+            const year = new Date().getFullYear();
+
+            // Construir el mensaje
+            const subject = `Clave de acceso para el Desafío Bebras ${year}`;
+            const body = `Estimado profesor,\n\nSe ha generado la clave de acceso para el Desafío Bebras ${year}:\n\nCLAVE: ${accessKey}\n\nPor favor, utilice esta clave para activar su cuenta y acceder al panel de profesor.\n\nSaludos,\nCoordinación Nacional Bebras`;
+
+            // Enviar a todos los profesores
+            const response = await api.post('/send-email', {
+                subject: subject,
+                body: body
+            });
+
+            if (response.data.success) {
+                const count = response.data.teachers_sent || 0;
+                if (count > 0) {
+                    toast.success(`Correo enviado exitosamente a ${count} profesores`);
+                } else {
+                    toast.warning('No hay profesores registrados en la base de datos');
+                }
+            } else {
+                toast.error(response.data.message || 'Error al enviar los correos');
+            }
+        } catch (error) {
+            console.error('Error al enviar correos:', error);
+            const errorMsg = error.response?.data?.message || 'Error al enviar los correos';
+            toast.error(errorMsg);
+        } finally {
             setIsSending(false);
-            toast.success('Correo enviado a los profesores');
-        }, 1000);
+        }
     };
 
     const handleLanguageChange = (newLang) => {
@@ -192,7 +221,12 @@ const Panel_Coordinador_Nacional = ({ onLanguageChange: externalLanguageChange, 
     }
 
     if (showReportes) {
-        return <Reportes_Estadisticas onBack={() => setShowReportes(false)} language={language} onLanguageChange={handleLanguageChange} />;
+        return <Reportes_Estadisticas
+            onBack={() => setShowReportes(false)}
+            language={language}
+            onLanguageChange={handleLanguageChange}
+            selectedCountry={selectedCountry}  // 🔥 Pasamos el país seleccionado
+        />;
     }
 
     const countryInfo = getCountryInfo(selectedCountry);

@@ -62,7 +62,8 @@ const translations = {
         questionAdded: "Pregunta agregada exitosamente",
         questionRemoved: "Pregunta eliminada exitosamente",
         editPoints: "Editar puntos",
-        savingPoints: "Guardando puntos..."
+        savingPoints: "Guardando puntos...",
+        welcomeMessageStudentLabel: "Mensaje de bienvenida para estudiantes de esta categoría"
     },
     en: {
         title: "Challenge Configuration",
@@ -105,7 +106,8 @@ const translations = {
         questionAdded: "Question added successfully",
         questionRemoved: "Question removed successfully",
         editPoints: "Edit points",
-        savingPoints: "Saving points..."
+        savingPoints: "Saving points...",
+        welcomeMessageStudentLabel: "Welcome message for students of this category"
     },
     pt: {
         title: "Configuração do Desafio",
@@ -148,7 +150,8 @@ const translations = {
         questionAdded: "Questão adicionada com sucesso",
         questionRemoved: "Questão removida com sucesso",
         editPoints: "Editar pontos",
-        savingPoints: "Salvando pontos..."
+        savingPoints: "Salvando pontos...",
+        welcomeMessageStudentLabel: "Mensagem de boas-vindas para estudantes desta categoria"
     },
     fr: {
         title: "Configuration du Défi",
@@ -191,7 +194,8 @@ const translations = {
         questionAdded: "Question ajoutée avec succès",
         questionRemoved: "Question supprimée avec succès",
         editPoints: "Modifier les points",
-        savingPoints: "Enregistrement des points..."
+        savingPoints: "Enregistrement des points...",
+        welcomeMessageStudentLabel: "Message de bienvenue pour les étudiants de cette catégorie"
     }
 };
 
@@ -228,7 +232,7 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
 
     const [allTasks, setAllTasks] = useState([]);
     const [availableTasks, setAvailableTasks] = useState([]);
-    const [activeTab, setActiveTab] = useState('questions');
+    const [activeTab, setActiveTab] = useState('config');
     const [isSaving, setIsSaving] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isSavingPoints, setIsSavingPoints] = useState(false);
@@ -335,7 +339,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                         r => trimString(r.taskCode) === trimString(serverTask.task_code)
                     ) || {};
 
-                    // 🔥 Usar los puntos del servidor (los que guardó el coordinador)
                     const pointsFromServer = serverTask.points;
                     const points = (pointsFromServer !== undefined && pointsFromServer !== null)
                         ? pointsFromServer
@@ -348,7 +351,7 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                         task_code: serverTask.task_code,
                         text: taskDetails.title || taskDetails.question || "Tarea sin título",
                         correctAnswer: taskDetails.correctOption || taskDetails.correctAnswer || "N/A",
-                        points: points, // 🔥 Usar los puntos del servidor
+                        points: points,
                         display_order: serverTask.display_order
                     };
                 });
@@ -408,6 +411,9 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
         const levelId = levelNameToId[level];
         if (levelId) {
             localStorage.setItem(`bebrasCategoryTime_${levelId}`, String(executionTime));
+            // Guardar también el mensaje de bienvenida específico de la categoría
+            const welcomeMessage = levelConfigs[level]?.welcomeMessageStudent || '';
+            localStorage.setItem(`bebrasCategoryWelcome_${levelId}`, welcomeMessage);
         }
 
         toast.success(`${t.levelConfigSaved} ${level}`);
@@ -440,7 +446,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
         }
     };
 
-    // 🔥 Función para guardar puntos en el servidor
     const savePointsToServer = async (taskCode, points) => {
         try {
             const response = await api.put(`/contest_tasks/${config.id}/${taskCode}`, {
@@ -480,7 +485,7 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
             category_id: categoryId,
             task_code: currentTaskCode,
             display_order: displayOrder,
-            points: pointsToUse // 🔥 Enviar puntos al servidor
+            points: pointsToUse
         };
 
         try {
@@ -528,7 +533,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
         }
     };
 
-    // 🔥 Función modificada para guardar puntos al editar
     const saveEdit = async (questionId) => {
         const questionToUpdate = selectedQuestions[selectedLevel]?.find(q => q.id === questionId);
 
@@ -543,12 +547,10 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
         try {
             setIsSavingPoints(true);
 
-            // 🔥 Guardar puntos en el servidor
             await api.put(`/contest_tasks/${contestId}/${taskCode}`, {
                 points: editPointsValue
             });
 
-            // Actualizar el estado local
             setSelectedQuestions(prev => ({
                 ...prev,
                 [selectedLevel]: prev[selectedLevel].map(q =>
@@ -747,6 +749,8 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                                         setSelectedLevel(e.target.value);
                                         setAvailableTasks([]);
                                         setEditingQuestion(null);
+                                        // Cambiar a la pestaña de config cuando se selecciona un nivel
+                                        setActiveTab('config');
                                     }} className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 appearance-none">
                                         <option value="">-- {t.selectLevel} --</option>
                                         {niveles.map(level => <option key={level} value={level}>{level}</option>)}
@@ -764,6 +768,7 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
 
                                     {activeTab === 'config' && (
                                         <div className="space-y-4">
+                                            {/* Tiempo de ejecución */}
                                             <div>
                                                 <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-1">
                                                     <Clock size={14} /> {t.executionTime}
@@ -792,6 +797,22 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                                                 )}
                                                 <p className="text-xs text-slate-400 mt-1">{t.timeInMinutes}</p>
                                             </div>
+
+                                            {/* 🔥 NUEVO: Mensaje de bienvenida para estudiantes por categoría */}
+                                            <div>
+                                                <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-1">
+                                                    <MessageSquare size={14} /> {t.welcomeMessageStudentLabel}
+                                                </label>
+                                                <textarea
+                                                    value={getLevelConfig(selectedLevel).welcomeMessageStudent || ''}
+                                                    onChange={(e) => handleLevelConfigChange(selectedLevel, 'welcomeMessageStudent', e.target.value)}
+                                                    rows={3}
+                                                    className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+                                                    placeholder="Escribe el mensaje de bienvenida para los estudiantes de esta categoría..."
+                                                />
+                                                <p className="text-xs text-slate-400 mt-1">Este mensaje se mostrará a los estudiantes de esta categoría al iniciar el desafío</p>
+                                            </div>
+
                                             <button
                                                 onClick={() => saveLevelConfiguration(selectedLevel)}
                                                 disabled={isLoading}

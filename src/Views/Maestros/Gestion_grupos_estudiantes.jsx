@@ -1,4 +1,3 @@
-// src/Views/Maestro/Gestion_grupos_estudiantes.jsx
 import React, { useState, useEffect } from 'react';
 import Crear_Grupo from './Crear_Grupo';
 import Crear_cuentas_alumnos from './Crear_cuentas_alumnos';
@@ -28,7 +27,7 @@ const translations = {
         students: "Estudiantes",
         createAccounts: "Crear cuentas",
         monitorParticipants: "Monitorear participantes",
-        closeChallenge: "Cerrar desafio y mostrar puntuaciones",
+        closeChallenge: "Cerrar desafio",
         exportDiplomas: "Exportar diplomas de participacion de estudiantes",
         exportReport: "Exportar reporte de participacion de grupo",
         exportCredentials: "Exportar credenciales de los alumnos",
@@ -44,7 +43,7 @@ const translations = {
         deleteGroupConfirm: "Estas seguro de que deseas eliminar este grupo? Se perderan todos los estudiantes y datos asociados.",
         groupDeleted: "Grupo eliminado exitosamente",
         noStudentsWarning: "No hay estudiantes inscritos en este grupo",
-        publishConfirm: "Cerrar este desafio y publicar las puntuaciones? Los estudiantes no podran cambiar sus respuestas.",
+        publishConfirm: "Cerrar este desafio? Los estudiantes no podran cambiar sus respuestas.",
         noStudentsExport: "No hay estudiantes en este grupo",
         exportFormat: "Exportar Reporte",
         selectFormat: "Seleccione el formato en el que desea exportar el reporte de participacion del grupo.",
@@ -87,7 +86,9 @@ const translations = {
         updateError: "Error al actualizar el estudiante",
         nameRequired: "El nombre del estudiante es obligatorio",
         scoresPublished: "Puntuaciones publicadas exitosamente",
-        credentialsExported: "Credenciales exportadas exitosamente"
+        credentialsExported: "Credenciales exportadas exitosamente",
+        activeSession: "Activa",
+        inactiveSession: "Inactiva"
     },
     en: {
         logout: "Logout",
@@ -103,7 +104,7 @@ const translations = {
         students: "Students",
         createAccounts: "Create accounts",
         monitorParticipants: "Monitor participants",
-        closeChallenge: "Close challenge and show scores",
+        closeChallenge: "Close challenge",
         exportDiplomas: "Export student participation diplomas",
         exportReport: "Export group participation report",
         exportCredentials: "Export student credentials",
@@ -119,7 +120,7 @@ const translations = {
         deleteGroupConfirm: "Are you sure you want to delete this group? All students and associated data will be lost.",
         groupDeleted: "Group deleted successfully",
         noStudentsWarning: "There are no students enrolled in this group",
-        publishConfirm: "Close this challenge and publish scores? Students will not be able to change their answers.",
+        publishConfirm: "Close this challenge? Students will not be able to change their answers.",
         noStudentsExport: "There are no students in this group",
         exportFormat: "Export Report",
         selectFormat: "Select the format in which you want to export the group participation report.",
@@ -162,7 +163,9 @@ const translations = {
         updateError: "Error updating student",
         nameRequired: "Student name is required",
         scoresPublished: "Scores published successfully",
-        credentialsExported: "Credentials exported successfully"
+        credentialsExported: "Credentials exported successfully",
+        activeSession: "Active",
+        inactiveSession: "Inactive"
     },
     pt: {
         logout: "Sair",
@@ -178,7 +181,7 @@ const translations = {
         students: "Estudantes",
         createAccounts: "Criar contas",
         monitorParticipants: "Monitorar participantes",
-        closeChallenge: "Encerrar desafio e mostrar pontuacoes",
+        closeChallenge: "Encerrar desafio",
         exportDiplomas: "Exportar diplomas de participacao dos estudantes",
         exportReport: "Exportar relatorio de participacao do grupo",
         exportCredentials: "Exportar credenciais dos alunos",
@@ -194,7 +197,7 @@ const translations = {
         deleteGroupConfirm: "Tem certeza de que deseja excluir este grupo? Todos os alunos e dados associados serao perdidos.",
         groupDeleted: "Grupo excluido com sucesso",
         noStudentsWarning: "Nao ha alunos matriculados neste grupo",
-        publishConfirm: "Encerrar este desafio e publicar as pontuacoes? Os alunos nao poderao alterar suas respostas.",
+        publishConfirm: "Encerrar este desafio? Os alunos nao poderao alterar suas respostas.",
         noStudentsExport: "Nao ha alunos neste grupo",
         exportFormat: "Exportar Relatorio",
         selectFormat: "Selecione o formato no qual deseja exportar o relatorio de participacao do grupo.",
@@ -237,7 +240,9 @@ const translations = {
         updateError: "Erro ao atualizar estudante",
         nameRequired: "O nome do estudante e obrigatorio",
         scoresPublished: "Pontuacoes publicadas com sucesso",
-        credentialsExported: "Credenciais exportadas com sucesso"
+        credentialsExported: "Credenciais exportadas com sucesso",
+        activeSession: "Ativa",
+        inactiveSession: "Inativa"
     },
     fr: {
         logout: "Deconnexion",
@@ -253,7 +258,7 @@ const translations = {
         students: "Eleves",
         createAccounts: "Creer des comptes",
         monitorParticipants: "Suivre les participants",
-        closeChallenge: "Cloturer le defi et montrer les scores",
+        closeChallenge: "Cloturer le defi",
         exportDiplomas: "Exporter les diplomes de participation des eleves",
         exportReport: "Exporter le rapport de participation du groupe",
         exportCredentials: "Exporter les identifiants des eleves",
@@ -269,7 +274,7 @@ const translations = {
         deleteGroupConfirm: "Etes-vous sur de vouloir supprimer ce groupe ? Tous les eleves et les donnees associees seront perdus.",
         groupDeleted: "Groupe supprime avec succes",
         noStudentsWarning: "Aucun eleve inscrit dans ce groupe",
-        publishConfirm: "Cloturer ce defi et publier les scores ? Les eleves ne pourront pas modifier leurs reponses.",
+        publishConfirm: "Cloturer ce defi ? Les eleves ne pourront pas modifier leurs reponses.",
         noStudentsExport: "Aucun eleve dans ce groupe",
         exportFormat: "Exporter le rapport",
         selectFormat: "Selectionnez le format dans lequel vous souhaitez exporter le rapport de participation du groupe.",
@@ -312,7 +317,9 @@ const translations = {
         updateError: "Erreur lors de la mise a jour",
         nameRequired: "Le nom de l'etudiant est requis",
         scoresPublished: "Scores publies avec succes",
-        credentialsExported: "Identifiants exportes avec succes"
+        credentialsExported: "Identifiants exportes avec succes",
+        activeSession: "Active",
+        inactiveSession: "Inactive"
     }
 };
 
@@ -476,18 +483,15 @@ const Gestion_grupos_estudiantes = () => {
     };
 
     const handleDeleteGroup = async () => {
-
         if (!selectedGroup) {
             toast.error('No hay un grupo seleccionado');
             return;
         }
 
-
         let canDelete = true;
 
         try {
             const studentsResponse = await api.get(`/groups/${selectedGroupId}/students`);
-
             const studentsCount = studentsResponse.data?.students?.length || 0;
 
             if (studentsCount > 0) {
@@ -520,7 +524,7 @@ const Gestion_grupos_estudiantes = () => {
             } catch (error) {
                 toast.error(error.response?.data?.message || 'Error al eliminar el grupo');
             }
-       }
+        }
     };
 
     const handleStudentsCreated = (estudiantesCreados) => {
@@ -545,8 +549,10 @@ const Gestion_grupos_estudiantes = () => {
                 full_name: est.full_name,
                 gender: est.gender || null,
                 username: est.username,
+                status: 'not_started',
                 score: null,
-                status: 'not_started'
+                has_session: false,
+                session_id: null
             }));
 
             setGroups(prevGroups =>
@@ -611,35 +617,41 @@ const Gestion_grupos_estudiantes = () => {
 
     const handleUpdateStudentStatus = (updatedStudents) => {
         if (!selectedGroup) return;
-        setGroups(groups.map(group => group.id === selectedGroup.id ? { ...group, students: updatedStudents } : group));
+        setGroups(groups.map(group =>
+            group.id === selectedGroup.id
+                ? { ...group, students: updatedStudents }
+                : group
+        ));
     };
 
-    const publishScores = () => {
+    // Función para cerrar desafío - SOLO cambia el estado local
+    const closeChallenge = () => {
         if (!selectedGroup) return;
+
         if (selectedGroup.students.length === 0) {
             toast.warning(t.noStudentsWarning);
-        } else {
-            if (window.confirm(t.publishConfirm)) {
-                const updatedStudents = selectedGroup.students.map(student => ({
-                    ...student,
-                    score: student.score !== null ? student.score : Math.floor(Math.random() * 101),
-                    status: student.status === 'not_started' ? 'finished' : student.status
-                }));
+            return;
+        }
 
-                setGroups(groups.map(group =>
-                    group.id === selectedGroup.id
-                        ? { ...group, challengeClosed: true, students: updatedStudents }
-                        : group
-                ));
-                toast.success(t.scoresPublished);
-            }
+        if (window.confirm(t.publishConfirm)) {
+            // Solo actualizar el estado local para mostrar los botones
+            setGroups(groups.map(group =>
+                group.id === selectedGroup.id
+                    ? {
+                        ...group,
+                        challengeClosed: true
+                    }
+                    : group
+            ));
+
+            toast.success('Desafío cerrado. Los botones de exportación ya están disponibles.');
         }
     };
 
     const printDiplomas = () => {
         if (!selectedGroup) return;
         if (!selectedGroup.challengeClosed) {
-            toast.warning("Primero debe cerrar el desafio y publicar las puntuaciones");
+            toast.warning("Primero debe cerrar el desafio");
             return;
         }
         if (selectedGroup.students.length === 0) {
@@ -758,6 +770,7 @@ const Gestion_grupos_estudiantes = () => {
             if (response.data.success) {
                 toast.success(t.studentUpdated);
 
+                // Recargar estudiantes para obtener datos actualizados
                 const studentsResponse = await api.get(`/groups/${selectedGroupId}/students`);
                 if (studentsResponse.data && studentsResponse.data.students) {
                     setGroups(prevGroups => prevGroups.map(group =>
@@ -821,7 +834,10 @@ const Gestion_grupos_estudiantes = () => {
 
     const handleGestionarParticipantes = () => {
         if (!selectedGroup) return;
-        if (selectedGroup.students.length === 0) { toast.warning(t.noStudentsWarning); return; }
+        if (selectedGroup.students.length === 0) {
+            toast.warning(t.noStudentsWarning);
+            return;
+        }
         setShowGestionParticipantes(true);
     };
 
@@ -848,7 +864,12 @@ const Gestion_grupos_estudiantes = () => {
     }
 
     if (showGestionParticipantes) {
-        return <Monitoreo_participantes group={selectedGroup} onUpdateStudentStatus={handleUpdateStudentStatus} onClose={() => setShowGestionParticipantes(false)} language={language} />;
+        return <Monitoreo_participantes
+            group={selectedGroup}
+            onUpdateStudentStatus={handleUpdateStudentStatus}
+            onClose={() => setShowGestionParticipantes(false)}
+            language={language}
+        />;
     }
 
     if (showExportDiplomas) {
@@ -951,12 +972,7 @@ const Gestion_grupos_estudiantes = () => {
                                                 </div>
                                             </div>
                                             <div className="flex gap-2">
-                                                <button  onClick={() => {
-                                                    handleDeleteGroup();
-                                                    console.log('🖱️ Botón clickeado');
-                                                    console.log('🔄 Renderizando, selectedGroup:', selectedGroup);
-
-                                                }}  className="p-2 rounded-lg bg-white text-red-600 hover:bg-red-50 transition-all shadow-sm border border-slate-200" title={t.deleteGroup}>
+                                                <button onClick={handleDeleteGroup} className="p-2 rounded-lg bg-white text-red-600 hover:bg-red-50 transition-all shadow-sm border border-slate-200" title={t.deleteGroup}>
                                                     <Trash2 size={18} />
                                                 </button>
                                             </div>
@@ -964,20 +980,35 @@ const Gestion_grupos_estudiantes = () => {
                                     </div>
 
                                     <div className="flex flex-wrap gap-3 mb-8">
-                                        <button onClick={handleGestionarParticipantes} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all shadow-md">
+                                        <button
+                                            onClick={handleGestionarParticipantes}
+                                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all shadow-md"
+                                        >
                                             <Users size={16} /> {t.monitorParticipants}
                                         </button>
+
                                         {!selectedGroup.challengeClosed && (
-                                            <button onClick={publishScores} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500 text-white font-medium hover:bg-orange-600 transition-all shadow-md">
+                                            <button
+                                                onClick={closeChallenge}
+                                                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500 text-white font-medium hover:bg-orange-600 transition-all shadow-md"
+                                            >
                                                 <BarChart3 size={16} /> {t.closeChallenge}
                                             </button>
                                         )}
+
+                                        {/* Botones de exportación - SOLO VISIBLES cuando el desafío está cerrado */}
                                         {selectedGroup.challengeClosed && (
                                             <>
-                                                <button onClick={printDiplomas} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-600 text-white font-medium hover:bg-amber-700 transition-all shadow-md">
+                                                <button
+                                                    onClick={printDiplomas}
+                                                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-600 text-white font-medium hover:bg-amber-700 transition-all shadow-md"
+                                                >
                                                     <FileDown size={16} /> {t.exportDiplomas}
                                                 </button>
-                                                <button onClick={handleExportReport} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-600 text-white font-medium hover:bg-zinc-700 transition-all shadow-md">
+                                                <button
+                                                    onClick={handleExportReport}
+                                                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-600 text-white font-medium hover:bg-zinc-700 transition-all shadow-md"
+                                                >
                                                     <Download size={16} /> {t.exportReport}
                                                 </button>
                                             </>
@@ -1011,18 +1042,26 @@ const Gestion_grupos_estudiantes = () => {
                                             <table className="w-full border-collapse">
                                                 <thead className="bg-slate-100">
                                                 <tr>
-                                                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">Genero</th>
+                                                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">Género</th>
                                                     <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.username}</th>
                                                     <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.student}</th>
                                                     <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.score}</th>
                                                     <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.status}</th>
+                                                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">Sesión</th>
                                                     <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.actions}</th>
                                                 </tr>
                                                 </thead>
                                                 <tbody>
                                                 {selectedGroup.students && selectedGroup.students.length > 0 ? (
-                                                    selectedGroup.students.map((student) => (
-                                                        editingStudentId === student.id ? (
+                                                    selectedGroup.students.map((student) => {
+                                                        // Datos obtenidos de ContestSession a través del backend
+                                                        const displayStatus = student.status || 'not_started';
+                                                        const displayScore = student.score !== null && student.score !== undefined
+                                                            ? student.score
+                                                            : '—';
+                                                        const hasActiveSession = student.has_session || false;
+
+                                                        return editingStudentId === student.id ? (
                                                             <tr key={student.id} className="border-b border-slate-100 bg-blue-50">
                                                                 <td className="px-4 py-2">
                                                                     <select
@@ -1053,8 +1092,20 @@ const Gestion_grupos_estudiantes = () => {
                                                                         placeholder="Nombre completo"
                                                                     />
                                                                 </td>
-                                                                <td className="px-4 py-2 text-sm font-bold">{student.score !== null && student.score !== undefined ? student.score : '—'}</td>
-                                                                <td className="px-4 py-2">{getStatusBadge(student.status || 'not_started')}</td>
+                                                                <td className="px-4 py-2 text-sm font-bold">{displayScore}</td>
+                                                                <td className="px-4 py-2">{getStatusBadge(displayStatus)}</td>
+                                                                <td className="px-4 py-2">
+                                                                    {hasActiveSession ? (
+                                                                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                                                                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                                                                            {t.activeSession}
+                                                                            </span>
+                                                                    ) : (
+                                                                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                                                                                {t.inactiveSession}
+                                                                            </span>
+                                                                    )}
+                                                                </td>
                                                                 <td className="px-4 py-2 flex gap-2">
                                                                     <button onClick={() => handleUpdateStudent(student.id)} disabled={isUpdating} className="p-1 text-green-600 hover:bg-green-50 rounded disabled:opacity-50" title={t.save}>
                                                                         <Save size={16} />
@@ -1086,9 +1137,21 @@ const Gestion_grupos_estudiantes = () => {
                                                                     {student.full_name || student.name || '—'}
                                                                 </td>
                                                                 <td className="px-4 py-2 text-sm font-bold">
-                                                                    {student.score !== null && student.score !== undefined ? student.score : '—'}
+                                                                    {displayScore}
                                                                 </td>
-                                                                <td className="px-4 py-2">{getStatusBadge(student.status || 'not_started')}</td>
+                                                                <td className="px-4 py-2">{getStatusBadge(displayStatus)}</td>
+                                                                <td className="px-4 py-2">
+                                                                    {hasActiveSession ? (
+                                                                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                                                                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                                                                            {t.activeSession}
+                                                                            </span>
+                                                                    ) : (
+                                                                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                                                                                {t.inactiveSession}
+                                                                            </span>
+                                                                    )}
+                                                                </td>
                                                                 <td className="px-4 py-2 flex gap-2">
                                                                     <button onClick={() => handleEditStudent(student)} className="p-1 text-blue-600 hover:bg-blue-50 rounded" title={t.edit}>
                                                                         <Edit size={16} />
@@ -1098,11 +1161,11 @@ const Gestion_grupos_estudiantes = () => {
                                                                     </button>
                                                                 </td>
                                                             </tr>
-                                                        )
-                                                    ))
+                                                        );
+                                                    })
                                                 ) : (
                                                     <tr>
-                                                        <td colSpan="6" className="px-4 py-8 text-center text-slate-500">
+                                                        <td colSpan="7" className="px-4 py-8 text-center text-slate-500">
                                                             {t.noStudentsTable}
                                                         </td>
                                                     </tr>

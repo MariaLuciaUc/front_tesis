@@ -305,6 +305,7 @@ const translations = {
         restoring: "Restauration des reponses sauvegardees..."
     }
 };
+
 const categoryMap = {
     "Super-Peque": 1,
     "Peque": 2,
@@ -319,11 +320,7 @@ const categoryMap = {
 // ============================================================
 const CACHE_KEY = 'bebras_answers_cache';
 const SESSION_KEY = 'bebras_session_id';
-
-// 🔥 Función para obtener la clave de respuestas por estudiante
-const getSubmittedKey = (studentId) => {
-    return `bebras_submitted_answers_${studentId}`;
-};
+const SUBMITTED_KEY = 'bebras_submitted_answers';
 
 // ============================================================
 // COMPONENTE PRINCIPAL
@@ -353,12 +350,6 @@ const Desafio_Estudiantes = (props) => {
     const [answers, setAnswers] = useState({});
     const [allTasksData, setAllTasksData] = useState([]);
     const [isRestoring, setIsRestoring] = useState(false);
-
-    // 🔥 Obtener el ID del estudiante
-    const studentId = studentData?.id || localStorage.getItem('bebras_student_id');
-
-    // 🔥 Clave de localStorage específica para este estudiante
-    const SUBMITTED_KEY = studentId ? getSubmittedKey(studentId) : 'bebras_submitted_answers';
 
     // Referencias para la sesión
     const contestSessionIdRef = useRef(null);
@@ -498,11 +489,15 @@ const Desafio_Estudiantes = (props) => {
         }
     };
 
+    // ============================================================
+    // 🔥 FUNCIÓN PARA ACTUALIZAR LA SESIÓN AL FINALIZAR
+    // ============================================================
     const updateSessionStatus = async (score) => {
         const sessionId = contestSessionIdRef.current || localStorage.getItem(SESSION_KEY);
 
         if (!sessionId) {
-            console.error('No hay sesión activa para actualizar');
+            console.error('❌ No hay sesión activa para actualizar');
+            toast.error('Error: No hay sesión activa');
             return false;
         }
 
@@ -513,14 +508,32 @@ const Desafio_Estudiantes = (props) => {
                 final_score: score || 0
             };
 
+            console.log('📤 Actualizando sesión:', {
+                sessionId,
+                status: 'finished',
+                final_score: score,
+                last_activity: new Date().toISOString()
+            });
+
             const response = await axios.put(
                 `${API_BASE_URL}/api/contest_sessions/update-status`,
                 updateData
             );
 
-            return response.status === 200;
+            if (response.status === 200) {
+                console.log('✅ Sesión actualizada exitosamente:', response.data);
+                return true;
+            } else {
+                console.error('❌ Error al actualizar sesión:', response.data);
+                return false;
+            }
         } catch (error) {
-            console.error('Error al actualizar sesión:', error);
+            console.error('❌ Error al actualizar sesión:', error);
+            if (error.response) {
+                console.error('📋 Status:', error.response.status);
+                console.error('📋 Data:', error.response.data);
+            }
+            toast.error('Error al guardar los resultados del desafío');
             return false;
         }
     };
@@ -668,22 +681,25 @@ const Desafio_Estudiantes = (props) => {
     };
 
     // ============================================================
-    // RESTAURAR RESPUESTAS DESDE LOCALSTORAGE (POR ESTUDIANTE)
+    // RESTAURAR RESPUESTAS DESDE LOCALSTORAGE
     // ============================================================
+
+    const getSubmittedKey = (studentId) => {
+        return `bebras_submitted_answers_${studentId}`;
+    };
+
+    const studentId = studentData?.id || localStorage.getItem('bebras_student_id');
+    const SUBMITTED_KEY = studentId ? getSubmittedKey(studentId) : 'bebras_submitted_answers';
 
     useEffect(() => {
         if (questions.length === 0) return;
 
         const restoreSubmitted = () => {
             try {
-                // 🔥 Usar la clave específica del estudiante
                 const savedSubmitted = localStorage.getItem(SUBMITTED_KEY);
-                console.log(`🔍 Buscando respuestas para estudiante ${studentId}:`, savedSubmitted);
 
                 if (savedSubmitted) {
                     const parsed = JSON.parse(savedSubmitted);
-                    console.log('📂 Datos recuperados:', parsed);
-
                     const validSubmitted = {};
                     let restoredCount = 0;
                     questions.forEach(q => {
@@ -695,21 +711,13 @@ const Desafio_Estudiantes = (props) => {
 
                     if (restoredCount > 0) {
                         setSubmittedQuestions(validSubmitted);
-                        console.log(`✅ Restauradas ${restoredCount} respuestas para estudiante ${studentId}`);
-                        toast.info(`Respuestas restauradas: ${restoredCount}`);
-                    } else {
-                        console.log('ℹ️ No hay respuestas guardadas para este estudiante');
                     }
-                } else {
-                    console.log('ℹ️ No hay datos en localStorage para este estudiante');
                 }
             } catch (error) {
-                console.error('❌ Error al restaurar respuestas:', error);
+                console.error('Error al restaurar respuestas:', error);
                 try {
                     localStorage.removeItem(SUBMITTED_KEY);
-                } catch (e) {
-                    // Ignorar
-                }
+                } catch (e) {}
             }
         };
 
@@ -717,19 +725,17 @@ const Desafio_Estudiantes = (props) => {
         restoreSubmitted();
         setIsRestoring(false);
 
-    }, [questions, SUBMITTED_KEY, studentId]);
+    }, [questions, SUBMITTED_KEY]);
 
-    // Guardar estado de respuestas en localStorage (por estudiante)
     useEffect(() => {
         if (Object.keys(submittedQuestions).length > 0) {
             try {
                 localStorage.setItem(SUBMITTED_KEY, JSON.stringify(submittedQuestions));
-                console.log(`💾 Estado de respuestas para estudiante ${studentId} guardado:`, submittedQuestions);
             } catch (error) {
                 console.error('Error al guardar respuestas:', error);
             }
         }
-    }, [submittedQuestions, SUBMITTED_KEY, studentId]);
+    }, [submittedQuestions, SUBMITTED_KEY]);
 
     // ============================================================
     // EFECTOS DEL TEMPORIZADOR Y OTROS
@@ -792,11 +798,9 @@ const Desafio_Estudiantes = (props) => {
     useEffect(() => {
         const handleOnline = () => {
             setIsOnline(true);
-            toast.info('Conexión restablecida.');
         };
         const handleOffline = () => {
             setIsOnline(false);
-            toast.warning('Sin conexión. Las respuestas se guardarán localmente.');
         };
 
         window.addEventListener('online', handleOnline);
@@ -1003,13 +1007,26 @@ const Desafio_Estudiantes = (props) => {
         toast.success(t.answerSavedServer || t.answerSaved);
     };
 
+    // ============================================================
+    // 🔥 FUNCIÓN PRINCIPAL PARA FINALIZAR EL DESAFÍO
+    // ============================================================
     const handleFinalizar = async () => {
         setIsFinishing(true);
 
         try {
+            // 1. Calcular la puntuación
             const scoreData = calculateScore();
             const finalScoreValue = scoreData.totalScore || 0;
 
+            console.log('📊 Puntuación calculada:', {
+                totalScore: finalScoreValue,
+                totalEvaluated: scoreData.totalEvaluated,
+                correctCount: scoreData.correctCount,
+                totalPossibleScore: scoreData.totalPossibleScore,
+                evaluatedDetails: scoreData.evaluatedDetails
+            });
+
+            // 2. Guardar respuestas pendientes en el servidor
             const pendingQuestions = questions.filter(q =>
                 answers[q.id] && !submittedQuestions[q.id]
             );
@@ -1021,21 +1038,45 @@ const Desafio_Estudiantes = (props) => {
                 }
             }
 
-            await updateSessionStatus(finalScoreValue);
+            // 3. 🔥 ACTUALIZAR LA SESIÓN EN EL SERVIDOR
+            // Esto guarda: status='finished', last_activity=now(), final_score=score
+            const sessionUpdated = await updateSessionStatus(finalScoreValue);
 
+            if (!sessionUpdated) {
+                console.warn('⚠️ No se pudo actualizar la sesión en el servidor');
+                toast.warning('La sesión no se actualizó correctamente, pero se mostrará tu puntuación.');
+            }
+
+            // 4. Marcar como finalizado localmente
             setFinished(true);
             setShowFinishModal(false);
             setShowTimeUpModal(false);
             localStorage.removeItem(`bebrasTime_cat_${categoryId}`);
 
+            // 5. Guardar resultados finales
             setFinalScore(finalScoreValue);
             setFinalScoreData(scoreData);
 
-            toast.success(`Desafío completado! Puntuación: ${finalScoreValue} pts`);
+            // 6. Mostrar mensaje de éxito
+            const message = `Desafío completado! Puntuación: ${finalScoreValue} pts`;
+            toast.success(message);
+            console.log('✅ Desafío finalizado exitosamente:', {
+                finalScore: finalScoreValue,
+                scoreData
+            });
 
         } catch (error) {
-            console.error('Error al finalizar:', error);
+            console.error('❌ Error al finalizar el desafío:', error);
             toast.error('Error al finalizar el desafío. Por favor, inténtalo de nuevo.');
+
+            // Si hay un error crítico, al menos mostrar la puntuación calculada
+            const scoreData = calculateScore();
+            setFinalScore(scoreData.totalScore || 0);
+            setFinalScoreData(scoreData);
+            setFinished(true);
+            setShowFinishModal(false);
+            localStorage.removeItem(`bebrasTime_cat_${categoryId}`);
+
         } finally {
             setIsFinishing(false);
         }
@@ -1146,7 +1187,7 @@ const Desafio_Estudiantes = (props) => {
     const submittedCount = Object.keys(submittedQuestions).filter(key => submittedQuestions[key] === true).length;
 
     // ============================================================
-    // RENDERIZADO (igual que antes)
+    // RENDERIZADO
     // ============================================================
 
     if (selectedTask) {
