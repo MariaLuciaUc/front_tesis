@@ -94,7 +94,6 @@ export default function Crear_Grupo({ onGroupCreated, onCancel, language: propLa
     const courses = ['Super Peque', 'Peque', 'Benjamin', 'Cadete', 'Junior', 'Senior'];
 
     const handleCreate = async () => {
-        // Validaciones
         if (!groupName.trim()) {
             toast.info(t.groupRequired);
             return;
@@ -131,7 +130,6 @@ export default function Crear_Grupo({ onGroupCreated, onCancel, language: propLa
             const response = await api.post('/groups', groupData);
             console.log('Respuesta del servidor:', response.data);
 
-            // Obtener el nombre del idioma correctamente
             const languageName = {
                 'es': t.spanish,
                 'en': t.english,
@@ -150,22 +148,17 @@ export default function Crear_Grupo({ onGroupCreated, onCancel, language: propLa
                 challengeClosed: false,
             };
 
-            // Limpiar el formulario
             setGroupName('');
             setSchoolName('');
             setLang('es');
             setSelectedCourse('');
 
-            // Mostrar SOLO el toast de éxito
             toast.success(t.groupCreated);
 
-            // Cerrar el modal PRIMERO
             if (onCancel) {
                 onCancel();
             }
 
-            // Después de cerrar el modal, actualizar la lista de grupos
-            // con un pequeño delay para asegurar que el modal se cerró
             setTimeout(() => {
                 if (onGroupCreated) {
                     onGroupCreated(newGroup);
@@ -175,7 +168,6 @@ export default function Crear_Grupo({ onGroupCreated, onCancel, language: propLa
         } catch (error) {
             console.error('Error en la petición:', error);
 
-            // SOLO mostrar toast de error si es un error REAL de creación
             let errorMessage = t.createError;
 
             if (error.response) {

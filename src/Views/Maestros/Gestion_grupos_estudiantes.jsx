@@ -461,18 +461,13 @@ const Gestion_grupos_estudiantes = () => {
         );
     }
 
-    // ✅ FUNCIÓN CORREGIDA - SOLO ACTUALIZA EL ESTADO LOCAL, NO HACE PETICIONES
     const handleGroupCreated = (newGroup) => {
-        // Agregar el nuevo grupo al estado local
         setGroups(prevGroups => [newGroup, ...prevGroups]);
 
-        // Seleccionar el nuevo grupo automáticamente
         setSelectedGroupId(newGroup.id);
 
-        // Cerrar el modal de creación
         setShowCreateGroup(false);
 
-        // Mostrar toast de éxito (ya se muestra en Crear_Grupo, pero por si acaso)
         toast.success('Grupo creado exitosamente');
     };
 

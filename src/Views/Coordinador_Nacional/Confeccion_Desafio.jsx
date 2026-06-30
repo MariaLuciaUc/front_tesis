@@ -218,7 +218,6 @@ const levelNameToId = {
 const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode = 'CU' }) => {
     const t = translations[language] || translations.es;
 
-    // Estado inicial con valores por defecto
     const defaultConfig = {
         id: Date.now(),
         contestName: `Desafío Bebras ${countryCode} ${new Date().getFullYear()}`,
@@ -248,10 +247,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
     const [loadingContest, setLoadingContest] = useState(true);
     const [contestExists, setContestExists] = useState(false);
 
-    // Cargar el concurso del país seleccionado
-    // En el useEffect que carga el concurso, modifica esta parte:
-// En Confeccion_Desafio.jsx, en el useEffect que carga el concurso:
-
     useEffect(() => {
         const loadContestByCountry = async () => {
             setLoadingContest(true);
@@ -262,22 +257,17 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                 });
 
                 const contests = response.data || [];
-                console.log('📦 Datos recibidos:', contests);
 
                 if (contests.length > 0) {
                     const contest = contests[0];
-                    console.log('✅ Concurso encontrado:', contest);
 
-                    // 🔥 CORREGIR: Formatear fecha correctamente para input date (YYYY-MM-DD)
                     let startDate = '2026-11-01';
                     let endDate = '2026-11-30';
 
                     if (contest.start_datetime) {
                         // Si es string con formato 'YYYY-MM-DD HH:MM:SS', tomar solo la fecha
                         if (typeof contest.start_datetime === 'string') {
-                            // Dividir por espacio y tomar la primera parte (YYYY-MM-DD)
                             startDate = contest.start_datetime.split(' ')[0];
-                            console.log('📅 startDate:', startDate);
                         } else {
                             try {
                                 const date = new Date(contest.start_datetime);
@@ -285,16 +275,13 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                                     startDate = date.toISOString().split('T')[0];
                                 }
                             } catch (e) {
-                                console.warn('Error al convertir start_datetime:', e);
                             }
                         }
                     }
 
                     if (contest.end_datetime) {
                         if (typeof contest.end_datetime === 'string') {
-                            // Dividir por espacio y tomar la primera parte (YYYY-MM-DD)
                             endDate = contest.end_datetime.split(' ')[0];
-                            console.log('📅 endDate:', endDate);
                         } else {
                             try {
                                 const date = new Date(contest.end_datetime);
@@ -302,14 +289,11 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                                     endDate = date.toISOString().split('T')[0];
                                 }
                             } catch (e) {
-                                console.warn('Error al convertir end_datetime:', e);
                             }
                         }
                     }
 
-                    console.log('📅 Fechas formateadas para input:', { startDate, endDate });
 
-                    // Mantener el nombre del concurso desde localStorage
                     const savedConfig = localStorage.getItem('bebrasContestConfig');
                     let contestName = `Desafío Bebras ${countryCode} ${contest.year || new Date().getFullYear()}`;
 
@@ -324,7 +308,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                         }
                     }
 
-                    // 🔥 ACTUALIZAR CONFIG CON LAS FECHAS CORRECTAMENTE FORMATEADAS
                     setConfig({
                         id: contest.id,
                         contestName: contestName,
@@ -338,7 +321,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                     });
                     setContestExists(true);
 
-                    // Guardar en localStorage
                     localStorage.setItem('bebrasContestConfig', JSON.stringify({
                         id: contest.id,
                         contestName: contestName,
@@ -348,7 +330,7 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                         countryCode: contest.country_code
                     }));
                 } else {
-                    console.log('⚠️ No hay concurso para este país');
+                    console.log(' No hay concurso para este país');
                     setContestExists(false);
                     setConfig(prev => ({
                         ...prev,
@@ -368,7 +350,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
         loadContestByCountry();
     }, [countryCode]);
 
-    // Cargar configuraciones guardadas
     useEffect(() => {
         const savedLevelConfigs = localStorage.getItem('bebrasLevelConfigs');
         if (savedLevelConfigs) setLevelConfigs(JSON.parse(savedLevelConfigs));
@@ -439,7 +420,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
         return filtered;
     }, []);
 
-    // Sincronizar con el servidor
     useEffect(() => {
         const fetchSavedQuestionsFromDB = async () => {
             if (String(config.id).length > 7 || !selectedLevel) return;
@@ -778,8 +758,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
         setIsSaving(true);
         const year = config.startDate ? new Date(config.startDate).getFullYear() : new Date().getFullYear();
 
-        // 🔥 Las fechas ya vienen en formato YYYY-MM-DD del input date
-        // Las enviamos directamente como string
         const datosContest = {
             start_datetime: config.startDate, // '2026-11-01'
             end_datetime: config.endDate,     // '2026-11-30'
@@ -810,8 +788,8 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                 toast.warning("Se guardó el desafío pero no se recibió el ID persistido del backend.");
             }
         } catch (err) {
-            console.error('❌ Error al guardar Concurso en Laravel:', err);
-            console.error('❌ Respuesta del error:', err.response?.data);
+            console.error(' Error al guardar Concurso en Laravel:', err);
+            console.error(' Respuesta del error:', err.response?.data);
 
             const errorMessage = err.response?.data?.message || err.message || 'Error al guardar la configuración';
             toast.error(`Error: ${errorMessage}`);
@@ -825,7 +803,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
         return questions.reduce((sum, q) => sum + (q.points || 0), 0);
     };
 
-    // Mostrar loading mientras se carga el concurso
     if (loadingContest) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-slate-100 to-sky-100 font-sans">
@@ -852,7 +829,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
         );
     }
 
-    // Mostrar mensaje si no hay concurso para el país
     if (!contestExists && !isSaving) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-slate-100 to-sky-100 font-sans">
@@ -903,7 +879,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                 </div>
 
                 <div className="grid lg:grid-cols-2 gap-8">
-                    {/* Columna Izquierda - Configuración General */}
                     <div className="space-y-6">
                         <button onClick={saveConfiguration} disabled={isSaving || isLoading} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl shadow-md hover:bg-blue-700 transition-all disabled:opacity-50">
                             <Save size={18}/> {isSaving ? 'Guardando...' : t.saveConfig}
@@ -972,7 +947,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
 
                                     {activeTab === 'config' && (
                                         <div className="space-y-4">
-                                            {/* Tiempo de ejecución */}
                                             <div>
                                                 <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-1">
                                                     <Clock size={14} /> {t.executionTime}
@@ -1002,7 +976,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                                                 <p className="text-xs text-slate-400 mt-1">{t.timeInMinutes}</p>
                                             </div>
 
-                                            {/* Mensaje de bienvenida para estudiantes por categoría */}
                                             <div>
                                                 <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-1">
                                                     <MessageSquare size={14} /> {t.welcomeMessageStudentLabel}

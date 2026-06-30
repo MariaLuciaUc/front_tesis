@@ -110,25 +110,20 @@ const Reportes_Estadisticas = ({ onBack, language, onLanguageChange, selectedCou
             try {
                 console.log(`🔍 Obteniendo datos para el país: ${selectedCountry}`);
 
-                // 1. Obtener profesores
                 const teachersRes = await api.get('/teachers');
                 const allTeachers = teachersRes.data || [];
 
-                // 🔥 FILTRAR PROFESORES POR PAÍS
                 const teachers = allTeachers.filter(t => t.country_code === selectedCountry);
-                console.log(`👨‍🏫 Profesores en ${selectedCountry}:`, teachers.length);
+                console.log(`👨‍ Profesores en ${selectedCountry}:`, teachers.length);
 
                 const teacherIds = new Set(teachers.map(t => t.id));
 
-                // 2. Obtener grupos
                 const groupsRes = await api.get('/groups');
                 const allGroups = groupsRes.data || [];
 
-                // 🔥 FILTRAR GRUPOS POR PAÍS (solo los que pertenecen a profesores del país)
                 const groups = allGroups.filter(g => teacherIds.has(g.teacher_id));
-                console.log(`📚 Grupos en ${selectedCountry}:`, groups.length);
+                console.log(` Grupos en ${selectedCountry}:`, groups.length);
 
-                // 3. Obtener estudiantes de cada grupo
                 let allStudents = [];
                 for (const group of groups) {
                     try {
@@ -147,24 +142,21 @@ const Reportes_Estadisticas = ({ onBack, language, onLanguageChange, selectedCou
                         console.error(`Error al obtener estudiantes del grupo ${group.id}:`, err);
                     }
                 }
-                console.log(`👨‍🎓 Estudiantes en ${selectedCountry}:`, allStudents.length);
+                console.log(` Estudiantes en ${selectedCountry}:`, allStudents.length);
 
-                // 4. Obtener sesiones
                 const sessionsRes = await api.get('/contest_sessions');
                 const allSessions = sessionsRes.data || [];
 
-                // 🔥 FILTRAR SESIONES POR ESTUDIANTES DEL PAÍS
                 const studentIds = new Set(allStudents.map(s => s.id));
                 const sessions = allSessions.filter(s => studentIds.has(s.student_id));
-                console.log(`📝 Sesiones en ${selectedCountry}:`, sessions.length);
+                console.log(` Sesiones en ${selectedCountry}:`, sessions.length);
 
-                // Estadísticas
+
                 setStats({
                     teachers: teachers.length,
                     students: allStudents.length
                 });
 
-                // Agrupar por nivel
                 const groupedByLevel = {};
                 allStudents.forEach(student => {
                     const levelId = student.categoryId;
@@ -176,7 +168,6 @@ const Reportes_Estadisticas = ({ onBack, language, onLanguageChange, selectedCou
                 });
                 setStudentsByLevel(groupedByLevel);
 
-                // Preparar datos para reporte
                 const reportData = allStudents.map(student => {
                     const session = sessions.find(s => s.student_id === student.id);
                     const teacher = teachers.find(t => t.id === student.teacherId);
