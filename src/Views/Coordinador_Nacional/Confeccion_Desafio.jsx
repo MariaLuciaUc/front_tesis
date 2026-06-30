@@ -1,4 +1,3 @@
-// Confeccion_Desafio.jsx
 import api from '../../api/axios';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
@@ -11,9 +10,7 @@ import {
     Clock,
     Settings,
     ChevronDown,
-    Calendar,
     MessageSquare,
-    Star,
     Edit3,
     Trophy,
     Users
@@ -58,12 +55,14 @@ const translations = {
         bebrasCategory: "Categoría Bebras",
         saveFirst:  "Debes guardar la configuración general del Desafío en el panel izquierdo antes de asignar preguntas.",
         timeInMinutes: "Tiempo en minutos para esta categoría",
-        errorEmptyTime: "❌ Debes configurar el tiempo de ejecución para la categoría antes de guardar. El tiempo no puede estar vacío o ser 0.",
+        errorEmptyTime: " Debes configurar el tiempo de ejecución para la categoría antes de guardar. El tiempo no puede estar vacío o ser 0.",
         questionAdded: "Pregunta agregada exitosamente",
         questionRemoved: "Pregunta eliminada exitosamente",
         editPoints: "Editar puntos",
         savingPoints: "Guardando puntos...",
-        welcomeMessageStudentLabel: "Mensaje de bienvenida para estudiantes de esta categoría"
+        welcomeMessageStudentLabel: "Mensaje de bienvenida para estudiantes de esta categoría",
+        loadingContest: "Cargando concurso del país...",
+        noContestFound: "No hay un concurso configurado para este país. Crea uno nuevo."
     },
     en: {
         title: "Challenge Configuration",
@@ -102,12 +101,14 @@ const translations = {
         bebrasCategory: "Bebras Category",
         saveFirst: "You must save challenge general configuration in the left panel before assign questions",
         timeInMinutes: "Time in minutes for this category",
-        errorEmptyTime: "❌ You must configure the execution time for the category before saving. Time cannot be empty or 0.",
+        errorEmptyTime: " You must configure the execution time for the category before saving. Time cannot be empty or 0.",
         questionAdded: "Question added successfully",
         questionRemoved: "Question removed successfully",
         editPoints: "Edit points",
         savingPoints: "Saving points...",
-        welcomeMessageStudentLabel: "Welcome message for students of this category"
+        welcomeMessageStudentLabel: "Welcome message for students of this category",
+        loadingContest: "Loading contest for this country...",
+        noContestFound: "No contest configured for this country. Create a new one."
     },
     pt: {
         title: "Configuração do Desafio",
@@ -146,12 +147,14 @@ const translations = {
         bebrasCategory: "Categoria Bebras",
         saveFirst: "Voce deve salvar as configuraçoes gerais do desafio no painel esquerdo antes de atribuir preguntas",
         timeInMinutes: "Tempo em minutos para esta categoria",
-        errorEmptyTime: "❌ Você deve configurar o tempo de execução para a categoria antes de salvar. O tempo não pode estar vazio ou ser 0.",
+        errorEmptyTime: "Você deve configurar o tempo de execução para a categoria antes de salvar. O tempo não pode estar vazio ou ser 0.",
         questionAdded: "Questão adicionada com sucesso",
         questionRemoved: "Questão removida com sucesso",
         editPoints: "Editar pontos",
         savingPoints: "Salvando pontos...",
-        welcomeMessageStudentLabel: "Mensagem de boas-vindas para estudantes desta categoria"
+        welcomeMessageStudentLabel: "Mensagem de boas-vindas para estudantes desta categoria",
+        loadingContest: "Carregando concurso do país...",
+        noContestFound: "Nenhum concurso configurado para este país. Crie um novo."
     },
     fr: {
         title: "Configuration du Défi",
@@ -190,12 +193,14 @@ const translations = {
         bebrasCategory: "Catégorie Bebras",
         saveFirst: "Vous devez enregister les parametres généraux du défi dans le panneau de gauche avant d'attribuer des questions",
         timeInMinutes: "Temps en minutes pour cette catégorie",
-        errorEmptyTime: "❌ Vous devez configurer le temps d'exécution pour la catégorie avant d'enregistrer. Le temps ne peut pas être vide ou égal à 0.",
+        errorEmptyTime: " Vous devez configurer le temps d'exécution pour la catégorie avant d'enregistrer. Le temps ne peut pas être vide ou égal à 0.",
         questionAdded: "Question ajoutée avec succès",
         questionRemoved: "Question supprimée avec succès",
         editPoints: "Modifier les points",
         savingPoints: "Enregistrement des points...",
-        welcomeMessageStudentLabel: "Message de bienvenue pour les étudiants de cette catégorie"
+        welcomeMessageStudentLabel: "Message de bienvenue pour les étudiants de cette catégorie",
+        loadingContest: "Chargement du concours du pays...",
+        noContestFound: "Aucun concours configuré pour ce pays. Créez-en un nouveau."
     }
 };
 
@@ -213,16 +218,20 @@ const levelNameToId = {
 const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode = 'CU' }) => {
     const t = translations[language] || translations.es;
 
-    const [config, setConfig] = useState({
+    // Estado inicial con valores por defecto
+    const defaultConfig = {
         id: Date.now(),
-        contestName: 'Desafío Bebras Cuba 2026',
+        contestName: `Desafío Bebras ${countryCode} ${new Date().getFullYear()}`,
         startDate: '2026-11-01',
         endDate: '2026-11-30',
         executionTime: 45,
-        welcomeMessageTeacher: 'Bienvenidos al Desafío Bebras Cuba 2026. Aquí podrán gestionar sus grupos y estudiantes.',
-        welcomeMessageStudent: '¡Bienvenido al Desafío Bebras! Lee cada pregunta cuidadosamente y selecciona la respuesta correcta.'
-    });
+        welcomeMessageTeacher: 'Bienvenidos al Desafío Bebras. Aquí podrán gestionar sus grupos y estudiantes.',
+        welcomeMessageStudent: '¡Bienvenido al Desafío Bebras! Lee cada pregunta cuidadosamente y selecciona la respuesta correcta.',
+        year: new Date().getFullYear(),
+        countryCode: countryCode
+    };
 
+    const [config, setConfig] = useState(defaultConfig);
     const [levelConfigs, setLevelConfigs] = useState({});
     const [selectedQuestions, setSelectedQuestions] = useState({});
     const [selectedLevel, setSelectedLevel] = useState('');
@@ -236,12 +245,131 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
     const [isSaving, setIsSaving] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isSavingPoints, setIsSavingPoints] = useState(false);
+    const [loadingContest, setLoadingContest] = useState(true);
+    const [contestExists, setContestExists] = useState(false);
+
+    // Cargar el concurso del país seleccionado
+    // En el useEffect que carga el concurso, modifica esta parte:
+// En Confeccion_Desafio.jsx, en el useEffect que carga el concurso:
+
+    useEffect(() => {
+        const loadContestByCountry = async () => {
+            setLoadingContest(true);
+            try {
+                console.log(`🔍 Buscando concurso para el país: ${countryCode}`);
+                const response = await api.get('/contests', {
+                    params: { country_code: countryCode }
+                });
+
+                const contests = response.data || [];
+                console.log('📦 Datos recibidos:', contests);
+
+                if (contests.length > 0) {
+                    const contest = contests[0];
+                    console.log('✅ Concurso encontrado:', contest);
+
+                    // 🔥 CORREGIR: Formatear fecha correctamente para input date (YYYY-MM-DD)
+                    let startDate = '2026-11-01';
+                    let endDate = '2026-11-30';
+
+                    if (contest.start_datetime) {
+                        // Si es string con formato 'YYYY-MM-DD HH:MM:SS', tomar solo la fecha
+                        if (typeof contest.start_datetime === 'string') {
+                            // Dividir por espacio y tomar la primera parte (YYYY-MM-DD)
+                            startDate = contest.start_datetime.split(' ')[0];
+                            console.log('📅 startDate:', startDate);
+                        } else {
+                            try {
+                                const date = new Date(contest.start_datetime);
+                                if (!isNaN(date.getTime())) {
+                                    startDate = date.toISOString().split('T')[0];
+                                }
+                            } catch (e) {
+                                console.warn('Error al convertir start_datetime:', e);
+                            }
+                        }
+                    }
+
+                    if (contest.end_datetime) {
+                        if (typeof contest.end_datetime === 'string') {
+                            // Dividir por espacio y tomar la primera parte (YYYY-MM-DD)
+                            endDate = contest.end_datetime.split(' ')[0];
+                            console.log('📅 endDate:', endDate);
+                        } else {
+                            try {
+                                const date = new Date(contest.end_datetime);
+                                if (!isNaN(date.getTime())) {
+                                    endDate = date.toISOString().split('T')[0];
+                                }
+                            } catch (e) {
+                                console.warn('Error al convertir end_datetime:', e);
+                            }
+                        }
+                    }
+
+                    console.log('📅 Fechas formateadas para input:', { startDate, endDate });
+
+                    // Mantener el nombre del concurso desde localStorage
+                    const savedConfig = localStorage.getItem('bebrasContestConfig');
+                    let contestName = `Desafío Bebras ${countryCode} ${contest.year || new Date().getFullYear()}`;
+
+                    if (savedConfig) {
+                        try {
+                            const parsed = JSON.parse(savedConfig);
+                            if (parsed.contestName) {
+                                contestName = parsed.contestName;
+                            }
+                        } catch (e) {
+                            console.warn('Error al parsear config guardada:', e);
+                        }
+                    }
+
+                    // 🔥 ACTUALIZAR CONFIG CON LAS FECHAS CORRECTAMENTE FORMATEADAS
+                    setConfig({
+                        id: contest.id,
+                        contestName: contestName,
+                        startDate: startDate,  // ← Formato YYYY-MM-DD (sin hora)
+                        endDate: endDate,      // ← Formato YYYY-MM-DD (sin hora)
+                        executionTime: 45,
+                        welcomeMessageTeacher: config.welcomeMessageTeacher || 'Bienvenidos al Desafío Bebras. Aquí podrán gestionar sus grupos y estudiantes.',
+                        welcomeMessageStudent: config.welcomeMessageStudent || '¡Bienvenido al Desafío Bebras! Lee cada pregunta cuidadosamente y selecciona la respuesta correcta.',
+                        year: contest.year,
+                        countryCode: contest.country_code
+                    });
+                    setContestExists(true);
+
+                    // Guardar en localStorage
+                    localStorage.setItem('bebrasContestConfig', JSON.stringify({
+                        id: contest.id,
+                        contestName: contestName,
+                        startDate: startDate,
+                        endDate: endDate,
+                        year: contest.year,
+                        countryCode: contest.country_code
+                    }));
+                } else {
+                    console.log('⚠️ No hay concurso para este país');
+                    setContestExists(false);
+                    setConfig(prev => ({
+                        ...prev,
+                        id: Date.now(),
+                        contestName: `Desafío Bebras ${countryCode} ${new Date().getFullYear()}`
+                    }));
+                }
+            } catch (error) {
+                console.error('Error al cargar concurso:', error);
+                setContestExists(false);
+                toast.error('Error al cargar el concurso del país');
+            } finally {
+                setLoadingContest(false);
+            }
+        };
+
+        loadContestByCountry();
+    }, [countryCode]);
 
     // Cargar configuraciones guardadas
     useEffect(() => {
-        const savedConfig = localStorage.getItem('bebrasContestConfig');
-        if (savedConfig) setConfig(JSON.parse(savedConfig));
-
         const savedLevelConfigs = localStorage.getItem('bebrasLevelConfigs');
         if (savedLevelConfigs) setLevelConfigs(JSON.parse(savedLevelConfigs));
 
@@ -411,7 +539,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
         const levelId = levelNameToId[level];
         if (levelId) {
             localStorage.setItem(`bebrasCategoryTime_${levelId}`, String(executionTime));
-            // Guardar también el mensaje de bienvenida específico de la categoría
             const welcomeMessage = levelConfigs[level]?.welcomeMessageStudent || '';
             localStorage.setItem(`bebrasCategoryWelcome_${levelId}`, welcomeMessage);
         }
@@ -651,29 +778,43 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
         setIsSaving(true);
         const year = config.startDate ? new Date(config.startDate).getFullYear() : new Date().getFullYear();
 
+        // 🔥 Las fechas ya vienen en formato YYYY-MM-DD del input date
+        // Las enviamos directamente como string
         const datosContest = {
-            start_datetime: config.startDate,
-            end_datetime: config.endDate,
+            start_datetime: config.startDate, // '2026-11-01'
+            end_datetime: config.endDate,     // '2026-11-30'
             year: year,
             country_code: countryCode,
-            name: config.contestName,
         };
+
+        console.log('📤 Enviando datos al servidor:', datosContest);
 
         try {
             const response = await api.post('/contests', datosContest);
+            console.log('✅ Respuesta del servidor:', response.data);
+
             const serverId = response.data?.id || response.data?.contest?.id;
 
             if (serverId) {
-                const updatedConfig = { ...config, id: serverId, year, countryCode };
+                const updatedConfig = {
+                    ...config,
+                    id: serverId,
+                    year,
+                    countryCode
+                };
                 setConfig(updatedConfig);
+                setContestExists(true);
                 localStorage.setItem('bebrasContestConfig', JSON.stringify(updatedConfig));
                 toast.success(t.configSaved);
             } else {
                 toast.warning("Se guardó el desafío pero no se recibió el ID persistido del backend.");
             }
         } catch (err) {
-            console.error('Error al guardar Concurso en Laravel:', err.response?.data?.errors || err.message);
-            toast.error("Error crítico al procesar la configuración en Laravel.");
+            console.error('❌ Error al guardar Concurso en Laravel:', err);
+            console.error('❌ Respuesta del error:', err.response?.data);
+
+            const errorMessage = err.response?.data?.message || err.message || 'Error al guardar la configuración';
+            toast.error(`Error: ${errorMessage}`);
         } finally {
             setIsSaving(false);
         }
@@ -684,15 +825,74 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
         return questions.reduce((sum, q) => sum + (q.points || 0), 0);
     };
 
+    // Mostrar loading mientras se carga el concurso
+    if (loadingContest) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-100 to-sky-100 font-sans">
+                <div className="max-w-7xl mx-auto px-6 py-8">
+                    <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+                        <button onClick={onBack} className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-md text-slate-600 hover:bg-slate-50 transition-all">
+                            <ArrowLeft size={18} /> {t.back}
+                        </button>
+                        <h1 className="text-2xl font-extrabold text-slate-800">{t.title}</h1>
+                        <div className="flex gap-2 bg-slate-100 p-1 rounded-full border border-slate-200">
+                            {['es', 'en', 'pt', 'fr'].map(lang => (
+                                <button key={lang} className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === lang ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => onLanguageChange(lang)}>
+                                    {lang.toUpperCase()}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="text-center py-20">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                        <p className="text-slate-500 mt-4">{t.loadingContest}</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Mostrar mensaje si no hay concurso para el país
+    if (!contestExists && !isSaving) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-100 to-sky-100 font-sans">
+                <div className="max-w-7xl mx-auto px-6 py-8">
+                    <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+                        <button onClick={onBack} className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-md text-slate-600 hover:bg-slate-50 transition-all">
+                            <ArrowLeft size={18} /> {t.back}
+                        </button>
+                        <h1 className="text-2xl font-extrabold text-slate-800">{t.title}</h1>
+                        <div className="flex gap-2 bg-slate-100 p-1 rounded-full border border-slate-200">
+                            {['es', 'en', 'pt', 'fr'].map(lang => (
+                                <button key={lang} className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === lang ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => onLanguageChange(lang)}>
+                                    {lang.toUpperCase()}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-12 text-center">
+                        <h2 className="text-2xl font-bold text-yellow-800 mb-4">{t.noContestFound}</h2>
+                        <p className="text-yellow-600 mb-6">País: {countryCode}</p>
+                        <button
+                            onClick={saveConfiguration}
+                            className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-md"
+                        >
+                            Crear Concurso para {countryCode}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-100 to-sky-100 font-sans">
             <div className="max-w-7xl mx-auto px-6 py-8">
-                {/* Header */}
                 <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
                     <button onClick={onBack} className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-md text-slate-600 hover:bg-slate-50 transition-all">
                         <ArrowLeft size={18} /> {t.back}
                     </button>
-                    <h1 className="text-2xl font-extrabold text-slate-800">{t.title}</h1>
+                    <h1 className="text-2xl font-extrabold text-slate-800">{t.title} - {countryCode}</h1>
                     <div className="flex gap-2 bg-slate-100 p-1 rounded-full border border-slate-200">
                         {['es', 'en', 'pt', 'fr'].map(lang => (
                             <button key={lang} className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === lang ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => onLanguageChange(lang)}>
@@ -731,11 +931,16 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                                     <label className="block text-sm font-semibold text-slate-700 mb-2">{t.welcomeMessageTeacher}</label>
                                     <textarea value={config.welcomeMessageTeacher} onChange={(e) => handleConfigChange('welcomeMessageTeacher', e.target.value)} rows={3} className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none" />
                                 </div>
+                                <div className="text-xs text-slate-400 bg-slate-50 p-2 rounded-lg">
+                                    País: <span className="font-semibold text-blue-600">{countryCode}</span>
+                                    {contestExists && (
+                                        <span className="ml-2 text-green-600">✓ Concurso existente (ID: {config.id})</span>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Columna Derecha - Categorías y Banco */}
                     <div className="space-y-6">
                         <div className="bg-white rounded-2xl shadow-xl p-6">
                             <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2 mb-6 pb-4 border-b border-slate-200">
@@ -749,7 +954,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                                         setSelectedLevel(e.target.value);
                                         setAvailableTasks([]);
                                         setEditingQuestion(null);
-                                        // Cambiar a la pestaña de config cuando se selecciona un nivel
                                         setActiveTab('config');
                                     }} className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 appearance-none">
                                         <option value="">-- {t.selectLevel} --</option>
@@ -798,7 +1002,7 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                                                 <p className="text-xs text-slate-400 mt-1">{t.timeInMinutes}</p>
                                             </div>
 
-                                            {/* 🔥 NUEVO: Mensaje de bienvenida para estudiantes por categoría */}
+                                            {/* Mensaje de bienvenida para estudiantes por categoría */}
                                             <div>
                                                 <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-1">
                                                     <MessageSquare size={14} /> {t.welcomeMessageStudentLabel}
@@ -935,7 +1139,6 @@ const Confeccionar_Desafio = ({ onBack, language, onLanguageChange, countryCode 
                 </div>
             </div>
 
-            {/* Modal Banco de Preguntas */}
             {showQuestionBank && selectedLevel && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden">

@@ -122,12 +122,82 @@ export const DB_STUDENTS = [
         full_name: 'Arturo Alonso',
         username: 'usr50005',
         password_hash: '$2y$10$hashed_password_5',
+    }, {
+        id: 155,
+        teacher_id: 3,
+        group_id: 21,
+        category_id: 1,
+        gender: 'Femenino',
+        full_name: 'Ana Garcia',
+        username: 'usr10001',
+        password_hash: '$2y$10$hashed_password_5',
+    }, {
+        id: 156,
+        teacher_id: 3,
+        group_id: 21,
+        category_id: 1,
+        gender: 'Femenino',
+        full_name: 'Alison Rodriguez',
+        username: 'usr10002',
+        password_hash: '$2y$10$hashed_password_5',
+    } , {
+        id: 161,
+        teacher_id: 3,
+        group_id: 21,
+        category_id: 1,
+        gender: 'Masculino',
+        full_name: 'David Antunez',
+        username: 'usr10007',
+        password_hash: '$2y$10$hashed_password_5',
+    } , {
+        id: 160,
+        teacher_id: 3,
+        group_id: 21,
+        category_id: 1,
+        gender: 'Masculino',
+        full_name: 'Mario Moreno',
+        username: 'usr10006',
+        password_hash: '$2y$10$hashed_password_5',
+    } , {
+        id: 162,
+        teacher_id: 3,
+        group_id: 22,
+        category_id: 2,
+        gender: 'Femenino',
+        full_name: 'Lucia ALonso',
+        username: 'usr20001',
+        password_hash: '$2y$10$hashed_password_5',
+    } , {
+        id: 163,
+        teacher_id: 3,
+        group_id: 22,
+        category_id: 2,
+        gender: 'Masculino',
+        full_name: 'Tomas Alonso',
+        username: 'usr20002',
+        password_hash: '$2y$10$hashed_password_5',
+    } , {
+        id: 164,
+        teacher_id: 3,
+        group_id: 23,
+        category_id: 6,
+        gender: 'Femenino',
+        full_name: 'Angelica Amador',
+        username: 'usr60001',
+        password_hash: '$2y$10$hashed_password_5',
+    } , {
+    id: 165,
+        teacher_id: 3,
+        group_id: 23,
+        category_id: 6,
+        gender: 'Masculino',
+        full_name: 'Nelson Amador Villar',
+        username: '60001',
+        password_hash: "$2y$10$hashed_password_4"
     }
+
 ];
 
-// ============================================================
-// MAPEO DE CATEGORÍAS BEBRAS
-// ============================================================
 
 export const CATEGORIES = {
     1: { id: 1, name: 'Super Peque', displayName: 'Super Peque (1ro y 2do)' },
@@ -138,9 +208,6 @@ export const CATEGORIES = {
     6: { id: 6, name: 'Senior', displayName: 'Senior (11no y 12mo)' }
 };
 
-// ============================================================
-// FUNCIÓN PRINCIPAL: OBTENER USUARIO SEGÚN EL JSON
-// ============================================================
 
 export const getCurrentUser = () => {
     const { role, userId } = mockConfig;

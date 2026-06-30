@@ -1,4 +1,3 @@
-// Desafio_Estudiantes.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { Clock, LogOut, Target, List, Trophy, BookOpen, CheckCircle, ArrowLeft, AlertCircle, Cloud, CloudOff } from 'lucide-react';
 import { toast } from 'sonner';
@@ -315,16 +314,10 @@ const categoryMap = {
     "Senior": 6
 };
 
-// ============================================================
-// CLAVES PARA LOCALSTORAGE
-// ============================================================
 const CACHE_KEY = 'bebras_answers_cache';
 const SESSION_KEY = 'bebras_session_id';
 const SUBMITTED_KEY = 'bebras_submitted_answers';
 
-// ============================================================
-// COMPONENTE PRINCIPAL
-// ============================================================
 const Desafio_Estudiantes = (props) => {
     const { studentData, onBackToPanel, language = 'es', contestConfig, categoryId, categoryName } = props;
     const [currentLanguage, setCurrentLanguage] = useState(language);
@@ -351,17 +344,12 @@ const Desafio_Estudiantes = (props) => {
     const [allTasksData, setAllTasksData] = useState([]);
     const [isRestoring, setIsRestoring] = useState(false);
 
-    // Referencias para la sesión
     const contestSessionIdRef = useRef(null);
     const startTimeRef = useRef(null);
     const [isSessionCreated, setIsSessionCreated] = useState(false);
     const [isSavingAnswer, setIsSavingAnswer] = useState(false);
     const [isCreatingSession, setIsCreatingSession] = useState(false);
     const [isOnline, setIsOnline] = useState(navigator.onLine);
-
-    // ============================================================
-    // FUNCIONES DEL SERVIDOR
-    // ============================================================
 
     const createStudentSession = async () => {
         if (isCreatingSession) return false;
@@ -426,7 +414,6 @@ const Desafio_Estudiantes = (props) => {
                         localStorage.setItem('bebras_student_id', String(studentId));
                         startTimeRef.current = existingSession.start_time;
                         setIsSessionCreated(true);
-                        toast.info(t.sessionRecovered);
                         return true;
                     }
                 } catch (e) {
@@ -489,14 +476,10 @@ const Desafio_Estudiantes = (props) => {
         }
     };
 
-    // ============================================================
-    // 🔥 FUNCIÓN PARA ACTUALIZAR LA SESIÓN AL FINALIZAR
-    // ============================================================
     const updateSessionStatus = async (score) => {
         const sessionId = contestSessionIdRef.current || localStorage.getItem(SESSION_KEY);
 
         if (!sessionId) {
-            console.error('❌ No hay sesión activa para actualizar');
             toast.error('Error: No hay sesión activa');
             return false;
         }
@@ -521,26 +504,19 @@ const Desafio_Estudiantes = (props) => {
             );
 
             if (response.status === 200) {
-                console.log('✅ Sesión actualizada exitosamente:', response.data);
                 return true;
             } else {
-                console.error('❌ Error al actualizar sesión:', response.data);
                 return false;
             }
         } catch (error) {
-            console.error('❌ Error al actualizar sesión:', error);
             if (error.response) {
-                console.error('📋 Status:', error.response.status);
-                console.error('📋 Data:', error.response.data);
+                console.error(' Status:', error.response.status);
+                console.error(' Data:', error.response.data);
             }
             toast.error('Error al guardar los resultados del desafío');
             return false;
         }
     };
-
-    // ============================================================
-    // FUNCIONES DE CARGA DE DATOS
-    // ============================================================
 
     const trimString = (str) => str ? String(str).trim() : '';
 
@@ -680,10 +656,6 @@ const Desafio_Estudiantes = (props) => {
         }
     };
 
-    // ============================================================
-    // RESTAURAR RESPUESTAS DESDE LOCALSTORAGE
-    // ============================================================
-
     const getSubmittedKey = (studentId) => {
         return `bebras_submitted_answers_${studentId}`;
     };
@@ -715,9 +687,7 @@ const Desafio_Estudiantes = (props) => {
                 }
             } catch (error) {
                 console.error('Error al restaurar respuestas:', error);
-                try {
-                    localStorage.removeItem(SUBMITTED_KEY);
-                } catch (e) {}
+
             }
         };
 
@@ -736,10 +706,6 @@ const Desafio_Estudiantes = (props) => {
             }
         }
     }, [submittedQuestions, SUBMITTED_KEY]);
-
-    // ============================================================
-    // EFECTOS DEL TEMPORIZADOR Y OTROS
-    // ============================================================
 
     const initChallenge = async () => {
         setLoading(true);
@@ -811,10 +777,6 @@ const Desafio_Estudiantes = (props) => {
             window.removeEventListener('offline', handleOffline);
         };
     }, []);
-
-    // ============================================================
-    // FUNCIONES DE UTILIDAD
-    // ============================================================
 
     const formatTime = (seconds) => {
         if (seconds === null) return "--:--";
@@ -927,10 +889,6 @@ const Desafio_Estudiantes = (props) => {
         };
     };
 
-    // ============================================================
-    // MANEJADORES DE EVENTOS
-    // ============================================================
-
     const handleSubmitAnswer = async (questionId) => {
         if (submittedQuestions[questionId]) {
             toast.warning(t.alreadySubmitted);
@@ -1007,26 +965,13 @@ const Desafio_Estudiantes = (props) => {
         toast.success(t.answerSavedServer || t.answerSaved);
     };
 
-    // ============================================================
-    // 🔥 FUNCIÓN PRINCIPAL PARA FINALIZAR EL DESAFÍO
-    // ============================================================
     const handleFinalizar = async () => {
         setIsFinishing(true);
 
         try {
-            // 1. Calcular la puntuación
             const scoreData = calculateScore();
             const finalScoreValue = scoreData.totalScore || 0;
 
-            console.log('📊 Puntuación calculada:', {
-                totalScore: finalScoreValue,
-                totalEvaluated: scoreData.totalEvaluated,
-                correctCount: scoreData.correctCount,
-                totalPossibleScore: scoreData.totalPossibleScore,
-                evaluatedDetails: scoreData.evaluatedDetails
-            });
-
-            // 2. Guardar respuestas pendientes en el servidor
             const pendingQuestions = questions.filter(q =>
                 answers[q.id] && !submittedQuestions[q.id]
             );
@@ -1038,8 +983,6 @@ const Desafio_Estudiantes = (props) => {
                 }
             }
 
-            // 3. 🔥 ACTUALIZAR LA SESIÓN EN EL SERVIDOR
-            // Esto guarda: status='finished', last_activity=now(), final_score=score
             const sessionUpdated = await updateSessionStatus(finalScoreValue);
 
             if (!sessionUpdated) {
@@ -1047,29 +990,19 @@ const Desafio_Estudiantes = (props) => {
                 toast.warning('La sesión no se actualizó correctamente, pero se mostrará tu puntuación.');
             }
 
-            // 4. Marcar como finalizado localmente
             setFinished(true);
             setShowFinishModal(false);
             setShowTimeUpModal(false);
             localStorage.removeItem(`bebrasTime_cat_${categoryId}`);
-
-            // 5. Guardar resultados finales
             setFinalScore(finalScoreValue);
             setFinalScoreData(scoreData);
 
-            // 6. Mostrar mensaje de éxito
             const message = `Desafío completado! Puntuación: ${finalScoreValue} pts`;
             toast.success(message);
-            console.log('✅ Desafío finalizado exitosamente:', {
-                finalScore: finalScoreValue,
-                scoreData
-            });
 
         } catch (error) {
-            console.error('❌ Error al finalizar el desafío:', error);
             toast.error('Error al finalizar el desafío. Por favor, inténtalo de nuevo.');
 
-            // Si hay un error crítico, al menos mostrar la puntuación calculada
             const scoreData = calculateScore();
             setFinalScore(scoreData.totalScore || 0);
             setFinalScoreData(scoreData);
@@ -1102,19 +1035,6 @@ const Desafio_Estudiantes = (props) => {
         setSelectedQuestions(prev => ({ ...prev, [questionId]: !prev[questionId] }));
     };
 
-    const handleSelectAll = () => {
-        const allSelected = {};
-        questions.forEach(q => { allSelected[q.id] = true; });
-        setSelectedQuestions(allSelected);
-        toast.success(t.selectAllTasks);
-    };
-
-    const handleDeselectAll = () => {
-        const allDeselected = {};
-        questions.forEach(q => { allDeselected[q.id] = false; });
-        setSelectedQuestions(allDeselected);
-        toast.success(t.deselectAllTasks);
-    };
 
     const handleLanguageChange = (lang) => {
         setCurrentLanguage(lang);
@@ -1185,10 +1105,6 @@ const Desafio_Estudiantes = (props) => {
     ];
 
     const submittedCount = Object.keys(submittedQuestions).filter(key => submittedQuestions[key] === true).length;
-
-    // ============================================================
-    // RENDERIZADO
-    // ============================================================
 
     if (selectedTask) {
         const currentTask = selectedTask;
@@ -1443,7 +1359,6 @@ const Desafio_Estudiantes = (props) => {
                 )}
             </div>
 
-            {/* Modal de Finalización */}
             {showFinishModal && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-3xl p-8 max-w-md w-full">
@@ -1483,7 +1398,6 @@ const Desafio_Estudiantes = (props) => {
                 </div>
             )}
 
-            {/* Modal de Tiempo Agotado */}
             {showTimeUpModal && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-3xl p-8 max-w-md w-full">
@@ -1518,7 +1432,6 @@ const Desafio_Estudiantes = (props) => {
                 </div>
             )}
 
-            {/* Modal de Salir */}
             {showExitModal && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-3xl p-8 max-w-md w-full">

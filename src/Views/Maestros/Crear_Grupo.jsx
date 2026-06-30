@@ -16,10 +16,10 @@ const translations = {
         groupRequired: "Por favor ingresa un nombre para el grupo",
         schoolRequired: "Por favor ingresa el nombre de la escuela",
         courseRequired: "Por favor selecciona un Nivel Bebras",
-        spanish: "Espanol",
-        english: "Ingles",
-        portuguese: "Portugues",
-        french: "Frances",
+        spanish: "Español",
+        english: "Inglés",
+        portuguese: "Portugués",
+        french: "Francés",
         groupCreated: "Grupo creado exitosamente",
         createError: "Error al crear el grupo"
     },
@@ -94,6 +94,7 @@ export default function Crear_Grupo({ onGroupCreated, onCancel, language: propLa
     const courses = ['Super Peque', 'Peque', 'Benjamin', 'Cadete', 'Junior', 'Senior'];
 
     const handleCreate = async () => {
+        // Validaciones
         if (!groupName.trim()) {
             toast.info(t.groupRequired);
             return;
@@ -130,34 +131,78 @@ export default function Crear_Grupo({ onGroupCreated, onCancel, language: propLa
             const response = await api.post('/groups', groupData);
             console.log('Respuesta del servidor:', response.data);
 
+            // Obtener el nombre del idioma correctamente
+            const languageName = {
+                'es': t.spanish,
+                'en': t.english,
+                'pt': t.portuguese,
+                'fr': t.french
+            }[lang] || t.spanish;
+
+            // Crear el objeto del nuevo grupo
             const newGroup = {
-                id: response.data.id.toString(),
-                name: groupName,
-                school: schoolName,
-                language: lang === 'es' ? t.spanish : lang === 'en' ? t.english : lang === 'pt' ? t.portuguese : t.french,
+                id: response.data.id ? response.data.id.toString() : Date.now().toString(),
+                name: groupName.trim(),
+                school: schoolName.trim(),
+                language: languageName,
                 course: selectedCourse,
                 students: [],
                 challengeClosed: false,
             };
 
-            toast.success(t.groupCreated);
-            onGroupCreated(newGroup);
-
+            // Limpiar el formulario
             setGroupName('');
             setSchoolName('');
             setLang('es');
             setSelectedCourse('');
-        } catch (error) {
-            console.error('Error detallado:', error.response?.data);
 
-            let errorMessage = t.createError;
-            if (error.response?.data?.message) {
-                errorMessage = error.response.data.message;
-            } else if (error.response?.data?.errors) {
-                const errors = Object.values(error.response.data.errors).flat();
-                errorMessage = errors.join(', ');
+            // Mostrar SOLO el toast de éxito
+            toast.success(t.groupCreated);
+
+            // Cerrar el modal PRIMERO
+            if (onCancel) {
+                onCancel();
             }
+
+            // Después de cerrar el modal, actualizar la lista de grupos
+            // con un pequeño delay para asegurar que el modal se cerró
+            setTimeout(() => {
+                if (onGroupCreated) {
+                    onGroupCreated(newGroup);
+                }
+            }, 100);
+
+        } catch (error) {
+            console.error('Error en la petición:', error);
+
+            // SOLO mostrar toast de error si es un error REAL de creación
+            let errorMessage = t.createError;
+
+            if (error.response) {
+                const status = error.response.status;
+                const data = error.response.data;
+
+                if (status === 400) {
+                    errorMessage = data?.message || 'Datos inválidos. Verifica la información.';
+                } else if (status === 401) {
+                    errorMessage = 'Sesión expirada. Inicia sesión nuevamente.';
+                } else if (status === 403) {
+                    errorMessage = 'No tienes permisos para crear grupos.';
+                } else if (status === 409) {
+                    errorMessage = 'Ya existe un grupo con ese nombre.';
+                } else if (status === 500) {
+                    errorMessage = 'Error del servidor. Intenta más tarde.';
+                } else {
+                    errorMessage = data?.message || `Error ${status}`;
+                }
+            } else if (error.request) {
+                errorMessage = 'No se pudo conectar con el servidor.';
+            } else {
+                errorMessage = error.message || t.createError;
+            }
+
             toast.error(errorMessage);
+
         } finally {
             setIsCreating(false);
         }
@@ -179,13 +224,36 @@ export default function Crear_Grupo({ onGroupCreated, onCancel, language: propLa
         <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-100 to-sky-100 p-4 font-sans">
             <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl p-8 relative animate-[fadeInUp_.4s_ease-out]">
                 <div className="absolute top-4 right-4 flex gap-1 bg-slate-100 p-1 rounded-full border border-slate-200">
-                    <button className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'es' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('es')}>ES</button>
-                    <button className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'en' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('en')}>EN</button>
-                    <button className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'pt' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('pt')}>PT</button>
-                    <button className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'fr' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => setLanguage('fr')}>FR</button>
+                    <button
+                        className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'es' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}
+                        onClick={() => setLanguage('es')}
+                    >
+                        ES
+                    </button>
+                    <button
+                        className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'en' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}
+                        onClick={() => setLanguage('en')}
+                    >
+                        EN
+                    </button>
+                    <button
+                        className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'pt' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}
+                        onClick={() => setLanguage('pt')}
+                    >
+                        PT
+                    </button>
+                    <button
+                        className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === 'fr' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`}
+                        onClick={() => setLanguage('fr')}
+                    >
+                        FR
+                    </button>
                 </div>
 
-                <button onClick={handleClose} className="absolute top-4 left-4 p-2 rounded-full hover:bg-slate-100 transition-colors text-slate-500 hover:text-slate-700 z-10">
+                <button
+                    onClick={handleClose}
+                    className="absolute top-4 left-4 p-2 rounded-full hover:bg-slate-100 transition-colors text-slate-500 hover:text-slate-700 z-10"
+                >
                     <X size={20} />
                 </button>
 
@@ -222,10 +290,30 @@ export default function Crear_Grupo({ onGroupCreated, onCancel, language: propLa
                         <Globe size={16} /> {t.language}
                     </label>
                     <div className="flex flex-wrap gap-2">
-                        <button onClick={() => setLang('es')} className={`px-4 py-2 rounded-xl font-medium transition-all ${lang === 'es' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>{t.spanish}</button>
-                        <button onClick={() => setLang('en')} className={`px-4 py-2 rounded-xl font-medium transition-all ${lang === 'en' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>{t.english}</button>
-                        <button onClick={() => setLang('pt')} className={`px-4 py-2 rounded-xl font-medium transition-all ${lang === 'pt' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>{t.portuguese}</button>
-                        <button onClick={() => setLang('fr')} className={`px-4 py-2 rounded-xl font-medium transition-all ${lang === 'fr' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>{t.french}</button>
+                        <button
+                            onClick={() => setLang('es')}
+                            className={`px-4 py-2 rounded-xl font-medium transition-all ${lang === 'es' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+                        >
+                            {t.spanish}
+                        </button>
+                        <button
+                            onClick={() => setLang('en')}
+                            className={`px-4 py-2 rounded-xl font-medium transition-all ${lang === 'en' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+                        >
+                            {t.english}
+                        </button>
+                        <button
+                            onClick={() => setLang('pt')}
+                            className={`px-4 py-2 rounded-xl font-medium transition-all ${lang === 'pt' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+                        >
+                            {t.portuguese}
+                        </button>
+                        <button
+                            onClick={() => setLang('fr')}
+                            className={`px-4 py-2 rounded-xl font-medium transition-all ${lang === 'fr' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+                        >
+                            {t.french}
+                        </button>
                     </div>
                 </div>
 

@@ -55,7 +55,6 @@ const translations = {
     }
 };
 
-// Mapeo de niveles
 const levelMap = {
     1: 'Super Peque',
     2: 'Peque',
@@ -64,6 +63,29 @@ const levelMap = {
     5: 'Junior',
     6: 'Senior'
 };
+
+const LATAM_COUNTRIES = [
+    { code: 'AR', name: 'Argentina' },
+    { code: 'BO', name: 'Bolivia' },
+    { code: 'BR', name: 'Brasil' },
+    { code: 'CL', name: 'Chile' },
+    { code: 'CO', name: 'Colombia' },
+    { code: 'CR', name: 'Costa Rica' },
+    { code: 'CU', name: 'Cuba' },
+    { code: 'DO', name: 'República Dominicana' },
+    { code: 'EC', name: 'Ecuador' },
+    { code: 'SV', name: 'El Salvador' },
+    { code: 'GT', name: 'Guatemala' },
+    { code: 'HN', name: 'Honduras' },
+    { code: 'MX', name: 'México' },
+    { code: 'NI', name: 'Nicaragua' },
+    { code: 'PA', name: 'Panamá' },
+    { code: 'PY', name: 'Paraguay' },
+    { code: 'PE', name: 'Perú' },
+    { code: 'PR', name: 'Puerto Rico' },
+    { code: 'UY', name: 'Uruguay' },
+    { code: 'VE', name: 'Venezuela' },
+];
 
 const Reportes_Estadisticas = ({ onBack, language, onLanguageChange, selectedCountry = 'CU' }) => {
     const t = translations[language];
@@ -77,7 +99,8 @@ const Reportes_Estadisticas = ({ onBack, language, onLanguageChange, selectedCou
     const [reportData, setReportData] = useState([]);
     const [studentsByLevel, setStudentsByLevel] = useState({});
 
-    const countryName = 'Cuba';
+    const countryInfo = LATAM_COUNTRIES.find(c => c.code === selectedCountry);
+    const countryName = countryInfo?.name || 'Cuba';
 
     useEffect(() => {
         const fetchAllData = async () => {
@@ -85,24 +108,28 @@ const Reportes_Estadisticas = ({ onBack, language, onLanguageChange, selectedCou
             setError(null);
 
             try {
-                console.log('🔍 INICIANDO FETCH...');
+                console.log(`🔍 Obteniendo datos para el país: ${selectedCountry}`);
 
                 // 1. Obtener profesores
-                console.log('📡 Obteniendo teachers...');
                 const teachersRes = await api.get('/teachers');
-                const teachers = teachersRes.data || [];
-                console.log('✅ Teachers:', teachers.length);
+                const allTeachers = teachersRes.data || [];
 
-                // 2. Obtener todos los grupos
-                console.log('📡 Obteniendo groups...');
+                // 🔥 FILTRAR PROFESORES POR PAÍS
+                const teachers = allTeachers.filter(t => t.country_code === selectedCountry);
+                console.log(`👨‍🏫 Profesores en ${selectedCountry}:`, teachers.length);
+
+                const teacherIds = new Set(teachers.map(t => t.id));
+
+                // 2. Obtener grupos
                 const groupsRes = await api.get('/groups');
-                const groups = groupsRes.data || [];
-                console.log('✅ Groups:', groups.length);
+                const allGroups = groupsRes.data || [];
 
-                // 3. Obtener estudiantes de CADA grupo
-                console.log('📡 Obteniendo estudiantes de cada grupo...');
+                // 🔥 FILTRAR GRUPOS POR PAÍS (solo los que pertenecen a profesores del país)
+                const groups = allGroups.filter(g => teacherIds.has(g.teacher_id));
+                console.log(`📚 Grupos en ${selectedCountry}:`, groups.length);
+
+                // 3. Obtener estudiantes de cada grupo
                 let allStudents = [];
-
                 for (const group of groups) {
                     try {
                         const studentsRes = await api.get(`/groups/${group.id}/students`);
@@ -115,28 +142,29 @@ const Reportes_Estadisticas = ({ onBack, language, onLanguageChange, selectedCou
                                 categoryId: group.category_id
                             }));
                             allStudents = [...allStudents, ...groupStudents];
-                            console.log(`📚 Grupo ${group.group_name} (${levelMap[group.category_id] || 'N/A'}): ${groupStudents.length} estudiantes`);
                         }
                     } catch (err) {
                         console.error(`Error al obtener estudiantes del grupo ${group.id}:`, err);
                     }
                 }
-
-                console.log('✅ Total estudiantes:', allStudents.length);
+                console.log(`👨‍🎓 Estudiantes en ${selectedCountry}:`, allStudents.length);
 
                 // 4. Obtener sesiones
-                console.log('📡 Obteniendo contest_sessions...');
                 const sessionsRes = await api.get('/contest_sessions');
-                const sessions = sessionsRes.data || [];
-                console.log('✅ Sessions:', sessions.length);
+                const allSessions = sessionsRes.data || [];
 
-                // --- ESTADÍSTICAS ---
+                // 🔥 FILTRAR SESIONES POR ESTUDIANTES DEL PAÍS
+                const studentIds = new Set(allStudents.map(s => s.id));
+                const sessions = allSessions.filter(s => studentIds.has(s.student_id));
+                console.log(`📝 Sesiones en ${selectedCountry}:`, sessions.length);
+
+                // Estadísticas
                 setStats({
                     teachers: teachers.length,
                     students: allStudents.length
                 });
 
-                // --- AGRUPAR ESTUDIANTES POR CATEGORÍA ---
+                // Agrupar por nivel
                 const groupedByLevel = {};
                 allStudents.forEach(student => {
                     const levelId = student.categoryId;
@@ -147,9 +175,8 @@ const Reportes_Estadisticas = ({ onBack, language, onLanguageChange, selectedCou
                     groupedByLevel[levelName].push(student);
                 });
                 setStudentsByLevel(groupedByLevel);
-                console.log('📊 Estudiantes por nivel:', Object.keys(groupedByLevel).map(key => `${key}: ${groupedByLevel[key].length}`));
 
-                // --- PREPARAR DATOS PARA REPORTE EXCEL ---
+                // Preparar datos para reporte
                 const reportData = allStudents.map(student => {
                     const session = sessions.find(s => s.student_id === student.id);
                     const teacher = teachers.find(t => t.id === student.teacherId);
@@ -190,10 +217,9 @@ const Reportes_Estadisticas = ({ onBack, language, onLanguageChange, selectedCou
                 });
 
                 setReportData(reportData);
-                console.log('📊 Report data:', reportData.length);
 
             } catch (error) {
-                console.error('❌ ERROR:', error);
+                console.error('ERROR:', error);
                 setError(error.message);
                 toast.error(t.error || 'Error al cargar los datos');
             } finally {
@@ -202,7 +228,7 @@ const Reportes_Estadisticas = ({ onBack, language, onLanguageChange, selectedCou
         };
 
         fetchAllData();
-    }, [t]);
+    }, [selectedCountry, t]);
 
     const exportToExcel = () => {
         try {
@@ -213,11 +239,8 @@ const Reportes_Estadisticas = ({ onBack, language, onLanguageChange, selectedCou
 
             const workbook = XLSX.utils.book_new();
 
-            // Obtener todas las categorías únicas
             const categories = Object.keys(studentsByLevel).sort();
-            console.log('📊 Categorías para Excel:', categories);
 
-            // Si no hay categorías, crear una hoja general
             if (categories.length === 0) {
                 const excelData = [
                     ['Teacher Email', 'Group name', 'School', 'Student Username', 'Student Name', 'Student Gender', 'Start Time', 'End Time', 'Score']
@@ -243,12 +266,10 @@ const Reportes_Estadisticas = ({ onBack, language, onLanguageChange, selectedCou
                     { wch: 30 }, { wch: 15 }, { wch: 35 }, { wch: 35 }, { wch: 10 }
                 ];
                 worksheet['!cols'] = colWidths;
-                XLSX.utils.book_append_sheet(workbook, worksheet, 'SPANISH_CU');
+                XLSX.utils.book_append_sheet(workbook, worksheet, `SPANISH_${selectedCountry}`);
             } else {
-                // Crear una hoja por categoría
                 categories.forEach(category => {
                     const studentsInCategory = studentsByLevel[category] || [];
-                    console.log(`📝 Creando hoja para ${category}: ${studentsInCategory.length} estudiantes`);
 
                     const excelData = [
                         ['Teacher Email', 'Group name', 'School', 'Student Username', 'Student Name', 'Student Gender', 'Start Time', 'End Time', 'Score']
@@ -286,13 +307,12 @@ const Reportes_Estadisticas = ({ onBack, language, onLanguageChange, selectedCou
                     ];
                     worksheet['!cols'] = colWidths;
 
-                    // Nombre de la hoja: SPANISH_NombreCategoria
                     const sheetName = `SPANISH_${category.replace(/\s/g, '_')}`;
                     XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
                 });
             }
 
-            const fileName = `CU-Bebras-Results.xlsx`;
+            const fileName = `${selectedCountry}-Bebras-Results.xlsx`;
             XLSX.writeFile(workbook, fileName);
             toast.success(t.reportGenerated);
 
@@ -346,12 +366,11 @@ const Reportes_Estadisticas = ({ onBack, language, onLanguageChange, selectedCou
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-100 to-sky-100 font-sans">
             <div className="max-w-7xl mx-auto px-6 py-8">
-                {/* Header */}
                 <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
                     <button onClick={onBack} className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-md text-slate-600 hover:bg-slate-50">
                         <ArrowLeft size={18} /> {t.back}
                     </button>
-                    <h1 className="text-2xl font-extrabold text-slate-800">{t.title}</h1>
+                    <h1 className="text-2xl font-extrabold text-slate-800">{t.title} - {countryName}</h1>
                     <div className="flex gap-2 bg-slate-100 p-1 rounded-full border border-slate-200">
                         {['es', 'en', 'pt', 'fr'].map((lng) => (
                             <button key={lng} className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${language === lng ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500'}`} onClick={() => onLanguageChange(lng)}>
@@ -362,16 +381,13 @@ const Reportes_Estadisticas = ({ onBack, language, onLanguageChange, selectedCou
                 </div>
 
                 <div className="grid lg:grid-cols-2 gap-8">
-                    {/* Columna izquierda - Tarjetas */}
                     <div className="space-y-6">
                         <div className="grid grid-cols-2 gap-4">
-                            {/* 1. Profesores */}
                             <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-5 text-white shadow-lg">
                                 <GraduationCap size={28} className="mb-2 opacity-80" />
                                 <p className="text-3xl font-bold">{stats.teachers}</p>
                                 <p className="text-sm opacity-90">{t.teachers}</p>
                             </div>
-                            {/* 2. Estudiantes */}
                             <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-5 text-white shadow-lg">
                                 <Users size={28} className="mb-2 opacity-80" />
                                 <p className="text-3xl font-bold">{stats.students}</p>
@@ -379,11 +395,10 @@ const Reportes_Estadisticas = ({ onBack, language, onLanguageChange, selectedCou
                             </div>
                         </div>
 
-                        {/* Distribución por niveles */}
                         <div className="bg-white rounded-2xl shadow-xl p-6">
                             <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-3">
                                 <Flag size={20} className="text-blue-600" />
-                                Distribución por Niveles
+                                Distribución por Niveles - {countryName}
                             </h3>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                 {Object.keys(studentsByLevel).sort().map(level => (
@@ -399,7 +414,6 @@ const Reportes_Estadisticas = ({ onBack, language, onLanguageChange, selectedCou
                         </div>
                     </div>
 
-                    {/* Columna derecha - Exportar */}
                     <div className="space-y-6">
                         <div className="bg-white rounded-2xl shadow-xl p-6">
                             <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-4">
@@ -407,11 +421,12 @@ const Reportes_Estadisticas = ({ onBack, language, onLanguageChange, selectedCou
                                 {t.exportReport}
                             </h3>
                             <p className="text-slate-500 text-sm mb-2">
-                                Exportar reporte con {reportData.length} registros
+                                Exportar reporte de {countryName}
                             </p>
                             <p className="text-slate-500 text-sm mb-6">
-                                {Object.keys(studentsByLevel).length} hojas por categoría
+                                {reportData.length} registros - {Object.keys(studentsByLevel).length} niveles
                             </p>
+
                             <button onClick={exportToExcel} className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 transition-all shadow-md">
                                 <FileSpreadsheet size={18} />
                                 {t.exportReport} (Excel)

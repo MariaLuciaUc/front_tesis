@@ -88,7 +88,8 @@ const translations = {
         scoresPublished: "Puntuaciones publicadas exitosamente",
         credentialsExported: "Credenciales exportadas exitosamente",
         activeSession: "Activa",
-        inactiveSession: "Inactiva"
+        inactiveSession: "Inactiva",
+        session: "Sesión"
     },
     en: {
         logout: "Logout",
@@ -165,7 +166,8 @@ const translations = {
         scoresPublished: "Scores published successfully",
         credentialsExported: "Credentials exported successfully",
         activeSession: "Active",
-        inactiveSession: "Inactive"
+        inactiveSession: "Inactive",
+        session: "Session"
     },
     pt: {
         logout: "Sair",
@@ -242,7 +244,8 @@ const translations = {
         scoresPublished: "Pontuacoes publicadas com sucesso",
         credentialsExported: "Credenciais exportadas com sucesso",
         activeSession: "Ativa",
-        inactiveSession: "Inativa"
+        inactiveSession: "Inativa",
+        session: "Sessao"
     },
     fr: {
         logout: "Deconnexion",
@@ -319,7 +322,8 @@ const translations = {
         scoresPublished: "Scores publies avec succes",
         credentialsExported: "Identifiants exportes avec succes",
         activeSession: "Active",
-        inactiveSession: "Inactive"
+        inactiveSession: "Inactive",
+        session: "Session"
     }
 };
 
@@ -457,29 +461,19 @@ const Gestion_grupos_estudiantes = () => {
         );
     }
 
-    const handleGroupCreated = async (newGroup) => {
-        try {
-            const groupData = {
-                ...newGroup,
-                teacher_id: teacherId
-            };
+    // ✅ FUNCIÓN CORREGIDA - SOLO ACTUALIZA EL ESTADO LOCAL, NO HACE PETICIONES
+    const handleGroupCreated = (newGroup) => {
+        // Agregar el nuevo grupo al estado local
+        setGroups(prevGroups => [newGroup, ...prevGroups]);
 
-            const response = await api.post('/groups', groupData);
+        // Seleccionar el nuevo grupo automáticamente
+        setSelectedGroupId(newGroup.id);
 
-            await loadGroups();
+        // Cerrar el modal de creación
+        setShowCreateGroup(false);
 
-            if (response.data && response.data.id) {
-                setSelectedGroupId(response.data.id.toString());
-            }
-
-            setShowCreateGroup(false);
-            toast.success('Grupo creado exitosamente');
-
-        } catch (error) {
-            console.error('Error al crear grupo:', error);
-            const errorMessage = error.response?.data?.message || 'Error al crear el grupo';
-            toast.error(errorMessage);
-        }
+        // Mostrar toast de éxito (ya se muestra en Crear_Grupo, pero por si acaso)
+        toast.success('Grupo creado exitosamente');
     };
 
     const handleDeleteGroup = async () => {
@@ -624,7 +618,6 @@ const Gestion_grupos_estudiantes = () => {
         ));
     };
 
-    // Función para cerrar desafío - SOLO cambia el estado local
     const closeChallenge = () => {
         if (!selectedGroup) return;
 
@@ -634,7 +627,6 @@ const Gestion_grupos_estudiantes = () => {
         }
 
         if (window.confirm(t.publishConfirm)) {
-            // Solo actualizar el estado local para mostrar los botones
             setGroups(groups.map(group =>
                 group.id === selectedGroup.id
                     ? {
@@ -770,7 +762,6 @@ const Gestion_grupos_estudiantes = () => {
             if (response.data.success) {
                 toast.success(t.studentUpdated);
 
-                // Recargar estudiantes para obtener datos actualizados
                 const studentsResponse = await api.get(`/groups/${selectedGroupId}/students`);
                 if (studentsResponse.data && studentsResponse.data.students) {
                     setGroups(prevGroups => prevGroups.map(group =>
@@ -996,7 +987,6 @@ const Gestion_grupos_estudiantes = () => {
                                             </button>
                                         )}
 
-                                        {/* Botones de exportación - SOLO VISIBLES cuando el desafío está cerrado */}
                                         {selectedGroup.challengeClosed && (
                                             <>
                                                 <button
@@ -1047,14 +1037,13 @@ const Gestion_grupos_estudiantes = () => {
                                                     <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.student}</th>
                                                     <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.score}</th>
                                                     <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.status}</th>
-                                                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">Sesión</th>
+                                                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.session}</th>
                                                     <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">{t.actions}</th>
                                                 </tr>
                                                 </thead>
                                                 <tbody>
                                                 {selectedGroup.students && selectedGroup.students.length > 0 ? (
                                                     selectedGroup.students.map((student) => {
-                                                        // Datos obtenidos de ContestSession a través del backend
                                                         const displayStatus = student.status || 'not_started';
                                                         const displayScore = student.score !== null && student.score !== undefined
                                                             ? student.score

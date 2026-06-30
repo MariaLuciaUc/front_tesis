@@ -87,13 +87,11 @@ const Panel_Estudiante = ({ onLogout }) => {
             });
         }
 
-        // Cargar tiempos y mensajes por categoría
         const loadCategoryData = () => {
             const times = {};
             const messages = {};
 
             categories.forEach(cat => {
-                // Cargar tiempo
                 const storedTime = localStorage.getItem(`bebrasCategoryTime_${cat.id}`);
                 if (storedTime) {
                     times[cat.id] = parseInt(storedTime);
@@ -101,7 +99,6 @@ const Panel_Estudiante = ({ onLogout }) => {
                     times[cat.id] = savedConfig ? JSON.parse(savedConfig).executionTime : 45;
                 }
 
-                // Cargar mensaje de bienvenida por categoría
                 const levelConfigs = localStorage.getItem('bebrasLevelConfigs');
                 if (levelConfigs) {
                     const configs = JSON.parse(levelConfigs);
@@ -152,7 +149,6 @@ const Panel_Estudiante = ({ onLogout }) => {
         return () => window.removeEventListener('storage', handleStorageChange);
     }, []);
 
-    // Actualizar cuando cambia el idioma
     useEffect(() => {
         const savedConfig = localStorage.getItem('bebrasContestConfig');
         const config = savedConfig ? JSON.parse(savedConfig) : { executionTime: 45 };
@@ -226,7 +222,6 @@ const Panel_Estudiante = ({ onLogout }) => {
         );
     }
 
-    // Obtener el mensaje de bienvenida específico de la categoría del estudiante
     const studentWelcomeMessage = studentCategoryId
         ? categoryWelcomeMessages[studentCategoryId] || contestConfig?.welcomeMessageStudent || '¡Bienvenido al Desafío Bebras!'
         : contestConfig?.welcomeMessageStudent || '¡Bienvenido al Desafío Bebras!';
@@ -276,7 +271,6 @@ const Panel_Estudiante = ({ onLogout }) => {
             </header>
 
             <main className="w-full flex-1 flex flex-col md:flex-row overflow-hidden">
-                {/* Columna Izquierda - Categorías */}
                 <section className="w-full md:w-1/2 h-1/2 md:h-full bg-white p-6 md:p-10 flex flex-col border-r border-slate-200 overflow-y-auto">
                     <div className="mb-4">
                         <h3 className="text-xl font-extrabold text-slate-800 flex items-center gap-2">
@@ -323,7 +317,6 @@ const Panel_Estudiante = ({ onLogout }) => {
                     </div>
                 </section>
 
-                {/* Columna Derecha - Mensaje de Bienvenida */}
                 <section className="w-full md:w-1/2 h-1/2 md:h-full bg-linear-to-br from-slate-50 to-blue-50/40 p-6 md:p-12 flex flex-col justify-center items-center overflow-y-auto">
                     <div className="max-w-md text-center animate-[fadeInUp_.4s_ease-out]">
                         <div className="w-24 h-24 bg-blue-100 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-blue-200/50">
@@ -332,7 +325,6 @@ const Panel_Estudiante = ({ onLogout }) => {
                         <h3 className="text-3xl font-black text-slate-800 tracking-tight mb-4">
                             {t.welcome}
                         </h3>
-                        {/* Mensaje de bienvenida específico de la categoría */}
                         <p className="text-slate-600 text-base leading-relaxed mb-8 bg-white/70 backdrop-blur-xs p-5 rounded-2xl border border-slate-200/60 shadow-xs text-left md:text-center">
                             {studentWelcomeMessage}
                         </p>

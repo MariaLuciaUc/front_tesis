@@ -1,4 +1,3 @@
-// Pregunta.jsx
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Send, CheckCircle, Edit3, ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
 
@@ -83,7 +82,6 @@ const Pregunta = ({
                       isLast,
                       language = 'es',
                       initialLeftWidth = 50,
-                      hideCategoryInfo = true
                   }) => {
     const t = translations[language] || translations.es;
     const containerRef = useRef(null);
@@ -147,7 +145,6 @@ const Pregunta = ({
         return `/images/${option}`;
     };
 
-    // Verificar si una opción es una imagen que también está en images
     const isOptionImageFromQuestion = (option) => {
         if (!question.images) return false;
         return question.images.some(img =>
@@ -157,13 +154,11 @@ const Pregunta = ({
         );
     };
 
-    // Determinar si TODAS las opciones son imágenes
     const areAllOptionsImages = () => {
         if (!question.options || question.options.length === 0) return false;
         return question.options.every(opt => isImageOption(opt) || isOptionImageFromQuestion(opt));
     };
 
-    // Verificar si una imagen es una opción (comparación mejorada)
     const isImageAnOption = (img) => {
         if (!question.options) return false;
         // Si la imagen no tiene extensión, no es una opción de imagen
@@ -171,14 +166,11 @@ const Pregunta = ({
             return false;
         }
         return question.options.some(opt => {
-            // Si la opción no es una imagen, no comparar
             if (!isImageOption(opt)) {
                 return false;
             }
-            // Limpiar nombres para comparar (quitar extensión y espacios)
             const cleanImg = img.replace(/\.(jpg|jpeg|png|gif|svg|webp)$/i, '').trim().toLowerCase();
             const cleanOpt = opt.replace(/\.(jpg|jpeg|png|gif|svg|webp)$/i, '').trim().toLowerCase();
-            // Verificar si el nombre completo coincide o si el nombre sin extensión coincide
             return opt === img ||
                 opt === img.replace('/images/', '') ||
                 img === `/images/${opt}` ||
@@ -186,14 +178,12 @@ const Pregunta = ({
         });
     };
 
-    // Verificar si una imagen es una imagen de opciones (contiene "options" en el nombre)
     const isOptionsImage = (img) => {
         if (typeof img !== 'string') return false;
         const lower = img.toLowerCase();
         return lower.includes('options') || lower.includes('opciones');
     };
 
-    // Obtener la letra correspondiente al índice (A, B, C, D, ...)
     const getLetter = (index) => {
         return String.fromCharCode(65 + index); // 65 = 'A'
     };
@@ -205,13 +195,11 @@ const Pregunta = ({
                 className="flex relative h-full"
                 style={{ height: 'calc(100vh - 120px)', minHeight: '500px' }}
             >
-                {/* Panel izquierdo - Contenido de la pregunta */}
                 <div
                     className="overflow-y-auto p-8"
                     style={{ width: `${leftWidth}%` }}
                 >
                     <div className="max-w-none">
-                        {/* Encabezado de pregunta - SIN categoría ni grupo de edad */}
                         <div className="mb-6 pb-4 border-b border-slate-200">
                             <div className="flex justify-between items-start">
                                 <h2 className="text-xl font-semibold text-blue-600 mb-1">
@@ -232,14 +220,12 @@ const Pregunta = ({
                             </p>
                         </div>
 
-                        {/* Título de la tarea */}
                         {question.title && (
                             <h3 className="text-2xl font-bold text-gray-800 mb-4">
                                 {question.title}
                             </h3>
                         )}
 
-                        {/* Pregunta/Enunciado - SIN etiqueta "Enunciado" */}
                         <div className="mb-6">
                             <div className="prose prose-slate max-w-none">
                                 <p className="text-slate-800 text-lg leading-relaxed whitespace-pre-wrap">
@@ -248,7 +234,6 @@ const Pregunta = ({
                             </div>
                         </div>
 
-                        {/* Instrucciones adicionales para niños */}
                         {question.instructions && (
                             <div className="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
                                 <p className="text-blue-800 text-sm leading-relaxed whitespace-pre-wrap">
@@ -257,26 +242,21 @@ const Pregunta = ({
                             </div>
                         )}
 
-                        {/* Imagen de la pregunta - SIN etiqueta "Imagen" */}
                         {question.images && question.images.length > 0 && (
                             <div className="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
                                 <div className="flex flex-wrap gap-6 justify-center">
                                     {question.images.map((img, idx) => {
-                                        // Verificar si esta imagen es una opción
                                         const isOptionImage = isImageAnOption(img);
 
-                                        // Si es una imagen de opción, NO mostrarla en el panel izquierdo
                                         if (isOptionImage) {
                                             return null;
                                         }
 
-                                        // Solo mostrar imágenes que tengan extensión (jpg, png, etc.)
                                         const hasExtension = img.match(/\.(jpg|jpeg|png|gif|svg|webp)$/i);
                                         if (!hasExtension) {
                                             return null;
                                         }
 
-                                        // Verificar si es una imagen de opciones (contiene "options")
                                         const isOptionsImg = isOptionsImage(img);
 
                                         return (
@@ -290,7 +270,6 @@ const Pregunta = ({
                                                         e.target.alt = 'Imagen no disponible';
                                                     }}
                                                 />
-                                                {/* Si es una imagen de opciones, mostrar las etiquetas A, B, C, D debajo */}
                                                 {isOptionsImg && (
                                                     <div className="flex justify-center gap-8 mt-2 w-full">
                                                         {['A', 'B', 'C', 'D'].map((letter, i) => (
@@ -309,7 +288,6 @@ const Pregunta = ({
                     </div>
                 </div>
 
-                {/* Divisor vertical arrastrable */}
                 <div
                     className={`relative w-2 cursor-col-resize bg-slate-200 hover:bg-blue-400 transition-colors flex-shrink-0 ${
                         isDragging ? 'bg-blue-500' : ''
@@ -324,7 +302,6 @@ const Pregunta = ({
                     </div>
                 </div>
 
-                {/* Panel derecho - Respuesta del alumno */}
                 <div
                     className="overflow-y-auto p-8 bg-slate-50"
                     style={{ width: `${100 - leftWidth}%` }}
@@ -340,9 +317,7 @@ const Pregunta = ({
                         </div>
 
                         <div className="flex-1 flex flex-col gap-4">
-                            {/* Renderizado según el tipo de pregunta */}
                             {question.type === 'numeric' ? (
-                                // Pregunta numérica - campo de texto pequeño
                                 <div className="flex-1 flex flex-col gap-4">
                                     <div className="flex flex-col gap-2">
                                         <label className="text-sm text-slate-600 font-medium">
@@ -371,7 +346,6 @@ const Pregunta = ({
                                     )}
                                 </div>
                             ) : question.type === 'text' || question.type === 'open' ? (
-                                // Pregunta de texto abierto
                                 <div className="flex-1 flex flex-col gap-3">
                                     <textarea
                                         value={answer || ''}
@@ -393,7 +367,6 @@ const Pregunta = ({
                                     )}
                                 </div>
                             ) : (
-                                // Pregunta de opción múltiple / single-choice
                                 <div className="flex-1">
                                     <p className="text-sm text-slate-500 mb-3">
                                         {areAllOptionsImages() ? "Haz clic en la imagen que creas correcta" : t.selectOption}
@@ -406,7 +379,6 @@ const Pregunta = ({
                                             const isAllImages = areAllOptionsImages();
                                             const letter = getLetter(idx);
 
-                                            // Si todas las opciones son imágenes, mostrarlas en un grid
                                             if (isAllImages) {
                                                 return (
                                                     <div
@@ -433,7 +405,6 @@ const Pregunta = ({
                                                                 <CheckCircle size={16} className="text-white" />
                                                             </div>
                                                         )}
-                                                        {/* Etiqueta con la letra debajo de la imagen en el panel derecho */}
                                                         <div className={`text-center py-1.5 text-sm font-bold ${
                                                             isSelected
                                                                 ? 'bg-blue-500 text-white'
@@ -445,7 +416,6 @@ const Pregunta = ({
                                                 );
                                             }
 
-                                            // Si no son todas imágenes, mostrar con radio button
                                             return (
                                                 <div
                                                     key={idx}
@@ -507,7 +477,6 @@ const Pregunta = ({
                             )}
                         </div>
 
-                        {/* Navegación entre preguntas */}
                         <div className="flex justify-between items-center pt-6 mt-6 border-t border-slate-200">
                             <button
                                 disabled={isFirst}

@@ -159,11 +159,9 @@ const Panel_Coordinador_Nacional = ({ onLanguageChange: externalLanguageChange, 
         try {
             const year = new Date().getFullYear();
 
-            // Construir el mensaje
             const subject = `Clave de acceso para el Desafío Bebras ${year}`;
             const body = `Estimado profesor,\n\nSe ha generado la clave de acceso para el Desafío Bebras ${year}:\n\nCLAVE: ${accessKey}\n\nPor favor, utilice esta clave para activar su cuenta y acceder al panel de profesor.\n\nSaludos,\nCoordinación Nacional Bebras`;
 
-            // Enviar a todos los profesores
             const response = await api.post('/send-email', {
                 subject: subject,
                 body: body
@@ -225,7 +223,7 @@ const Panel_Coordinador_Nacional = ({ onLanguageChange: externalLanguageChange, 
             onBack={() => setShowReportes(false)}
             language={language}
             onLanguageChange={handleLanguageChange}
-            selectedCountry={selectedCountry}  // 🔥 Pasamos el país seleccionado
+            selectedCountry={selectedCountry}
         />;
     }
 
